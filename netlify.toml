@@ -1,0 +1,36 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/first-rate-you/*"
+  to = "/first-rate-you/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/wealth-flow/*"
+  to = "/wealth-flow/index.html"
+  status = 200
+
+[[redirects]]
+  from = "http://www.zenseek.org/*"
+  to = "https://zenseek.org/:splat"
+  status = 301
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

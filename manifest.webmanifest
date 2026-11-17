@@ -1,0 +1,12 @@
+{
+  "name": "ZenSeek",
+  "short_name": "ZenSeek",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1876f2",
+  "theme_color": "#1876f2",
+  "icons": [
+    { "src": "/images/main-192.webp", "sizes": "192x192", "type": "image/webp" },
+    { "src": "/images/main-512.webp", "sizes": "512x512", "type": "image/webp" }
+  ]
+}

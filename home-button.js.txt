@@ -1,0 +1,38 @@
+<script>
+// Inject a floating Home button on every page except "/"
+(() => {
+  const isHome = location.pathname === '/' || location.pathname === '/index.html';
+  if (isHome) return;
+
+  const css = `
+    .home-fab{ position:fixed; right:16px; bottom:16px; z-index:10000;
+      display:inline-flex; align-items:center; gap:8px;
+      background:linear-gradient(135deg, hsl(var(--h),70%,55%) 0%, hsl(var(--h),70%,45%) 100%);
+      color:hsl(var(--h),100%,6%); font-weight:700; text-decoration:none; padding:12px 14px;
+      border-radius:999px; box-shadow:0 10px 30px rgba(0,0,0,.25), 0 0 0 1px hsla(var(--h),60%,70%,.25);
+      transition:transform .15s ease, box-shadow .15s ease; }
+    .home-fab:hover{ transform:translateY(-2px); box-shadow:0 16px 40px rgba(0,0,0,.30) }
+    .home-fab svg{ width:18px; height:18px }
+    @media (prefers-reduced-motion: reduce){ .home-fab{ transition:none } }
+  `;
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  const a = document.createElement('a');
+  a.href = '/';
+  a.className = 'home-fab';
+  a.title = 'Home (H)';
+  a.innerHTML = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 11l9-7 9 7M5 10v10h14V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg> Home`;
+
+  document.body.appendChild(a);
+
+  // Keyboard shortcut: press "H" to go home
+  addEventListener('keydown', (e)=>{
+    if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+    if (e.key.toLowerCase() === 'h') location.href = '/';
+  });
+})();
+</script>
