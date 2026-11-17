@@ -388,7 +388,9 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
 def main():
     port = int(os.environ.get("PORT", "8080"))
     host = os.environ.get("HOST", "0.0.0.0")
-    if os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0":
+    
+    # Only run content agent in development (not on Heroku)
+    if os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0" and os.environ.get("DYNO") is None:
         def scheduled_content_agent():
             while True:
                 try:
@@ -397,9 +399,12 @@ def main():
                     print(f"[{time.strftime('%H:%M:%S')}] Content agent generated {len(store['items'])} items and updated daily feed")
                 except Exception as exc:
                     print(f"[{time.strftime('%H:%M:%S')}] Content agent update failed: {exc}")
+                    import traceback
+                    traceback.print_exc()
                 # Run every minute to keep news feed live and current
                 time.sleep(60)
         threading.Thread(target=scheduled_content_agent, name="trends-agent", daemon=True).start()
+    
     server = ThreadingHTTPServer((host, port), ZenSeekHandler)
     print(f"ZenSeek API listening on http://{host}:{port}")
     try:
