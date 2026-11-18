@@ -90,6 +90,9 @@ def openapi_spec():
             "/api/v1/trends/daily": {
                 "get": {"summary": "Latest generated U.S. daily trend content", "responses": {"200": {"description": "Daily content"}}}
             },
+            "/api/v1/newsletter": {
+                "get": {"summary": "Newsletter signup availability", "responses": {"200": {"description": "Signup information"}}}
+            },
             "/api/v1/agent/run": {
                 "post": {"summary": "Run the content agent immediately", "responses": {"200": {"description": "Agent result"}}}
             },
@@ -242,6 +245,16 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
             self.send_json(200, load_store(), "no-cache")
             return
 
+        if path == "/api/v1/newsletter":
+            from newsletter import configuration
+            try:
+                config = configuration()
+            except ValueError as exc:
+                print(f"Newsletter configuration error: {exc}", flush=True)
+                config = None
+            self.send_json(200, {"signup_url": config["BREVO_SIGNUP_URL"] if config else None})
+            return
+
         if path.startswith("/story/"):
             slug = path[len("/story/"):].strip("/")
             items = load_store()["items"]
@@ -255,7 +268,7 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
                     self.serve_static(item["path"].rstrip("/") + "/index.html")
                     return
 
-                from content_agent import render_page, template_generate
+                from content_agent import fact_check_agent, render_page, template_generate
                 topic = item["topic"]
                 category = item["category"].removeprefix("Daily ")
                 articles = item["sources"]
@@ -263,13 +276,11 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
                 if content is None:
                     content = template_generate(topic, category, articles)
                     content["headline"] = item["headline"]
-                    content["lede"] = item["description"]
-                    content["economy_impact"] = item["economy_impact"]
-                    content["actions"] = item["actions"]
+                fact_check = fact_check_agent(topic, articles) if item.get("content") is None else item["fact_check"]
                 self.send_text(200, render_page(
                     topic, category, content, item["published"],
                     next((i for i, entry in enumerate(items, 1) if entry["slug"] == slug), 1),
-                    item["traffic"], articles, item["fact_check"], item["economic_impact_score"],
+                    item["traffic"], articles, fact_check, item["economic_impact_score"],
                 ))
                 return
             match = re.match(r"^daily-(\d{4}-\d{2}-\d{2})-(.+)$", slug)
@@ -442,6 +453,21 @@ def main():
         threading.Thread(target=scheduled_content_agent, name="trends-agent", daemon=True).start()
     elif os.environ.get("DYNO") and os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0":
         print("Content agent disabled: DATABASE_URL is required on Heroku", flush=True)
+
+    if os.environ.get("ENABLE_NEWSLETTER") == "1":
+        def scheduled_newsletter():
+            while True:
+                try:
+                    from newsletter import run_daily
+                    campaign_id = run_daily()
+                    if campaign_id:
+                        print(f"Newsletter campaign {campaign_id} submitted to Brevo", flush=True)
+                except Exception as exc:
+                    print(f"Newsletter update failed: {exc}", flush=True)
+                    import traceback
+                    traceback.print_exc()
+                time.sleep(60)
+        threading.Thread(target=scheduled_newsletter, name="newsletter", daemon=True).start()
     
     server = ThreadingHTTPServer((host, port), ZenSeekHandler)
     print(f"ZenSeek API listening on http://{host}:{port}")

@@ -43,6 +43,14 @@ def initialize(conn):
                     updated_at timestamptz NOT NULL DEFAULT now()
                 )
             """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS newsletter_sends (
+                    send_date date PRIMARY KEY,
+                    status text NOT NULL,
+                    campaign_id bigint,
+                    updated_at timestamptz NOT NULL DEFAULT now()
+                )
+            """)
         conn.commit()
         _initialized_url = database_url()
 
@@ -59,6 +67,45 @@ def load_story(slug):
         initialize(conn)
         row = conn.execute("SELECT item FROM news_stories WHERE slug = %s", (slug,)).fetchone()
         return row[0] if row else None
+
+
+def recent_stories():
+    with connection() as conn:
+        initialize(conn)
+        return [row[0] for row in conn.execute(
+            "SELECT item FROM news_stories WHERE updated_at >= now() - interval '7 days' ORDER BY updated_at DESC LIMIT 300"
+        ).fetchall()]
+
+
+def claim_newsletter(send_date):
+    with connection() as conn:
+        initialize(conn)
+        row = conn.execute("""
+            INSERT INTO newsletter_sends (send_date, status)
+            VALUES (%s, 'claimed') ON CONFLICT (send_date) DO NOTHING
+            RETURNING send_date
+        """, (send_date,)).fetchone()
+        conn.commit()
+        return row is not None
+
+
+def newsletter_attempted(send_date):
+    with connection() as conn:
+        initialize(conn)
+        return conn.execute(
+            "SELECT 1 FROM newsletter_sends WHERE send_date = %s", (send_date,)
+        ).fetchone() is not None
+
+
+def update_newsletter(send_date, status, campaign_id=None):
+    with connection() as conn:
+        initialize(conn)
+        conn.execute("""
+            UPDATE newsletter_sends SET status = %s,
+                campaign_id = COALESCE(%s, campaign_id), updated_at = now()
+            WHERE send_date = %s
+        """, (status, campaign_id, send_date))
+        conn.commit()
 
 
 def save_feed(conn, store, catalog, started_at):

@@ -4,6 +4,7 @@ import threading
 import json
 import xml.etree.ElementTree as ET
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from unittest.mock import patch
@@ -12,7 +13,104 @@ from urllib.request import urlopen
 
 import app
 import content_agent
+import newsletter
 from content_agent import classify, economic_impact_score, slugify, template_generate
+
+
+class NewsletterTests(unittest.TestCase):
+    def setUp(self):
+        self.now = datetime(2026, 11, 18, 15, 5, tzinfo=timezone.utc)
+        self.env = {
+            "ENABLE_NEWSLETTER": "1", "DATABASE_URL": "postgres://test",
+            "BREVO_API_KEY": "test-key", "BREVO_LIST_ID": "7",
+            "BREVO_SENDER_EMAIL": "news@example.com",
+            "BREVO_SIGNUP_URL": "https://abc.sibforms.com/serve/form",
+            "NEWSLETTER_POSTAL_ADDRESS": "PO Box 1",
+        }
+        self.story = {
+            "slug": "daily-today", "headline": "Today <news>", "description": "A useful summary.",
+            "content": {"story": ["Summary."]}, "published_at": self.now.isoformat(),
+        }
+        self.recent = {
+            "slug": "daily-recent", "headline": "A developing story",
+            "content": {"what_to_watch": ["Officials will publish a report."]},
+            "published_at": (self.now - timedelta(days=2)).isoformat(),
+        }
+
+    def test_digest_includes_grounded_recent_updates_and_unsubscribe(self):
+        old = dict(self.recent, slug="old", headline="Old story",
+                   published_at=(self.now - timedelta(days=8)).isoformat())
+        unsupported = dict(self.recent, slug="unsupported", content={"what_to_watch": []})
+        page = newsletter.digest_html([self.story], [old, unsupported, self.recent], self.now, "PO <Box>")
+        self.assertIn("Today &lt;news&gt;", page)
+        self.assertIn("Officials will publish a report.", page)
+        self.assertNotIn("Old story", page)
+        self.assertNotIn("unsupported", page)
+        self.assertIn('href="{{ unsubscribe }}"', page)
+        self.assertIn("PO &lt;Box&gt;", page)
+
+    def test_newsletter_sends_once_and_tracks_brevo_campaign(self):
+        with patch.dict("os.environ", self.env, clear=True), \
+                patch("news_storage.newsletter_attempted", side_effect=[False, True]), \
+                patch("news_storage.load_feed", return_value=({"updated_at": self.now.isoformat(), "items": [self.story]}, {})), \
+                patch("news_storage.recent_stories", return_value=[self.recent]), \
+                patch("news_storage.claim_newsletter", return_value=True) as claim, \
+                patch("news_storage.update_newsletter") as update, \
+                patch.object(newsletter, "brevo_request", side_effect=[{"id": 123}, {}]) as request:
+            self.assertEqual(newsletter.run_daily(self.now), 123)
+            self.assertIsNone(newsletter.run_daily(self.now))
+            claim.assert_called_once_with(self.now.date())
+            self.assertEqual(request.call_count, 2)
+            self.assertEqual(request.call_args.args[0], "/emailCampaigns/123/sendNow")
+            self.assertEqual(request.call_args_list[0].args[2]["recipients"]["listIds"], [7])
+            self.assertIn("Officials will publish a report.", request.call_args_list[0].args[2]["htmlContent"])
+            self.assertEqual(update.call_args_list[0].args, (self.now.date(), "sending", 123))
+            self.assertEqual(update.call_args_list[1].args, (self.now.date(), "submitted", 123))
+
+    def test_stale_feed_never_claims_or_sends(self):
+        stale = (self.now - timedelta(hours=49)).isoformat()
+        with patch.dict("os.environ", self.env, clear=True), \
+                patch("news_storage.newsletter_attempted", return_value=False), \
+                patch("news_storage.load_feed", return_value=({"updated_at": stale, "items": [self.story]}, {})), \
+                patch("news_storage.claim_newsletter") as claim, patch.object(newsletter, "brevo_request") as request:
+            with self.assertRaisesRegex(RuntimeError, "stale"):
+                newsletter.run_daily(self.now)
+            claim.assert_not_called()
+            request.assert_not_called()
+
+    def test_ambiguous_delivery_failure_is_recorded_without_retry(self):
+        with patch.dict("os.environ", self.env, clear=True), \
+                patch("news_storage.newsletter_attempted", return_value=False), \
+                patch("news_storage.load_feed", return_value=({"updated_at": self.now.isoformat(), "items": [self.story]}, {})), \
+                patch("news_storage.recent_stories", return_value=[]), \
+                patch("news_storage.claim_newsletter", return_value=True), \
+                patch("news_storage.update_newsletter") as update, \
+                patch.object(newsletter, "brevo_request", side_effect=[{"id": 123}, TimeoutError("timeout")]) as request:
+            with self.assertRaisesRegex(RuntimeError, "check Brevo"):
+                newsletter.run_daily(self.now)
+            self.assertEqual(request.call_count, 2)
+            self.assertEqual(update.call_args.args, (self.now.date(), "failed", 123))
+
+    def test_configuration_rejects_non_brevo_signup_url(self):
+        with patch.dict("os.environ", {**self.env, "BREVO_SIGNUP_URL": "https://sibforms.com.attacker.example/form"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "signup form URL"):
+                newsletter.configuration()
+
+    def test_brevo_request_posts_campaign_to_provider(self):
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self, limit):
+                return b'{"id":123}'
+        with patch("urllib.request.urlopen", return_value=Response()) as urlopen_mock:
+            self.assertEqual(newsletter.brevo_request("/emailCampaigns", "key", {"name": "Digest"}), {"id": 123})
+        request = urlopen_mock.call_args.args[0]
+        self.assertEqual(request.full_url, "https://api.brevo.com/v3/emailCampaigns")
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(request.get_header("Api-key"), "key")
+        self.assertEqual(json.loads(request.data), {"name": "Digest"})
 
 
 class ContentAgentTests(unittest.TestCase):
@@ -70,6 +168,16 @@ class ContentAgentTests(unittest.TestCase):
         self.assertEqual(articles[0]["description"], "A power outage caused train delays. Crews restored service after two hours.")
         self.assertTrue(content_agent.related_title("Power failure delays Chicago trains", articles[0]["title"]))
         self.assertFalse(content_agent.related_title("Power outage closes hospitals in Boston", articles[0]["title"]))
+
+    def test_reporting_detail_rejects_repeated_headlines(self):
+        headline = {"title": "Power failure delays Chicago trains",
+                    "description": "Power failure delays Chicago trains Example News"}
+        self.assertFalse(content_agent.has_reporting_detail([headline]))
+        headline["description"] = (
+            "The transit operator said crews repaired damaged equipment overnight. "
+            "Service resumed after two hours, though passengers faced continued delays."
+        )
+        self.assertTrue(content_agent.has_reporting_detail([headline]))
 
     def test_discovery_search_only_accepts_requested_publisher(self):
         body = b'''<rss><channel>
@@ -159,7 +267,12 @@ class ContentAgentTests(unittest.TestCase):
     def test_model_receives_source_context_for_original_briefing(self):
         response_body = {"choices": [{"message": {"content": json.dumps({
             "headline": "Transit delays", "subheadline": "An outage delayed trains.",
-            "lede": "Trains were delayed.", "story": ["Officials reported an outage."],
+            "lede": "Trains were delayed.", "story": [
+                "The transit operator reported a power failure that delayed trains across Chicago, "
+                "leaving passengers waiting while crews inspected the affected equipment.",
+                "Crews restored service after two hours, the operator said, though passengers "
+                "continued to face delays while trains returned to their normal schedules."
+            ],
             "notable_details": []
         })}}]}
         class Response:
@@ -177,8 +290,25 @@ class ContentAgentTests(unittest.TestCase):
         self.assertIn("Power outage reported", prompt)
         self.assertIn("Never reproduce", prompt)
         self.assertIn("notable_details", prompt)
-        self.assertIn("3-5", prompt)
+        self.assertIn("2-5", prompt)
         self.assertEqual(result["subheadline"], "An outage delayed trains.")
+
+    def test_model_rejects_thin_story(self):
+        response_body = {"choices": [{"message": {"content": json.dumps({
+            "headline": "Transit delays", "subheadline": "An outage delayed trains.",
+            "lede": "Trains were delayed.", "story": ["Read the linked reports for details."],
+            "notable_details": []
+        })}}]}
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self):
+                return json.dumps(response_body).encode()
+        with patch("urllib.request.urlopen", return_value=Response()):
+            with self.assertRaisesRegex(content_agent.InsufficientBriefingError, "thin"):
+                content_agent.llm_generate("Train delays", "News", [], api_key="test")
 
     def test_notable_details_render_only_when_supplied(self):
         item = app.load_store()["items"][0]
@@ -199,7 +329,7 @@ class ContentAgentTests(unittest.TestCase):
             "source": "Example News",
             "url": "https://example.com/report",
             "published": "Tue, 17 Nov 2026 10:00:00 GMT",
-            "description": "A power failure delayed trains.",
+            "description": "A power failure delayed trains across the city as repair crews worked overnight to restore service for commuters.",
             "leaning": "Not yet classified",
             "image": "https://example.com/report.jpg",
         }
@@ -236,7 +366,7 @@ class ContentAgentTests(unittest.TestCase):
                     "description": "A failure delayed trains.", "leaning": "Not yet classified"}
         related = {"title": "Power failure delays trains in Chicago", "source": "Publisher",
                    "url": "https://publisher.example/match", "published": "",
-                   "description": "Crews restored service after two hours.", "leaning": "Not yet classified"}
+                   "description": "Crews restored service after two hours, while the operator warned passengers of continued delays across the city.", "leaning": "Not yet classified"}
         unrelated = dict(related, title="Power outage closes hospitals in Boston",
                          url="https://publisher.example/other")
         briefing = {"headline": "Train delays", "subheadline": "Trains were delayed.",
@@ -260,7 +390,8 @@ class ContentAgentTests(unittest.TestCase):
         def headline(title, group=""):
             return {"title": title, "source": group or "National News",
                     "url": "https://example.com/" + slugify(title), "published": "",
-                    "description": "A report.", "leaning": "Not yet classified",
+                    "description": "Officials announced the new development on Tuesday after months of public meetings and discussions with local residents.",
+                    "leaning": "Not yet classified",
                     "publisher_group": group}
 
         national = [headline(f"National story number {i}") for i in range(20)]
@@ -286,7 +417,8 @@ class ContentAgentTests(unittest.TestCase):
 
     def test_refresh_can_use_publisher_stories_when_national_feed_fails(self):
         local = {"title": "Reno road project approved", "source": "KOLO 8 News Now",
-                 "url": "https://www.kolotv.com/story", "published": "", "description": "A report.",
+                 "url": "https://www.kolotv.com/story", "published": "",
+                 "description": "Officials approved the road project on Tuesday after months of public meetings and discussions with local residents.",
                  "leaning": "Not yet classified", "publisher_group": "KOLO 8 News Now"}
         briefing = {"headline": "Road project", "subheadline": "A project was approved.",
                     "lede": "The project was approved.", "story": ["The project was approved."]}
@@ -302,6 +434,46 @@ class ContentAgentTests(unittest.TestCase):
                     patch("news_storage.load_feed", return_value=None), patch("news_storage.save_feed"):
                 store = content_agent.run(1, database_conn=object(), refresh_started="start")
             self.assertEqual(store["items"][0]["sources"][0]["source"], "KOLO 8 News Now")
+
+    def test_refresh_skips_thin_candidates_and_keeps_later_detailed_story(self):
+        def headline(title, description):
+            return {"title": title, "source": "Publisher", "url": "https://example.com/" + slugify(title),
+                    "published": "", "description": description, "leaning": "Not yet classified"}
+        headlines = [
+            headline("First story", "First story Publisher"),
+            headline("Second story", "Officials announced the new development on Tuesday after months of public meetings and discussions with local residents."),
+            headline("Third story", "The transit operator reported damage to equipment overnight and crews restored service after two hours of repairs."),
+        ]
+        briefing = {"headline": "Third story", "subheadline": "Service resumed.",
+                    "lede": "Service resumed.", "story": ["Details."]}
+        with tempfile.TemporaryDirectory() as root:
+            catalog = Path(root) / "catalog.json"
+            catalog.write_text('{"items": []}')
+            with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
+                    patch.object(content_agent, "CATALOG_PATH", catalog), \
+                    patch.object(content_agent, "fetch_major_news", return_value=headlines), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=[]), \
+                    patch.object(content_agent, "source_collector_agent", return_value=[]), \
+                    patch.object(content_agent, "llm_generate", side_effect=[content_agent.InsufficientBriefingError("thin"), briefing]) as model, \
+                    patch("news_storage.load_feed", return_value=None), patch("news_storage.save_feed"):
+                store = content_agent.run(1, database_conn=object(), refresh_started="start")
+            self.assertEqual(store["items"][0]["topic"], "Third story")
+            self.assertEqual(model.call_count, 2)
+
+    def test_refresh_keeps_previous_feed_when_no_sources_have_detail(self):
+        headline = {"title": "Power failure delays trains", "source": "News",
+                    "url": "https://example.com/story", "published": "",
+                    "description": "Power failure delays trains News", "leaning": "Not yet classified"}
+        with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
+                patch.object(content_agent, "fetch_major_news", return_value=[headline]), \
+                patch.object(content_agent, "fetch_publisher_news", return_value=[]), \
+                patch.object(content_agent, "source_collector_agent", return_value=[]), \
+                patch.object(content_agent, "llm_generate") as model, \
+                patch("news_storage.save_feed") as save:
+            with self.assertRaisesRegex(RuntimeError, "No sufficiently detailed"):
+                content_agent.run(1, database_conn=object(), refresh_started="start")
+            model.assert_not_called()
+            save.assert_not_called()
 
 
 class StoryRouteTests(unittest.TestCase):
@@ -335,6 +507,32 @@ class StoryRouteTests(unittest.TestCase):
             with urlopen(f"{self.base_url}/story/{item['slug']}") as response:
                 page = response.read().decode("utf-8")
         self.assertIn("Saved story", page)
+
+    def test_archived_story_does_not_show_generic_legacy_filler(self):
+        with tempfile.TemporaryDirectory() as root, patch.object(app, "ROOT", Path(root)):
+            with urlopen(f"{self.base_url}/story/{self.item['slug']}") as response:
+                page = response.read().decode("utf-8")
+        self.assertIn("A full briefing is not available for this archived story.", page)
+        self.assertNotIn("Economic impact depends on what happens next", page)
+        self.assertNotIn("Read the source links for the full context", page)
+        self.assertNotIn("Moderate to high", page)
+        self.assertNotIn("U.S. economic impact ranking", page)
+
+    def test_newsletter_availability_does_not_expose_provider_key(self):
+        env = {
+            "ENABLE_NEWSLETTER": "1", "DATABASE_URL": "postgres://test",
+            "BREVO_API_KEY": "secret", "BREVO_LIST_ID": "7",
+            "BREVO_SENDER_EMAIL": "news@example.com",
+            "BREVO_SIGNUP_URL": "https://abc.sibforms.com/serve/form",
+            "NEWSLETTER_POSTAL_ADDRESS": "PO Box 1",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            with urlopen(f"{self.base_url}/api/v1/newsletter") as response:
+                body = json.load(response)
+        self.assertEqual(body, {"signup_url": env["BREVO_SIGNUP_URL"]})
+        with patch.dict("os.environ", {}, clear=True):
+            with urlopen(f"{self.base_url}/api/v1/newsletter") as response:
+                self.assertEqual(json.load(response), {"signup_url": None})
 
     def test_missing_story_returns_404(self):
         with self.assertRaises(HTTPError) as error:

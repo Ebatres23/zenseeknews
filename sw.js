@@ -30,7 +30,7 @@ workbox.routing.registerRoute(
 self.addEventListener('install', (e) => {
   // why: cache shell & critical assets for instant repeat visits
   e.waitUntil(
-    caches.open('zenseek-v4').then(cache => cache.addAll([
+    caches.open('zenseek-v5').then(cache => cache.addAll([
       '/',       '/manifest.webmanifest',
       '/images/main.png',
       '/images/main.png'
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(req).then(resp => {
         const copy = resp.clone();
-        caches.open('zenseek-v4').then(c => c.put(req, copy));
+        caches.open('zenseek-v5').then(c => c.put(req, copy));
         return resp;
       }).catch(() => caches.match(req))
     );
@@ -66,7 +66,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       caches.match(req).then(cached => cached || fetch(req).then(resp => {
         const copy = resp.clone();
-        caches.open('zenseek-v4').then(c => c.put(req, copy));
+        caches.open('zenseek-v5').then(c => c.put(req, copy));
         return resp;
       }))
     );
