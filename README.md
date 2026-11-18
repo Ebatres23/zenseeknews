@@ -71,6 +71,16 @@ Set `AGENT_TOKEN` to require `Authorization: Bearer <token>` for
 `POST /api/v1/agent/run`. Heroku rejects manual runs when this token is unset.
 
 Set `OPENAI_API_KEY` and optionally `OPENAI_BASE_URL` and `OPENAI_MODEL`.
-Briefings use feed headlines and summaries, not necessarily full articles;
-details and images are only available when supplied by sources. Missing
-images are omitted. Inspect Heroku logs for feed or model errors.
+Briefings use headlines and short summaries from Google News and matching
+publisher RSS feeds, not necessarily full articles. The agent requests detailed,
+original summaries and interesting details only when supported by the sources;
+some stories will have limited context. Images are omitted when unavailable.
+Inspect Heroku logs for feed or model errors.
+
+Story discovery includes Associated Press and KOLO 8 through Google News
+site searches, as well as local RSS feeds from WFMY News 2 (North Carolina),
+KING 5 (Washington) and WUSA9 (Washington, D.C.). The agent also searches for
+`mynews2.com`; results depend on that site's availability in Google News.
+Part of each refresh is reserved for distinct outlets when results are available.
+Google News results link through Google; direct RSS results link to the publisher.
+If an outlet has no usable results, it cannot be included in that refresh.

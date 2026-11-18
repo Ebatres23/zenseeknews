@@ -44,6 +44,58 @@ class ContentAgentTests(unittest.TestCase):
             '<item><enclosure url="data:image/svg+xml,test" type="image/svg+xml"/></item>'
         )))
 
+    def test_publisher_feed_summaries_and_related_titles(self):
+        body = b'''<rss><channel><item>
+            <title>Power failure delays trains in Chicago</title>
+            <link>https://publisher.example/train-story</link>
+            <pubDate>Tue, 17 Nov 2026 10:00:00 GMT</pubDate>
+            <description><![CDATA[<p>A power outage caused train delays.</p>
+            <p>Crews restored service after two hours.</p>]]></description>
+        </item></channel></rss>'''
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self, size):
+                return body
+        class Opener:
+            def open(self, request, timeout):
+                return Response()
+        with patch.object(content_agent, "PUBLISHER_FEEDS", (("Publisher", "https://publisher.example/feed"),)), \
+                patch.object(content_agent, "DISCOVERY_FEEDS", ()), \
+                patch("urllib.request.build_opener", return_value=Opener()):
+            articles = content_agent.fetch_publisher_news()
+        self.assertEqual(len(articles), 1)
+        self.assertEqual(articles[0]["description"], "A power outage caused train delays. Crews restored service after two hours.")
+        self.assertTrue(content_agent.related_title("Power failure delays Chicago trains", articles[0]["title"]))
+        self.assertFalse(content_agent.related_title("Power outage closes hospitals in Boston", articles[0]["title"]))
+
+    def test_discovery_search_only_accepts_requested_publisher(self):
+        body = b'''<rss><channel>
+            <item><title>AP story</title><link>https://news.google.com/ap</link>
+                <source url="https://apnews.com">The Associated Press</source></item>
+            <item><title>Other story</title><link>https://news.google.com/other</link>
+                <source url="https://other.example">Other News</source></item>
+        </channel></rss>'''
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self, size):
+                return body
+        class Opener:
+            def open(self, request, timeout):
+                return Response()
+        with patch.object(content_agent, "PUBLISHER_FEEDS", ()), \
+                patch.object(content_agent, "DISCOVERY_FEEDS", (("Associated Press", "https://news.google.com/feed", "apnews.com"),)), \
+                patch("urllib.request.build_opener", return_value=Opener()):
+            articles = content_agent.fetch_publisher_news()
+        self.assertEqual(len(articles), 1)
+        self.assertEqual(articles[0]["source"], "The Associated Press")
+        self.assertEqual(articles[0]["publisher_group"], "Associated Press")
+
     def test_local_refresh_waits_half_an_hour_and_retries_failure(self):
         with patch.dict("os.environ", {}, clear=True), \
                 patch.object(content_agent, "_last_local_refresh", 0.0), \
@@ -84,7 +136,8 @@ class ContentAgentTests(unittest.TestCase):
                     content_agent.run()
             with patch.object(content_agent, "STORE_PATH", store), \
                     patch.dict("os.environ", {"OPENAI_API_KEY": "test"}, clear=True), \
-                    patch.object(content_agent, "fetch_major_news", return_value=[]):
+                    patch.object(content_agent, "fetch_major_news", return_value=[]), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=[]):
                 with self.assertRaisesRegex(RuntimeError, "No news"):
                     content_agent.run()
             self.assertEqual(json.loads(store.read_text()), {"items": ["previous"]})
@@ -106,7 +159,8 @@ class ContentAgentTests(unittest.TestCase):
     def test_model_receives_source_context_for_original_briefing(self):
         response_body = {"choices": [{"message": {"content": json.dumps({
             "headline": "Transit delays", "subheadline": "An outage delayed trains.",
-            "lede": "Trains were delayed.", "story": ["Officials reported an outage."]
+            "lede": "Trains were delayed.", "story": ["Officials reported an outage."],
+            "notable_details": []
         })}}]}
         class Response:
             def __enter__(self):
@@ -122,7 +176,22 @@ class ContentAgentTests(unittest.TestCase):
         prompt = json.loads(request.data)["messages"][1]["content"]
         self.assertIn("Power outage reported", prompt)
         self.assertIn("Never reproduce", prompt)
+        self.assertIn("notable_details", prompt)
+        self.assertIn("3-5", prompt)
         self.assertEqual(result["subheadline"], "An outage delayed trains.")
+
+    def test_notable_details_render_only_when_supplied(self):
+        item = app.load_store()["items"][0]
+        content = {"headline": "Example", "story": ["A summary."],
+                   "notable_details": ["Crews restored service in <two> hours."]}
+        page = content_agent.render_page(item["topic"], item["category"], content, item["published"],
+                                         1, "", item["sources"], item["fact_check"], 0)
+        self.assertIn("Interesting details", page)
+        self.assertIn("Crews restored service in &lt;two&gt; hours.", page)
+        content["notable_details"] = []
+        page = content_agent.render_page(item["topic"], item["category"], content, item["published"],
+                                         1, "", item["sources"], item["fact_check"], 0)
+        self.assertNotIn("Interesting details", page)
 
     def test_database_refresh_saves_source_image_and_model_summary(self):
         headline = {
@@ -147,6 +216,7 @@ class ContentAgentTests(unittest.TestCase):
             with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
                     patch.object(content_agent, "CATALOG_PATH", catalog), \
                     patch.object(content_agent, "fetch_major_news", return_value=[headline]), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=[]), \
                     patch.object(content_agent, "source_collector_agent", return_value=[]), \
                     patch.object(content_agent, "llm_generate", return_value=briefing), \
                     patch("news_storage.load_feed", return_value=None), \
@@ -159,6 +229,79 @@ class ContentAgentTests(unittest.TestCase):
             save.assert_called_once()
             self.assertIs(save.call_args.args[0], conn)
             self.assertEqual(save.call_args.args[1], store)
+
+    def test_refresh_includes_matching_publisher_context_without_unrelated_articles(self):
+        headline = {"title": "Power failure delays Chicago trains - News", "source": "News",
+                    "url": "https://news.example/original", "published": "",
+                    "description": "A failure delayed trains.", "leaning": "Not yet classified"}
+        related = {"title": "Power failure delays trains in Chicago", "source": "Publisher",
+                   "url": "https://publisher.example/match", "published": "",
+                   "description": "Crews restored service after two hours.", "leaning": "Not yet classified"}
+        unrelated = dict(related, title="Power outage closes hospitals in Boston",
+                         url="https://publisher.example/other")
+        briefing = {"headline": "Train delays", "subheadline": "Trains were delayed.",
+                    "lede": "A power failure delayed service.", "story": ["Crews restored service."]}
+        with tempfile.TemporaryDirectory() as root:
+            catalog = Path(root) / "catalog.json"
+            catalog.write_text('{"items": []}')
+            with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
+                    patch.object(content_agent, "CATALOG_PATH", catalog), \
+                    patch.object(content_agent, "fetch_major_news", return_value=[headline]), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=[related, unrelated]), \
+                    patch.object(content_agent, "source_collector_agent", return_value=[]), \
+                    patch.object(content_agent, "llm_generate", return_value=briefing) as model, \
+                    patch("news_storage.load_feed", return_value=None), patch("news_storage.save_feed"):
+                store = content_agent.run(1, database_conn=object(), refresh_started="start")
+            self.assertEqual([a["url"] for a in store["items"][0]["sources"]],
+                             [headline["url"], related["url"]])
+            self.assertIn("two hours", model.call_args.args[2][1]["description"])
+
+    def test_refresh_includes_ap_and_local_stories_ahead_of_full_national_feed(self):
+        def headline(title, group=""):
+            return {"title": title, "source": group or "National News",
+                    "url": "https://example.com/" + slugify(title), "published": "",
+                    "description": "A report.", "leaning": "Not yet classified",
+                    "publisher_group": group}
+
+        national = [headline(f"National story number {i}") for i in range(20)]
+        discovered = [headline("AP reports a national development", "Associated Press"),
+                      headline("Reno road project approved", "KOLO 8 News Now")]
+        briefing = {"headline": "News update", "subheadline": "A report.",
+                    "lede": "A report.", "story": ["A report."]}
+        with tempfile.TemporaryDirectory() as root:
+            catalog = Path(root) / "catalog.json"
+            catalog.write_text('{"items": []}')
+            with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
+                    patch.object(content_agent, "CATALOG_PATH", catalog), \
+                    patch.object(content_agent, "fetch_major_news", return_value=national), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=discovered), \
+                    patch.object(content_agent, "source_collector_agent", return_value=[]), \
+                    patch.object(content_agent, "llm_generate", return_value=briefing), \
+                    patch("news_storage.load_feed", return_value=None), patch("news_storage.save_feed"):
+                store = content_agent.run(8, database_conn=object(), refresh_started="start")
+            topics = {item["topic"] for item in store["items"]}
+            self.assertIn(discovered[0]["title"], topics)
+            self.assertIn(discovered[1]["title"], topics)
+            self.assertEqual(len(store["items"]), 8)
+
+    def test_refresh_can_use_publisher_stories_when_national_feed_fails(self):
+        local = {"title": "Reno road project approved", "source": "KOLO 8 News Now",
+                 "url": "https://www.kolotv.com/story", "published": "", "description": "A report.",
+                 "leaning": "Not yet classified", "publisher_group": "KOLO 8 News Now"}
+        briefing = {"headline": "Road project", "subheadline": "A project was approved.",
+                    "lede": "The project was approved.", "story": ["The project was approved."]}
+        with tempfile.TemporaryDirectory() as root:
+            catalog = Path(root) / "catalog.json"
+            catalog.write_text('{"items": []}')
+            with patch.dict("os.environ", {"DATABASE_URL": "postgres://test", "OPENAI_API_KEY": "test"}, clear=True), \
+                    patch.object(content_agent, "CATALOG_PATH", catalog), \
+                    patch.object(content_agent, "fetch_major_news", return_value=[]), \
+                    patch.object(content_agent, "fetch_publisher_news", return_value=[local]), \
+                    patch.object(content_agent, "source_collector_agent", return_value=[]), \
+                    patch.object(content_agent, "llm_generate", return_value=briefing), \
+                    patch("news_storage.load_feed", return_value=None), patch("news_storage.save_feed"):
+                store = content_agent.run(1, database_conn=object(), refresh_started="start")
+            self.assertEqual(store["items"][0]["sources"][0]["source"], "KOLO 8 News Now")
 
 
 class StoryRouteTests(unittest.TestCase):

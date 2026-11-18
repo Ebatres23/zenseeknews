@@ -10,9 +10,11 @@ import threading
 import time
 import urllib.request
 import urllib.parse
+import urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from html.parser import HTMLParser
 from pathlib import Path
 
 
@@ -24,6 +26,120 @@ GENERATED_PATH = ROOT / "generated"
 LOGGER = logging.getLogger(__name__)
 _refresh_lock = threading.Lock()
 _last_local_refresh = 0.0
+PUBLISHER_FEEDS = (
+    ("BBC", "https://feeds.bbci.co.uk/news/rss.xml"),
+    ("NPR", "https://feeds.npr.org/1001/rss.xml"),
+    ("CBS News", "https://www.cbsnews.com/latest/rss/main"),
+    ("CNN", "https://rss.cnn.com/rss/cnn_topstories.rss"),
+)
+DISCOVERY_FEEDS = (
+    ("Associated Press", "https://news.google.com/rss/search?q=when%3A1d+site%3Aapnews.com&hl=en-US&gl=US&ceid=US%3Aen", "apnews.com"),
+    ("KOLO 8 News Now", "https://news.google.com/rss/search?q=when%3A1d+site%3Akolotv.com&hl=en-US&gl=US&ceid=US%3Aen", "kolotv.com"),
+    ("MyNews2", "https://news.google.com/rss/search?q=when%3A1d+site%3Amynews2.com&hl=en-US&gl=US&ceid=US%3Aen", "mynews2.com"),
+    ("WFMY News 2", "https://www.wfmynews2.com/feeds/syndication/rss/news/local", None),
+    ("KING 5", "https://www.king5.com/feeds/syndication/rss/news/local", None),
+    ("WUSA9", "https://www.wusa9.com/feeds/syndication/rss/news/local", None),
+)
+TOPIC_STOP_WORDS = frozenset(
+    "about after against amid and are as at before but by could for from has have how in "
+    "into its more new news of on or over says said that the their there these this to "
+    "under what when where which who why will with would you your".split()
+)
+
+
+class FeedTextParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.hidden_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self.hidden_depth += 1
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style") and self.hidden_depth:
+            self.hidden_depth -= 1
+        if tag in ("p", "br", "li"):
+            self.parts.append(" ")
+
+    def handle_data(self, data):
+        if not self.hidden_depth:
+            self.parts.append(data)
+
+
+def feed_summary(raw):
+    parser = FeedTextParser()
+    parser.feed(raw or "")
+    return " ".join(" ".join(parser.parts).split())[:1000]
+
+
+def title_terms(title):
+    title = re.sub(r"\s+-\s+[^-]+$", "", title)
+    return {
+        term for term in re.findall(r"[a-z0-9]+", title.lower())
+        if len(term) > 2 and term not in TOPIC_STOP_WORDS
+    }
+
+
+def related_title(topic, title):
+    left, right = title_terms(topic), title_terms(title)
+    shared = len(left & right)
+    enough_terms = shared >= 3 or (len(left) == len(right) == shared == 2)
+    return enough_terms and shared / max(len(left), 1) >= 0.6 and shared / max(len(right), 1) >= 0.6
+
+
+class SameHostRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        old = urllib.parse.urlparse(req.full_url)
+        new = urllib.parse.urlparse(newurl)
+        if new.scheme != "https" or new.hostname != old.hostname or new.port not in (None, 443):
+            raise urllib.error.HTTPError(newurl, code, "Cross-host feed redirect rejected", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def fetch_publisher_news(timeout=8):
+    opener = urllib.request.build_opener(SameHostRedirect())
+    articles = []
+    feeds = [(publisher, url, None, False) for publisher, url in PUBLISHER_FEEDS]
+    feeds.extend((publisher, url, domain, True) for publisher, url, domain in DISCOVERY_FEEDS)
+    for publisher, url, expected_domain, discovery in feeds:
+        request = urllib.request.Request(url, headers={"User-Agent": "ZenSeekContentAgent/1.0"})
+        try:
+            with opener.open(request, timeout=timeout) as response:
+                body = response.read(2_000_001)
+            if len(body) > 2_000_000:
+                raise ValueError("feed exceeds size limit")
+            root = ET.fromstring(body)
+        except (OSError, ET.ParseError, ValueError) as exc:
+            LOGGER.warning("Could not fetch %s publisher feed: %s", publisher, exc)
+            continue
+        for item in root.findall(".//item")[:80]:
+            title = " ".join(item.findtext("title", default="").split())
+            link = item.findtext("link", default="").strip()
+            parsed = urllib.parse.urlparse(link)
+            if not title or parsed.scheme not in ("http", "https") or not parsed.hostname:
+                continue
+            source = item.find("source")
+            source_name = publisher
+            source_url = link
+            if expected_domain:
+                source_url = source.get("url", "") if source is not None else ""
+                source_host = urllib.parse.urlparse(source_url).hostname or ""
+                if source_host.lower() != expected_domain and not source_host.lower().endswith("." + expected_domain):
+                    continue
+                source_name = (source.text or "").strip() or publisher
+            articles.append({
+                "title": title,
+                "source": source_name,
+                "url": link,
+                "published": item.findtext("pubDate", default=""),
+                "leaning": source_leaning(source_url, source_name),
+                "description": feed_summary(item.findtext("description", default="")),
+                "image": feed_image(item),
+                "publisher_group": publisher if discovery else "",
+            })
+    return articles
 
 
 def feed_image(item):
@@ -413,8 +529,13 @@ def llm_generate(topic, category, articles, api_key=None):
         "If context is limited, explicitly say what is not known rather than inventing details.\n"
         f"{article_context}\n"
         "Return strict JSON: headline (specific neutral headline), subheadline (one sentence "
-        "summarizing the development), lede (one or two sentences), story (array of short "
-        "paragraphs with the available developments and context), what_we_know, "
+        "summarizing the development), lede (one or two sentences), story (array of 3-5 "
+        "short, original paragraphs explaining what happened, key developments, and why "
+        "they matter where the source material supports it). Include source attribution for "
+        "claims and avoid repeating the same fact. Source headlines returned by search can "
+        "describe different events; don't conflate them. notable_details (array of "
+        "specific, supported details that are useful, surprising, funny or concerning, "
+        "as appropriate; no jokes about harm and no invented details), what_we_know, "
         "what_remains_unknown, why_it_matters, actions, what_to_watch (arrays), "
         "economy_impact, source_lens and bottom_line (strings). Use empty arrays or empty "
         "strings when there is not enough source evidence; do not manufacture a full story."
@@ -450,7 +571,9 @@ def llm_generate(topic, category, articles, api_key=None):
         isinstance(paragraph, str) and paragraph.strip() for paragraph in content["story"]
     ):
         raise ValueError(f"Model returned an incomplete briefing for {topic!r}")
-    for key in ("what_we_know", "what_remains_unknown", "why_it_matters", "actions", "what_to_watch"):
+    if "notable_details" not in content:
+        raise ValueError(f"Model omitted notable_details for {topic!r}")
+    for key in ("notable_details", "what_we_know", "what_remains_unknown", "why_it_matters", "actions", "what_to_watch"):
         if not isinstance(content.get(key, []), list) or not all(isinstance(value, str) for value in content.get(key, [])):
             raise ValueError(f"Model returned invalid {key} for {topic!r}")
     for key in ("economy_impact", "source_lens", "bottom_line"):
@@ -557,6 +680,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
     why = "".join(f"<li>{html.escape(item)}</li>" for item in content.get("why_it_matters", []))
     actions = "".join(f"<li>{html.escape(item)}</li>" for item in content.get("actions", []))
     watch = "".join(f"<li>{html.escape(item)}</li>" for item in content.get("what_to_watch", []))
+    notable = "".join(f"<li>{html.escape(item)}</li>" for item in content.get("notable_details", []))
     def section(title, body):
         return f'<section class="card"><h2>{title}</h2>{body}</section>' if body else ""
 
@@ -565,6 +689,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
     why_section = section("Why it matters", f"<ul>{why}</ul>" if why else "")
     actions_section = section("Practical actions", f"<ul>{actions}</ul>" if actions else "")
     watch_section = section("What to watch next", f"<ul>{watch}</ul>" if watch else "")
+    notable_section = section("Interesting details", f"<ul>{notable}</ul>" if notable else "")
     economy = html.escape(content.get("economy_impact", ""))
     economy_section = section("Potential U.S. economic impact", f"<p>{economy}</p>" if economy else "")
     lens = html.escape(content.get("source_lens", ""))
@@ -595,6 +720,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
   <p class="lede">{html.escape(content.get("lede", ""))}</p>
   <p class="meta">ZenSeek Daily Desk · {html.escape(date)} · {html.escape(traffic or "Search traffic not provided")}</p>
   <article class="card story"><h2>The story</h2>{story}</article>
+  {notable_section}
   <div class="grid">
     {known_section}
     {unknown_section}
@@ -613,7 +739,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
   </section>
   {watch_section}
   <section class="card"><h2>Reputable source links</h2>
-    <p>Open-reporting links from Google News. Paywalled sites are not bypassed; use summaries, public releases, and outlet links where available.</p>
+    <p>Reporting links from publisher feeds and Google News. Paywalled sites are not bypassed; use summaries, public releases, and outlet links where available.</p>
     <ul class="source-list">{sources or "<li>Source links will appear with the next news update.</li>"}</ul>
   </section>
   {bottom_section}
@@ -630,14 +756,25 @@ def run(limit=40, database_conn=None, refresh_started=None):
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required to generate news briefings")
     major_news = fetch_major_news(limit=100)
-    if not major_news:
+    publisher_news = fetch_publisher_news()
+    if not major_news and not publisher_news:
         raise RuntimeError("No news headlines were received; keeping the previous feed")
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     generated = []
     subjects = []
     seen = set()
 
-    for headline in major_news:
+    # Reserve part of the feed for distinct AP and regional publishers.
+    discovery = []
+    for publisher, _, _ in DISCOVERY_FEEDS:
+        match = next((article for article in publisher_news if article.get("publisher_group") == publisher), None)
+        if match:
+            discovery.append(match)
+    reserved = min(len(discovery), limit // 4)
+    candidates = discovery[:reserved] + major_news + discovery[reserved:]
+    if not major_news:
+        candidates.extend(publisher_news)
+    for headline in candidates:
         raw_title = headline["title"]
         raw_title = clean_headline(raw_title)  # Remove boilerplate phrases first
         topic = re.sub(r"\s+-\s+[^-]+$", "", raw_title).strip()
@@ -649,7 +786,7 @@ def run(limit=40, database_conn=None, refresh_started=None):
                 "traffic": "",
                 "source_url": headline["url"],
                 "published": headline["published"],
-                "origin": "Major U.S. news",
+                "origin": headline.get("publisher_group") or "Major U.S. news",
                 "source_name": headline.get("source", ""),
                 "publisher_group": headline.get("publisher_group", ""),
                 "headline": headline,
@@ -659,9 +796,16 @@ def run(limit=40, database_conn=None, refresh_started=None):
     for subject in subjects[:limit]:
         topic = subject["topic"]
         category = classify(topic)
-        articles = source_collector_agent(topic)
-        if not articles:
-            articles = [subject["headline"]]
+        articles = [subject["headline"]]
+        seen_urls = {subject["headline"]["url"]}
+        related = [article for article in publisher_news if related_title(topic, article["title"])]
+        related.extend(source_collector_agent(topic))
+        for article in related:
+            if article["url"] and article["url"] not in seen_urls and related_title(topic, article["title"]):
+                articles.append(article)
+                seen_urls.add(article["url"])
+            if len(articles) == 8:
+                break
         content = llm_generate(topic, category, articles)
         if content is None:
             raise RuntimeError("News briefing model is not configured")
@@ -707,7 +851,7 @@ def run(limit=40, database_conn=None, refresh_started=None):
             "description": clean_lede,
             "category": f"Daily {category}",
             "image": next((article.get("image") for article in [subject["headline"], *articles] if article.get("image")), None),
-            "tags": [category.lower(), "google-trends", "daily", "us"],
+            "tags": [category.lower(), "news", "daily", "us"],
             "path": f"/generated/{date}/{slug}/",
             "published": date,
             "published_at": timestamp_iso,
