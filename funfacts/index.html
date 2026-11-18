@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>ZenSeek Fun Facts | Swipe to Discover Amazing Truths</title>
+ <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <style>
+ :root {
+ --zen-gold: #D4AF37;
+ --text: #fff;
+ --ink: #0b1a22;
+ --muted: #6b7a8a;
+ --shell: #0a141a;
+ --success: #4CAF50;
+ --danger: #F44336;
+ --science: #2196F3;
+ --nature: #4CAF50;
+ --history: #FF9800;
+ --animal: #9C27B0;
+ --space: #3F51B5;
+ --human: #E91E63;
+ --food: #795548;
+ --tech: #607D8B;
+ --ocean: #00BCD4;
+ --weird: #FF5722;
+ }
+ 
+ * {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ }
+ 
+ body {
+ font-family: 'Montserrat', 'Inter', sans-serif;
+ background: var(--shell);
+ color: var(--text);
+ line-height: 1.6;
+ overflow-x: hidden;
+ }
+ 
+ /* Header */
+ header {
+ position: sticky;
+ top: 0;
+ z-index: 50;
+ backdrop-filter: blur(10px);
+ background: rgba(10, 20, 26, 0.85);
+ border-bottom: 1px solid rgba(255, 255, 255, .08);
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: .8rem 1rem;
+ }
+ 
+ header .brand {
+ font-weight: 700;
+ color: var(--zen-gold);
+ font-size: 1.6rem;
+ text-decoration: none;
+ font-family: 'Playfair Display', serif;
+ }
+ 
+/* Hero - Mobile Optimized */
+.hero {
+ position: relative;
+ min-height: 50vh;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ text-align: center;
+ overflow: hidden;
+ padding: 1rem;
+ isolation: isolate;
+ background: linear-gradient(135deg, #0a141a 0%, #1a2b35 100%);
+ transition: opacity 0.3s ease;
+ z-index: 1;
+}
+
+.hero::after {
+ content: "";
+ position: absolute;
+ inset: 0;
+ z-index: -1;
+ background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+}
+
+/* Continuation Background */
+.background-continuation {
+ position: relative;
+ min-height: 50vh;
+ background: linear-gradient(135deg, #1a2b35 0%, #0a141a 100%);
+ background-size: cover;
+ background-position: center;
+ z-index: 0;
+}
+
+ .hero h1 {
+ font-size: clamp(1.8rem, 5vw, 2.5rem);
+ color: var(--zen-gold);
+ margin-bottom: 0.5rem;
+ text-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+ font-family: 'Playfair Display', serif;
+ font-weight: 700;
+ }
+ 
+ .hero p {
+ max-width: 900px;
+ margin: 0 auto 0.5rem;
+ font-size: 1rem;
+ color: #eef6f9;
+ text-shadow: 0 1px 8px rgba(0, 0, 0, .3);
+ font-weight: 400;
+ line-height: 1.5;
+ }
+
+ /* Mobile Instructions */
+ .mobile-instructions {
+ display: flex;
+ justify-content: center;
+ gap: 1rem;
+ margin-top: 1rem;
+ width: 100%;
+ }
+
+ .instruction {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ font-size: 0.8rem;
+ color: #eef6f9;
+ }
+
+ .instruction-icon {
+ width: 40px;
+ height: 40px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.2rem;
+ margin-bottom: 0.3rem;
+ }
+
+ .swipe-left-icon {
+ background: var(--danger);
+ }
+
+ .swipe-right-icon {
+ background: var(--success);
+ }
+
+ .tap-icon {
+ background: var(--zen-gold);
+ }
+ 
+ /* Main Container - Mobile Optimized */
+ .main-container {
+ max-width: 500px;
+ margin: 0 auto;
+ padding: 0.5rem;
+ position: relative;
+ z-index: 2;
+ margin-top: -70vh;
+ }
+ 
+ /* Facts Reel - Made slightly smaller */
+ .facts-reel {
+ position: relative;
+ height: 60vh;
+ margin-bottom: 0.5rem;
+ }
+ 
+ /* Fact Card - Made slightly smaller */
+ .fact-card {
+ position: sticky;
+ width: 100%;
+ height: 100%;
+ background: rgba(255, 255, 255, 1);
+ color: var(--ink);
+ border-radius: 16px;
+ box-shadow: 0 15px 35px rgba(0, 0, 0, 0.514), 0 5px 15px rgba(0, 0, 0, 0.425);
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ padding: 1.2rem;
+ text-align: center;
+ transition: transform 0.3s ease, opacity 0.3s ease;
+ cursor: grab;
+ user-select: none;
+ border: 2px solid rgba(212, 175, 55, 0.3);
+ overflow-y: auto;
+ }
+
+ .fact-card::-webkit-scrollbar {
+ width: 0;
+ }
+
+ .fact-emoji {
+ font-size: 2.2rem;
+ margin-bottom: 0.9rem;
+ }
+
+ .fact-text {
+ font-size: 1.2rem;
+ line-height: 1.4;
+ margin-bottom: 0.7rem;
+ font-family: 'Playfair Display', serif;
+ font-weight: 500;
+ color: #1a1a1a;
+ }
+ 
+ .fact-source {
+ font-size: 0.85rem;
+ color: var(--muted);
+ font-style: italic;
+ margin-bottom: 0.4rem;
+ }
+ 
+ .fact-feeling {
+ font-size: 0.75rem;
+ color: var(--zen-gold);
+ margin-bottom: 0.4rem;
+ font-weight: 500;
+ }
+
+ .category-tag {
+ display: inline-block;
+ padding: 0.25rem 0.7rem;
+ border-radius: 20px;
+ font-size: 0.75rem;
+ margin-top: 0.4rem;
+ color: white;
+ font-weight: 500;
+ }
+ 
+ /* Category-specific card styles */
+ .fact-card.science {
+ background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--science);
+ }
+ 
+ .fact-card.nature {
+ background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--nature);
+ }
+ 
+ .fact-card.history {
+ background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--history);
+ }
+ 
+ .fact-card.animal {
+ background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--animal);
+ }
+ 
+ .fact-card.space {
+ background: linear-gradient(135deg, rgba(63, 81, 181, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--space);
+ }
+ 
+ .fact-card.human {
+ background: linear-gradient(135deg, rgba(233, 30, 99, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--human);
+ }
+ 
+ .fact-card.food {
+ background: linear-gradient(135deg, rgba(121, 85, 72, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--food);
+ }
+ 
+ .fact-card.tech {
+ background: linear-gradient(135deg, rgba(96, 125, 139, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--tech);
+ }
+ 
+ .fact-card.ocean {
+ background: linear-gradient(135deg, rgba(0, 188, 212, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--ocean);
+ }
+ 
+ .fact-card.weird {
+ background: linear-gradient(135deg, rgba(255, 87, 34, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--weird);
+ }
+ 
+ .fact-card:active {
+ cursor: grabbing;
+ }
+ 
+ .fact-actions {
+ display: flex;
+ gap: 1rem;
+ margin-top: 0.5rem;
+ }
+ 
+ /* 3D Action Buttons - Mobile Optimized */
+ .action-btn {
+ width: 58px;
+ height: 58px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.4rem;
+ border: none;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ position: relative;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 10px rgba(0,0,0,0.3);
+ }
+ 
+ .action-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 12px rgba(0,0,0,0.3);
+ }
+ 
+ .action-btn:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 4px rgba(0,0,0,0.2);
+ }
+ 
+ .dislike-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .like-btn {
+ background: var(--success);
+ color: white;
+ }
+ 
+ /* 3D Back Button */
+ .back-btn {
+ background: var(--zen-gold);
+ color: white;
+ position: absolute;
+ top: 8px;
+ left: 8px;
+ width: 35px;
+ height: 35px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1rem;
+ border: none;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ z-index: 10;
+ }
+ 
+ .back-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .back-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ /* Floating Arrows */
+ .swipe-indicators {
+ position: absolute;
+ top: 50%;
+ left: 0;
+ right: 0;
+ transform: translateY(-50%);
+ display: flex;
+ justify-content: space-between;
+ padding: 0 1rem;
+ pointer-events: none;
+ z-index: 5;
+ }
+ 
+ .swipe-left-indicator, .swipe-right-indicator {
+ width: 50px;
+ height: 50px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.5rem;
+ opacity: 0;
+ transition: opacity 0.3s;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+ }
+ 
+ .swipe-left-indicator {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .swipe-right-indicator {
+ background: var(--success);
+ color: white;
+ }
+ 
+ .show-left {
+ opacity: 1;
+ }
+ 
+ .show-right {
+ opacity: 1;
+ }
+ 
+ /* 3D Saved Facts Bubble */
+ .saved-bubble {
+ position: fixed;
+ bottom: 15px;
+ right: 15px;
+ width: 60px;
+ height: 60px;
+ background: var(--zen-gold);
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ transition: all 0.3s ease;
+ z-index: 100;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 12px rgba(0,0,0,0.3);
+ }
+ 
+ .saved-bubble:hover {
+ transform: translateY(-3px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 14px rgba(0,0,0,0.3);
+ }
+ 
+ .saved-bubble:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .saved-count {
+ position: absolute;
+ top: -5px;
+ right: -5px;
+ background: var(--danger);
+ color: white;
+ border-radius: 50%;
+ width: 20px;
+ height: 20px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 0.7rem;
+ font-weight: bold;
+ box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+ }
+ 
+ /* Saved Facts Overlay - Mobile Optimized */
+ .saved-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background: rgba(0, 0, 0, 0.7);
+ backdrop-filter: blur(10px);
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ z-index: 1000;
+ opacity: 0;
+ pointer-events: none;
+ transition: opacity 0.3s ease;
+ }
+ 
+ .saved-overlay.active {
+ opacity: 1;
+ pointer-events: all;
+ }
+ 
+ .saved-container {
+ background: rgba(255, 255, 255, 0.95);
+ color: var(--ink);
+ border-radius: 16px;
+ width: 95%;
+ max-width: 600px;
+ max-height: 85vh;
+ overflow: hidden;
+ display: flex;
+ flex-direction: column;
+ box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+ }
+ 
+ .saved-header {
+ padding: 0.8rem;
+ background: var(--zen-gold);
+ color: #141006;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ }
+ 
+ .saved-header h2 {
+ margin: 0;
+ font-family: 'Playfair Display', serif;
+ font-size: 1.3rem;
+ font-weight: 700;
+ }
+ 
+ .saved-controls {
+ display: flex;
+ gap: 0.5rem;
+ flex-wrap: wrap;
+ }
+ 
+ /* 3D Control Buttons */
+ .control-btn {
+ padding: 0.4rem 0.8rem;
+ border-radius: 20px;
+ border: none;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.8rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .control-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .control-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ .select-btn {
+ background: white;
+ color: var(--zen-gold);
+ }
+ 
+ .select-all-btn {
+ background: #2196F3;
+ color: white;
+ }
+ 
+ .clear-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .close-btn {
+ background: transparent;
+ color: #141006;
+ font-size: 1.3rem;
+ width: 35px;
+ height: 35px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: none;
+ }
+ 
+ .close-btn:hover {
+ transform: none;
+ box-shadow: none;
+ background: rgba(255,255,255,0.2);
+ }
+ 
+ .saved-content {
+ flex: 1;
+ overflow-y: auto;
+ padding: 0.8rem;
+ }
+ 
+ .saved-list {
+ display: grid;
+ gap: 0.8rem;
+ }
+ 
+ /* Updated saved item layout - stacked design */
+ .saved-item {
+ background: rgba(255, 255, 255, 0.9);
+ color: var(--ink);
+ border-radius: 12px;
+ padding: 1rem;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+ display: flex;
+ flex-direction: column;
+ border: 1px solid rgba(212, 175, 55, 0.1);
+ transition: all 0.2s;
+ }
+ 
+ .saved-item.selected {
+ background: rgba(212, 175, 55, 0.2);
+ border: 1px solid var(--zen-gold);
+ }
+ 
+ .saved-content-inner {
+ flex: 1;
+ margin-bottom: 0.8rem;
+ }
+ 
+ .saved-text {
+ font-family: 'Playfair Display', serif;
+ font-size: 1.1rem;
+ margin-bottom: 0.4rem;
+ line-height: 1.3;
+ color: #1a1a1a;
+ }
+ 
+ .saved-source {
+ font-size: 0.9rem;
+ color: var(--muted);
+ font-style: italic;
+ margin-bottom: 0.3rem;
+ }
+ 
+ .saved-feeling {
+ font-size: 0.8rem;
+ color: var(--zen-gold);
+ margin-bottom: 0.3rem;
+ font-weight: 500;
+ }
+ 
+ .saved-actions {
+ display: flex;
+ gap: 0.4rem;
+ justify-content: flex-end;
+ }
+ 
+ /* 3D Action Buttons in Saved Facts */
+ .copy-btn, .share-btn, .remove-btn {
+ padding: 0.4rem 0.8rem;
+ border-radius: 15px;
+ border: none;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.8rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn:hover, .share-btn:hover, .remove-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn:active, .share-btn:active, .remove-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn, .share-btn {
+ background: var(--zen-gold);
+ color: #141006;
+ }
+ 
+ .remove-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .empty-state {
+ text-align: center;
+ padding: 1.5rem;
+ color: var(--muted);
+ font-style: italic;
+ font-size: 1rem;
+ }
+ 
+ .selection-mode .saved-item {
+ cursor: pointer;
+ }
+ 
+ .selection-mode .saved-actions {
+ display: none;
+ }
+ 
+ /* 3D Share Multiple Button */
+ .share-multiple-btn {
+ margin-top: 0.8rem;
+ padding: 0.6rem 1.2rem;
+ background: var(--zen-gold);
+ color: #141006;
+ border: none;
+ border-radius: 20px;
+ font-weight: 600;
+ cursor: pointer;
+ display: none;
+ font-size: 0.9rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 10px rgba(0,0,0,0.2);
+ }
+ 
+ .share-multiple-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 12px rgba(0,0,0,0.2);
+ }
+ 
+ .share-multiple-btn:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 4px rgba(0,0,0,0.2);
+ }
+ 
+ .selection-mode .share-multiple-btn {
+ display: block;
+ }
+ 
+ /* Footer */
+ footer {
+ background: #111;
+ color: #bbb;
+ text-align: center;
+ padding: 0.8rem;
+ margin-top: 1rem;
+ font-size: .8rem;
+ }
+ 
+ footer a {
+ color: #fff;
+ text-decoration: none;
+ }
+ 
+ footer a:hover {
+ color: var(--zen-gold);
+ }
+ 
+ /* Animation for new cards */
+ @keyframes slideIn {
+ from { transform: translateY(20px); opacity: 0; }
+ to { transform: translateY(0); opacity: 1; }
+ }
+ 
+ .slide-in {
+ animation: slideIn 0.3s ease-out;
+ }
+ 
+ /* Swipe animations */
+ .swipe-right {
+ transform: translateX(200px) rotate(15deg);
+ opacity: 0;
+ }
+ 
+ .swipe-left {
+ transform: translateX(-200px) rotate(-15deg);
+ opacity: 0;
+ }
+ 
+ /* Stats */
+ .stats {
+ display: flex;
+ justify-content: space-between;
+ margin-bottom: 0.8rem;
+ color: var(--muted);
+ font-size: 0.9rem;
+ font-weight: 500;
+ }
+ 
+ .attribution {
+ text-align: center;
+ margin-top: 1rem;
+ color: var(--muted);
+ font-size: 0.8rem;
+ font-style: italic;
+ }
+
+ /* Category-specific tag colors */
+ .science { background: var(--science); }
+ .nature { background: var(--nature); }
+ .history { background: var(--history); }
+ .animal { background: var(--animal); }
+ .space { background: var(--space); }
+ .human { background: var(--human); }
+ .food { background: var(--food); }
+ .tech { background: var(--tech); }
+ .ocean { background: var(--ocean); }
+ .weird { background: var(--weird); }
+
+ /* Mobile-specific styles */
+ @media (max-width: 768px) {
+   .hero {
+     min-height: 40vh;
+   }
+   
+   .main-container {
+     margin-top: -60vh;
+   }
+   
+   .facts-reel {
+     height: 55vh;
+   }
+   
+   .fact-card {
+     padding: 1rem;
+   }
+   
+   .fact-text {
+     font-size: 1.1rem;
+   }
+   
+   .action-btn {
+     width: 55px;
+     height: 55px;
+   }
+   
+   .saved-container {
+     width: 98%;
+   }
+   
+   .saved-controls {
+     flex-direction: column;
+     gap: 0.3rem;
+   }
+   
+   .control-btn {
+     font-size: 0.7rem;
+     padding: 0.3rem 0.6rem;
+   }
+ }
+ </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+ <header>
+ <a href="/" class="brand">ZenSeek</a>
+ </header>
+
+<section class="hero" id="hero">
+ <h1>ZenSeek Amazing Facts</h1>
+ <p>Swipe right to save mind-blowing facts. Swipe left for more incredible discoveries.</p>
+ <div class="mobile-instructions">
+   <div class="instruction">
+     <div class="instruction-icon swipe-left-icon">👎</div>
+     <span>Swipe Left</span>
+   </div>
+   <div class="instruction">
+     <div class="instruction-icon swipe-right-icon">👍</div>
+     <span>Swipe Right</span>
+   </div>
+   <div class="instruction">
+     <div class="instruction-icon tap-icon">🤯</div>
+     <span>Tap for More</span>
+   </div>
+ </div>
+</section>
+<section class="background-continuation" id="backgroundContinuation"></section>
+
+ <div class="main-container">
+ <!-- Stats -->
+ <div class="stats">
+ <div>Facts seen: <span id="factsSeen">0</span></div>
+ <div>Saved: <span id="factsSaved">0</span></div>
+ </div>
+
+ <!-- Facts Reel -->
+ <div class="facts-reel" id="factsReel">
+ <!-- Fact cards will be inserted here by JavaScript -->
+ </div>
+ 
+ <!-- Floating Arrows -->
+ <div class="swipe-indicators">
+ <div class="swipe-left-indicator" id="swipeLeftIndicator">←</div>
+ <div class="swipe-right-indicator" id="swipeRightIndicator">→</div>
+ </div>
+
+ <!-- Saved Facts Bubble -->
+ <div class="saved-bubble" id="savedBubble">
+ <span>🤯</span>
+ <div class="saved-count" id="savedCount">0</div>
+ </div>
+
+ <!-- Saved Facts Overlay -->
+ <div class="saved-overlay" id="savedOverlay">
+ <div class="saved-container">
+ <div class="saved-header">
+ <h2>Your Saved Facts</h2>
+ <div class="saved-controls">
+ <button class="control-btn select-btn" id="selectBtn">Select</button>
+ <button class="control-btn select-all-btn" id="selectAllBtn">Select All</button>
+ <button class="control-btn clear-btn" id="clearBtn">Clear All</button>
+ <button class="control-btn close-btn" id="closeBtn">×</button>
+ </div>
+ </div>
+ <div class="saved-content">
+ <div class="saved-list" id="savedList">
+ <div class="empty-state" id="emptyState">
+ No saved facts yet. Swipe right on facts that blow your mind!
+ </div>
+ <!-- Saved facts will be inserted here by JavaScript -->
+ </div>
+ <button class="share-multiple-btn" id="shareMultipleBtn">Share Selected Facts</button>
+ </div>
+ </div>
+ </div>
+ 
+ <div class="attribution">
+ Share your favorites but please credit ZenSeek when you can!
+ </div>
+ </div>
+
+ <footer>
+ <p>© <span id="y"></span> ZenSeek — Learn something new every day.</p>
+ <p><a href="/">Home</a> · <a href="/privacy">Privacy</a></p>
+ </footer>
+
+ <script>
+ // Handle hero and continuation background fade on scroll
+const hero = document.getElementById('hero');
+const backgroundContinuation = document.getElementById('backgroundContinuation');
+window.addEventListener('scroll', () => {
+ const scrollPosition = window.scrollY;
+ const heroHeight = hero.offsetHeight;
+ // Fade hero opacity: starts at 1, fades to 0 when scrolled halfway through hero
+ const heroOpacity = Math.max(0, 1 - scrollPosition / (heroHeight * 0.5));
+ hero.style.opacity = heroOpacity;
+ // Increase continuation opacity as hero fades
+ const continuationOpacity = Math.min(1, scrollPosition / (heroHeight * 0.5));
+ backgroundContinuation.style.opacity = continuationOpacity;
+});
+ // Year
+ document.getElementById('y').textContent = new Date().getFullYear();
+
+// PREMIUM FACTS DATABASE - MIND-BLOWING TRUTHS
+const facts = [
+  // -----------------------------
+  // SCIENCE
+  // -----------------------------
+  {
+    text: "If you unraveled all the DNA in your body, it would stretch from Earth to the Sun and back more than 300 times. 🧬",
+    author: "Molecular Biology",
+    category: "science",
+    intended_feeling: "mind-boggling scale",
+    emoji: "🧬"
+  },
+  {
+    text: "Light from the Sun takes about 8 minutes and 20 seconds to reach Earth. ☀️",
+    author: "Astrophysics",
+    category: "science",
+    intended_feeling: "cosmic timing",
+    emoji: "☀️"
+  },
+  {
+    text: "Water is densest at 4°C; that quirk helps lakes freeze from the top down, protecting life below. 💧",
+    author: "Physical Chemistry",
+    category: "science",
+    intended_feeling: "protective quirk",
+    emoji: "💧"
+  },
+  {
+    text: "The speed of light in vacuum is a universal speed limit: 299,792,458 meters per second. ⚡",
+    author: "Physics",
+    category: "science",
+    intended_feeling: "fundamental awe",
+    emoji: "⚡"
+  },
+  {
+    text: "Glass is an amorphous solid: its atoms are frozen in a disordered, liquid-like arrangement. 🪟",
+    author: "Materials Science",
+    category: "science",
+    intended_feeling: "state-of-matter surprise",
+    emoji: "🪟"
+  },
+  {
+    text: "Antarctica holds about 60% of Earth’s fresh water locked in ice. 🧊",
+    author: "Cryosphere Science",
+    category: "science",
+    intended_feeling: "planetary scale",
+    emoji: "🧊"
+  },
+  {
+    text: "Every second, about 4 million tons of the Sun’s mass is converted into energy via nuclear fusion. 🔆",
+    author: "Astrophysics",
+    category: "science",
+    intended_feeling: "stellar power",
+    emoji: "🔆"
+  },
+  {
+    text: "A teaspoon of soil can contain more microorganisms than there are people on Earth. 🧫",
+    author: "Microbiology",
+    category: "science",
+    intended_feeling: "hidden abundance",
+    emoji: "🧫"
+  },
+  {
+    text: "Absolute zero (−273.15°C) is the theoretical temperature where molecular motion reaches its minimum. 🥶",
+    author: "Thermodynamics",
+    category: "science",
+    intended_feeling: "ultimate limit",
+    emoji: "🥶"
+  },
+  {
+    text: "Quantum entanglement links particles so that measuring one instantly influences the other, regardless of distance. 🌐",
+    author: "Quantum Physics",
+    category: "science",
+    intended_feeling: "spooky wonder",
+    emoji: "🌐"
+  },
+  {
+    text: "The human genome is ~3 billion base pairs long, but only about 1–2% codes for proteins. 🧠",
+    author: "Genomics",
+    category: "science",
+    intended_feeling: "genetic insight",
+    emoji: "🧠"
+  },
+
+  // -----------------------------
+  // NATURE
+  // -----------------------------
+  {
+    text: "Mantis shrimps can detect polarized light and have up to 16 types of photoreceptors—far more than humans. 🦐",
+    author: "Marine Biology",
+    category: "nature",
+    intended_feeling: "sensory amazement",
+    emoji: "🦐"
+  },
+  {
+    text: "Axolotls can regenerate entire limbs, parts of their heart, and even portions of their brain. 🦎",
+    author: "Regenerative Biology",
+    category: "nature",
+    intended_feeling: "healing marvel",
+    emoji: "🦎"
+  },
+  {
+    text: "A single mature oak tree can host hundreds of species—from insects and fungi to birds and mammals. 🌳",
+    author: "Ecology",
+    category: "nature",
+    intended_feeling: "interconnectedness",
+    emoji: "🌳"
+  },
+  {
+    text: "The pistol shrimp snaps its claw so fast it creates a cavitation bubble hotter than the surface of the Sun—briefly. 🫧",
+    author: "Biophysics",
+    category: "nature",
+    intended_feeling: "nature’s extremes",
+    emoji: "🫧"
+  },
+  {
+    text: "Tardigrades can survive extreme cold, heat, pressure, radiation, and even the vacuum of space in a dormant state. 🐻‍❄️",
+    author: "Extremophile Biology",
+    category: "nature",
+    intended_feeling: "indestructible vibes",
+    emoji: "🐻‍❄️"
+  },
+  {
+    text: "Sloths host special algae and moths in their fur, forming a miniature ecosystem that may help camouflage. 🦥",
+    author: "Symbiosis",
+    category: "nature",
+    intended_feeling: "cozy ecosystem",
+    emoji: "🦥"
+  },
+  {
+    text: "Bamboo can grow more than 30 inches (76 cm) in a single day under ideal conditions. 🎋",
+    author: "Botany",
+    category: "nature",
+    intended_feeling: "growth shock",
+    emoji: "🎋"
+  },
+  {
+    text: "Some fungi form vast underground networks (mycelium) that move nutrients and signals between plants. 🍄",
+    author: "Mycology",
+    category: "nature",
+    intended_feeling: "wood-wide web",
+    emoji: "🍄"
+  },
+  {
+    text: "There are more trees on Earth than stars in the Milky Way—about 3 trillion vs. ~100–400 billion. 🌲",
+    author: "Forestry & Astronomy",
+    category: "nature",
+    intended_feeling: "abundance perspective",
+    emoji: "🌲"
+  },
+  {
+    text: "Saguaro cacti can store thousands of liters of water and grow ‘accordion’ pleats to expand during rains. 🌵",
+    author: "Desert Ecology",
+    category: "nature",
+    intended_feeling: "survival elegance",
+    emoji: "🌵"
+  },
+
+  // -----------------------------
+  // HISTORY
+  // -----------------------------
+  {
+    text: "Oxford University is older than the Aztec Empire; teaching existed in Oxford by 1096. 🎓",
+    author: "Historical Timeline",
+    category: "history",
+    intended_feeling: "time warp",
+    emoji: "🎓"
+  },
+  {
+    text: "Woolly mammoths still roamed Earth when the Great Pyramid of Giza was being built. 🐘",
+    author: "Archaeology",
+    category: "history",
+    intended_feeling: "overlapping eras",
+    emoji: "🐘"
+  },
+  {
+    text: "History’s shortest war, Anglo-Zanzibar (1896), ended in roughly 38 minutes. ⏱️",
+    author: "Military History",
+    category: "history",
+    intended_feeling: "blink-and-it’s-over",
+    emoji: "⏱️"
+  },
+  {
+    text: "The library of Timbuktu safeguarded hundreds of thousands of manuscripts on law, science, and poetry. 📜",
+    author: "African History",
+    category: "history",
+    intended_feeling: "hidden legacy",
+    emoji: "📜"
+  },
+  {
+    text: "In 1977, the Voyager probes carried the Golden Record—sounds and images of Earth—for any finders among the stars. 📀",
+    author: "Space History",
+    category: "history",
+    intended_feeling: "message in a bottle",
+    emoji: "📀"
+  },
+  {
+    text: "Ancient engineers in the Indus Valley built cities with grid layouts and advanced drainage over 4,000 years ago. 🧱",
+    author: "Ancient History",
+    category: "history",
+    intended_feeling: "early ingenuity",
+    emoji: "🧱"
+  },
+  {
+    text: "Paper money first appeared in China during the Tang and Song dynasties—centuries before Europe adopted it. 💴",
+    author: "Economic History",
+    category: "history",
+    intended_feeling: "innovation ahead",
+    emoji: "💴"
+  },
+  {
+    text: "The Rosetta Stone unlocked ancient Egyptian hieroglyphs by comparing three scripts of the same text. 🗿",
+    author: "Linguistic History",
+    category: "history",
+    intended_feeling: "code cracked",
+    emoji: "🗿"
+  },
+
+  // -----------------------------
+  // ANIMAL
+  // -----------------------------
+  {
+    text: "Crows can recognize human faces, remember those who wronged them, and teach others to avoid them. 🪶",
+    author: "Animal Cognition",
+    category: "animal",
+    intended_feeling: "street-smart birds",
+    emoji: "🪶"
+  },
+  {
+    text: "Elephants pass the mirror test, showing self-recognition—a sign of complex cognition. 🐘",
+    author: "Comparative Psychology",
+    category: "animal",
+    intended_feeling: "self-aware giants",
+    emoji: "🐘"
+  },
+  {
+    text: "Platypus milk contains unique antibacterial proteins that may help fight superbugs. 🦫",
+    author: "Biochemistry",
+    category: "animal",
+    intended_feeling: "oddly powerful",
+    emoji: "🦫"
+  },
+  {
+    text: "Archerfish can shoot jets of water to knock insects off leaves with impressive accuracy. 🎯",
+    author: "Ethology",
+    category: "animal",
+    intended_feeling: "precision hunter",
+    emoji: "🎯"
+  },
+  {
+    text: "Parrots use ‘contact calls’ that can function like names to identify individuals. 🦜",
+    author: "Ornithology",
+    category: "animal",
+    intended_feeling: "social intelligence",
+    emoji: "🦜"
+  },
+  {
+    text: "Octopuses can unscrew jars, solve mazes, and escape aquariums—problem solvers with nine brains (one central, eight in arms). 🐙",
+    author: "Cephalopod Science",
+    category: "animal",
+    intended_feeling: "escape artist",
+    emoji: "🐙"
+  },
+  {
+    text: "A blue whale’s heart can weigh as much as a small car and beat audibly from over two miles away underwater. 💙",
+    author: "Marine Biology",
+    category: "animal",
+    intended_feeling: "mega-scale life",
+    emoji: "💙"
+  },
+  {
+    text: "Honeybees communicate flower locations using a ‘waggle dance’ that encodes distance and direction. 🐝",
+    author: "Behavioral Ecology",
+    category: "animal",
+    intended_feeling: "dance of data",
+    emoji: "🐝"
+  },
+  {
+    text: "Axillary (armpit) sweat isn’t smelly by itself; skin bacteria digest it and create odor. 👃",
+    author: "Microbiology",
+    category: "animal",
+    intended_feeling: "unexpected culprit",
+    emoji: "👃"
+  },
+  {
+    text: "Some ants farm fungi and even use antibiotic-producing bacteria to protect their crops. 🐜",
+    author: "Symbiosis",
+    category: "animal",
+    intended_feeling: "miniature agriculture",
+    emoji: "🐜"
+  },
+
+  // -----------------------------
+  // SPACE
+  // -----------------------------
+  {
+    text: "Jupiter’s magnetosphere is so vast it would appear larger than the Moon in our sky if it were visible. 🧲",
+    author: "Planetary Science",
+    category: "space",
+    intended_feeling: "giant cloak",
+    emoji: "🧲"
+  },
+  {
+    text: "Olympus Mons on Mars is the tallest volcano in the Solar System—about three times the height of Everest. ⛰️",
+    author: "Planetary Geology",
+    category: "space",
+    intended_feeling: "titanic peak",
+    emoji: "⛰️"
+  },
+  {
+    text: "A day on Mercury (one rotation) lasts 59 Earth days, but its year is only 88 Earth days. 🕰️",
+    author: "Astronomy",
+    category: "space",
+    intended_feeling: "time twist",
+    emoji: "🕰️"
+  },
+  {
+    text: "Neutron stars are so dense that a sugar-cube-sized piece would weigh billions of tons on Earth. ⭐",
+    author: "Astrophysics",
+    category: "space",
+    intended_feeling: "density shock",
+    emoji: "⭐"
+  },
+  {
+    text: "Saturn’s average density is less than water; in theory, it could float in a gargantuan bathtub. 🛁",
+    author: "Astrophysics",
+    category: "space",
+    intended_feeling: "playful cosmic image",
+    emoji: "🛁"
+  },
+  {
+    text: "The International Space Station orbits Earth about every 90 minutes—roughly 16 sunrises and sunsets per day. 🌅",
+    author: "Spaceflight",
+    category: "space",
+    intended_feeling: "rapid horizons",
+    emoji: "🌅"
+  },
+  {
+    text: "The ‘Pale Blue Dot’ photo shows Earth as a speck from 3.7 billion miles away, captured by Voyager 1. 🔭",
+    author: "Space Exploration",
+    category: "space",
+    intended_feeling: "existential wonder",
+    emoji: "🔭"
+  },
+  {
+    text: "There are more stars in the observable universe than grains of sand on all Earth’s beaches. 🌌",
+    author: "Cosmology",
+    category: "space",
+    intended_feeling: "infinite feeling",
+    emoji: "🌌"
+  },
+  {
+    text: "On the Moon, footprints can last millions of years because there’s no wind or water to erase them. 👣",
+    author: "Planetary Science",
+    category: "space",
+    intended_feeling: "eternal marks",
+    emoji: "👣"
+  },
+
+  // -----------------------------
+  // HUMAN BODY
+  // -----------------------------
+  {
+    text: "Your body’s blood vessels, laid end to end, would stretch around Earth multiple times—about 100,000 km. 🩸",
+    author: "Anatomy",
+    category: "human",
+    intended_feeling: "hidden vastness",
+    emoji: "🩸"
+  },
+  {
+    text: "Stomach acid (hydrochloric acid) can have a pH as low as 1, strong enough to dissolve zinc. 🧪",
+    author: "Physiology",
+    category: "human",
+    intended_feeling: "acidic power",
+    emoji: "🧪"
+  },
+  {
+    text: "Bone is stronger than steel by weight, thanks to its composite structure of collagen and mineral. 🦴",
+    author: "Biomechanics",
+    category: "human",
+    intended_feeling: "biological engineering",
+    emoji: "🦴"
+  },
+  {
+    text: "You are slightly taller in the morning because spinal discs rehydrate and expand overnight. 📏",
+    author: "Anatomy",
+    category: "human",
+    intended_feeling: "daily change",
+    emoji: "📏"
+  },
+  {
+    text: "Your brain uses about 20% of your resting energy despite being ~2% of your body weight. 🧠",
+    author: "Neuroscience",
+    category: "human",
+    intended_feeling: "energy hog",
+    emoji: "🧠"
+  },
+  {
+    text: "New taste receptor cells regenerate roughly every 10–14 days. 👅",
+    author: "Sensory Biology",
+    category: "human",
+    intended_feeling: "constant renewal",
+    emoji: "👅"
+  },
+  {
+    text: "Babies are born with kneecaps made of cartilage; they ossify into bone later in childhood. 🍼",
+    author: "Pediatric Anatomy",
+    category: "human",
+    intended_feeling: "growing bones",
+    emoji: "🍼"
+  },
+  {
+    text: "Your eyes’ photoreceptors can detect single photons under ideal conditions. 👁️",
+    author: "Vision Science",
+    category: "human",
+    intended_feeling: "ultimate sensitivity",
+    emoji: "👁️"
+  },
+
+  // -----------------------------
+  // FOOD
+  // -----------------------------
+  {
+    text: "Vanilla flavor comes from orchids; natural vanilla is made from cured seed pods of Vanilla planifolia. 🌼",
+    author: "Botany & Culinary Science",
+    category: "food",
+    intended_feeling: "floral origin",
+    emoji: "🌼"
+  },
+  {
+    text: "Saffron is so costly because each flower yields only a few delicate stigmas, all harvested by hand. 🌺",
+    author: "Agronomy",
+    category: "food",
+    intended_feeling: "precious spice",
+    emoji: "🌺"
+  },
+  {
+    text: "Capsaicin, the heat in chili peppers, binds to pain receptors that also sense heat—tricking your brain into ‘fire.’ 🌶️",
+    author: "Neurogastronomy",
+    category: "food",
+    intended_feeling: "fiery illusion",
+    emoji: "🌶️"
+  },
+  {
+    text: "Tomatoes are botanically fruits (berries) but culinarily treated as vegetables. 🍅",
+    author: "Botany",
+    category: "food",
+    intended_feeling: "classification twist",
+    emoji: "🍅"
+  },
+  {
+    text: "Chocolate is toxic to dogs because they metabolize theobromine very slowly. 🍫",
+    author: "Veterinary Science",
+    category: "food",
+    intended_feeling: "pet safety",
+    emoji: "🍫"
+  },
+  {
+    text: "The boiling point of water drops as altitude rises: that’s why pasta takes longer to cook in the mountains. 🍝",
+    author: "Food Chemistry",
+    category: "food",
+    intended_feeling: "kitchen physics",
+    emoji: "🍝"
+  },
+  {
+    text: "Popsicles were invented in 1905 by an 11-year-old who left a soda mixture outside with a stick in it overnight. 🍭",
+    author: "Food History",
+    category: "food",
+    intended_feeling: "happy accident",
+    emoji: "🍭"
+  },
+  {
+    text: "Honey can crystallize naturally over time; gentle warming re-dissolves the sugar crystals. 🍯",
+    author: "Food Science",
+    category: "food",
+    intended_feeling: "sweet chemistry",
+    emoji: "🍯"
+  },
+
+  // -----------------------------
+  // TECHNOLOGY
+  // -----------------------------
+  {
+    text: "Hedy Lamarr, a Hollywood actor, co-invented spread-spectrum frequency hopping, a precursor to Wi-Fi and Bluetooth. 📡",
+    author: "Tech History",
+    category: "tech",
+    intended_feeling: "unexpected innovator",
+    emoji: "📡"
+  },
+  {
+    text: "The first 1-gigabyte hard drive (1980) weighed over 500 pounds and cost more than $100,000. 💾",
+    author: "Computing History",
+    category: "tech",
+    intended_feeling: "progress perspective",
+    emoji: "💾"
+  },
+  {
+    text: "The first text message—“Merry Christmas”—was sent in 1992 over a Vodafone network. 📱",
+    author: "Telecom History",
+    category: "tech",
+    intended_feeling: "humble origins",
+    emoji: "📱"
+  },
+  {
+    text: "QR codes were invented in 1994 by Denso Wave to track auto parts more efficiently. ▫️",
+    author: "Industrial Tech",
+    category: "tech",
+    intended_feeling: "elegant utility",
+    emoji: "▫️"
+  },
+  {
+    text: "The Apollo Guidance Computer had less RAM than a modern digital watch—yet guided humans to the Moon. 🚀",
+    author: "Aerospace Computing",
+    category: "tech",
+    intended_feeling: "lean brilliance",
+    emoji: "🚀"
+  },
+  {
+    text: "Email predates the web; networked electronic mail existed in the early 1970s. ✉️",
+    author: "Internet History",
+    category: "tech",
+    intended_feeling: "before the browser",
+    emoji: "✉️"
+  },
+  {
+    text: "SVG graphics are resolution-independent vectors, so they stay crisp at any zoom level. 🖼️",
+    author: "Web Technology",
+    category: "tech",
+    intended_feeling: "pixel-perfect",
+    emoji: "🖼️"
+  },
+  {
+    text: "Open-source software powers much of the internet, from Linux servers to critical libraries. 🌐",
+    author: "Software Engineering",
+    category: "tech",
+    intended_feeling: "collaborative power",
+    emoji: "🌐"
+  },
+
+  // -----------------------------
+  // OCEAN
+  // -----------------------------
+  {
+    text: "The deepest known point in the ocean, Challenger Deep, is nearly 11,000 meters (36,000 ft) down. 🌊",
+    author: "Oceanography",
+    category: "ocean",
+    intended_feeling: "abyssal awe",
+    emoji: "🌊"
+  },
+  {
+    text: "Bioluminescence is common in the deep sea; many creatures make their own light for hunting or camouflage. ✨",
+    author: "Marine Biology",
+    category: "ocean",
+    intended_feeling: "living lights",
+    emoji: "✨"
+  },
+  {
+    text: "Coral reefs cover less than 1% of the ocean floor but support about a quarter of marine species. 🪸",
+    author: "Marine Ecology",
+    category: "ocean",
+    intended_feeling: "crowded cities",
+    emoji: "🪸"
+  },
+  {
+    text: "Greenland sharks can live for centuries; some individuals are estimated to be over 250 years old. 🦈",
+    author: "Marine Biology",
+    category: "ocean",
+    intended_feeling: "long life",
+    emoji: "🦈"
+  },
+  {
+    text: "Sperm whales produce clicks that can exceed 200 decibels underwater—among the loudest animal sounds. 📢",
+    author: "Bioacoustics",
+    category: "ocean",
+    intended_feeling: "sonic titan",
+    emoji: "📢"
+  },
+  {
+    text: "The ocean’s ‘conveyor belt’ (thermohaline circulation) helps regulate Earth’s climate by moving heat and salt. 🧭",
+    author: "Physical Oceanography",
+    category: "ocean",
+    intended_feeling: "planetary plumbing",
+    emoji: "🧭"
+  },
+  {
+    text: "Underwater brine pools create ‘lakes’ on the seafloor with distinct shorelines and waves. 🏞️",
+    author: "Marine Geology",
+    category: "ocean",
+    intended_feeling: "alien Earth",
+    emoji: "🏞️"
+  },
+  {
+    text: "Sea otters hold hands while sleeping to avoid drifting apart. 🤝",
+    author: "Animal Behavior",
+    category: "ocean",
+    intended_feeling: "adorable teamwork",
+    emoji: "🤝"
+  },
+
+  // -----------------------------
+  // PSYCHOLOGY
+  // -----------------------------
+  {
+    text: "The placebo effect can trigger real physiological changes—pain relief, altered heart rate, even hormone shifts. 💊",
+    author: "Clinical Psychology",
+    category: "psychology",
+    intended_feeling: "mind-body power",
+    emoji: "💊"
+  },
+  {
+    text: "Memories aren’t fixed; each recall can ‘reconsolidate’ and subtly change the memory. 🧩",
+    author: "Cognitive Science",
+    category: "psychology",
+    intended_feeling: "fluid past",
+    emoji: "🧩"
+  },
+  {
+    text: "Inattentional blindness: when focused on a task, we can miss obvious things—like a gorilla walking through a scene. 🦍",
+    author: "Attention Research",
+    category: "psychology",
+    intended_feeling: "focus limits",
+    emoji: "🦍"
+  },
+  {
+    text: "The Stroop effect shows that automatic reading can interfere with naming colors, revealing processing conflicts. 🟥",
+    author: "Experimental Psychology",
+    category: "psychology",
+    intended_feeling: "brain tug-of-war",
+    emoji: "🟥"
+  },
+  {
+    text: "The spacing effect: information is retained better when study sessions are spread out over time. 📆",
+    author: "Learning Science",
+    category: "psychology",
+    intended_feeling: "smart study",
+    emoji: "📆"
+  },
+  {
+    text: "Hedonic adaptation helps explain why big life changes often shift happiness less—and for shorter—than expected. 😊",
+    author: "Positive Psychology",
+    category: "psychology",
+    intended_feeling: "resilient baseline",
+    emoji: "😊"
+  },
+  {
+    text: "Choice overload can reduce satisfaction; too many options make decisions harder and less fulfilling. 🛒",
+    author: "Behavioral Science",
+    category: "psychology",
+    intended_feeling: "paradox of choice",
+    emoji: "🛒"
+  },
+  {
+    text: "Confirmation bias nudges us to favor information that supports our beliefs and discount what contradicts them. 🔍",
+    author: "Cognitive Bias",
+    category: "psychology",
+    intended_feeling: "self-check",
+    emoji: "🔍"
+  },
+
+  // -----------------------------
+  // ENGINEERING
+  // -----------------------------
+  {
+    text: "Suspension bridges use cables in tension and towers in compression to span vast distances efficiently. 🌉",
+    author: "Civil Engineering",
+    category: "engineering",
+    intended_feeling: "structural elegance",
+    emoji: "🌉"
+  },
+  {
+    text: "Thermal expansion joints in bridges and rails prevent buckling as temperatures change. 🌡️",
+    author: "Materials Engineering",
+    category: "engineering",
+    intended_feeling: "design foresight",
+    emoji: "🌡️"
+  },
+  {
+    text: "The Panama Canal lifts ships about 26 meters using a series of water-filled locks. 🚢",
+    author: "Hydraulic Engineering",
+    category: "engineering",
+    intended_feeling: "watery elevator",
+    emoji: "🚢"
+  },
+  {
+    text: "Jet engines compress incoming air, mix it with fuel, and ignite it—hot gases spin turbines to create thrust. ✈️",
+    author: "Aerospace Engineering",
+    category: "engineering",
+    intended_feeling: "power loop",
+    emoji: "✈️"
+  },
+  {
+    text: "The ISS is assembled from dozens of pressurized modules and truss segments launched over years. 🛰️",
+    author: "Systems Engineering",
+    category: "engineering",
+    intended_feeling: "orbital LEGO",
+    emoji: "🛰️"
+  },
+  {
+    text: "Concrete gets stronger for decades as hydration products continue to form inside its pores. 🧱",
+    author: "Materials Science",
+    category: "engineering",
+    intended_feeling: "slow strength",
+    emoji: "🧱"
+  },
+  {
+    text: "Arch structures redirect vertical loads into compressive forces along the curve, minimizing tensile stress. 🏛️",
+    author: "Structural Engineering",
+    category: "engineering",
+    intended_feeling: "timeless physics",
+    emoji: "🏛️"
+  },
+  {
+    text: "3D printing can fabricate complex metal parts layer-by-layer that are impossible to machine conventionally. 🖨️",
+    author: "Manufacturing",
+    category: "engineering",
+    intended_feeling: "shape freedom",
+    emoji: "🖨️"
+  },
+
+  // -----------------------------
+  // WEIRD & WONDERFUL
+  // -----------------------------
+  {
+    text: "Wombats produce cube-shaped poop—likely to keep it from rolling away while marking territory. ◼️",
+    author: "Zoology",
+    category: "weird",
+    intended_feeling: "square surprise",
+    emoji: "◼️"
+  },
+  {
+    text: "Bananas are naturally radioactive due to potassium-40—but the dose is harmless. 🍌",
+    author: "Health Physics",
+    category: "weird",
+    intended_feeling: "safe radiation",
+    emoji: "🍌"
+  },
+  {
+    text: "Goats have rectangular pupils, giving them a panoramic field of view to watch for predators. 🐐",
+    author: "Animal Anatomy",
+    category: "weird",
+    intended_feeling: "unusual vision",
+    emoji: "🐐"
+  },
+  {
+    text: "Sharks existed before trees; sharks arose over 400 million years ago, trees around 360 million years ago. 🦈",
+    author: "Paleontology",
+    category: "weird",
+    intended_feeling: "ancient lineage",
+    emoji: "🦈"
+  },
+  {
+    text: "A cloud can weigh more than a million pounds; it floats because the surrounding air is heavier overall. ☁️",
+    author: "Meteorology",
+    category: "weird",
+    intended_feeling: "weightless weight",
+    emoji: "☁️"
+  },
+  {
+    text: "Hot water can sometimes freeze faster than cold (the Mpemba effect), though the exact conditions are subtle. 🧊",
+    author: "Thermodynamics",
+    category: "weird",
+    intended_feeling: "counterintuitive",
+    emoji: "🧊"
+  },
+  {
+    text: "Some metals like gallium can melt in your hand; its melting point is about 29.8°C (85.6°F). 🫳",
+    author: "Materials Science",
+    category: "weird",
+    intended_feeling: "melty metal",
+    emoji: "🫳"
+  },
+  {
+    text: "Human ‘goosebumps’ are a legacy from furrier ancestors—raising hair helps trap air for insulation. 🪶",
+    author: "Evolutionary Biology",
+    category: "weird",
+    intended_feeling: "ancestral echo",
+    emoji: "🪶"
+  },
+
+  // -----------------------------
+  // BONUS: MORE SCIENCE & SPACE GEMS
+  // -----------------------------
+  {
+    text: "A typical cumulus cloud contains more water than an Olympic swimming pool—yet stays aloft. 🏊‍♂️",
+    author: "Atmospheric Science",
+    category: "science",
+    intended_feeling: "floaty power",
+    emoji: "🏊‍♂️"
+  },
+  {
+    text: "Auroras glow when charged particles from the Sun collide with gases in Earth’s upper atmosphere. 🧲",
+    author: "Space Weather",
+    category: "science",
+    intended_feeling: "sky magic",
+    emoji: "🧲"
+  },
+  {
+    text: "On Venus, the surface pressure is about 90 times Earth’s—like being a kilometer underwater. 🪐",
+    author: "Planetary Science",
+    category: "space",
+    intended_feeling: "crushing world",
+    emoji: "🪐"
+  },
+  {
+    text: "A single gram of antimatter reacting with matter could release energy comparable to a large bomb. 💥",
+    author: "Particle Physics",
+    category: "science",
+    intended_feeling: "ultimate fuel",
+    emoji: "💥"
+  },
+  {
+    text: "The Milky Way and Andromeda galaxies are on a slow-motion collision course in ~4–5 billion years. 🌠",
+    author: "Cosmology",
+    category: "space",
+    intended_feeling: "future skies",
+    emoji: "🌠"
+  },
+  {
+    text: "A meteor becomes a meteorite only after surviving its fiery plunge and landing on Earth. 🪨",
+    author: "Planetary Science",
+    category: "space",
+    intended_feeling: "name switch",
+    emoji: "🪨"
+  },
+
+  // -----------------------------
+  // BONUS: MORE ANIMALS & OCEAN
+  // -----------------------------
+  {
+    text: "Hummingbirds can flap their wings around 50 times per second, powering hovering flight. 🐦",
+    author: "Aero-Biology",
+    category: "animal",
+    intended_feeling: "tiny helicopter",
+    emoji: "🐦"
+  },
+  {
+    text: "Penguins ‘fly’ underwater; their flippers and torpedo bodies trade airspeed for waterspeed. 🐧",
+    author: "Biomechanics",
+    category: "animal",
+    intended_feeling: "fluid flight",
+    emoji: "🐧"
+  },
+  {
+    text: "Narwhal ‘tusks’ are actually spiral teeth with millions of nerve endings. 🦄",
+    author: "Marine Biology",
+    category: "animal",
+    intended_feeling: "real unicorn",
+    emoji: "🦄"
+  },
+  {
+    text: "Some deep-sea anglerfish females carry tiny parasitic males fused to their bodies for life. 🐟",
+    author: "Marine Evolution",
+    category: "animal",
+    intended_feeling: "strange romance",
+    emoji: "🐟"
+  },
+  {
+    text: "Sea stars can regenerate lost arms; some species can regrow an entire body from a single arm. ⭐",
+    author: "Regenerative Biology",
+    category: "animal",
+    intended_feeling: "limb comeback",
+    emoji: "⭐"
+  },
+  {
+    text: "Dolphins sleep with one half of the brain at a time to keep surfacing to breathe. 💤",
+    author: "Neuroethology",
+    category: "animal",
+    intended_feeling: "half-asleep genius",
+    emoji: "💤"
+  },
+
+  // -----------------------------
+  // BONUS: MORE HISTORY & TECH
+  // -----------------------------
+  {
+    text: "The printing press (15th century) turbocharged knowledge sharing and helped ignite the Scientific Revolution. 🖨️",
+    author: "History of Technology",
+    category: "history",
+    intended_feeling: "ideas unleashed",
+    emoji: "🖨️"
+  },
+  {
+    text: "GPS requires Einstein: satellites must account for both special and general relativity to stay accurate. 📡",
+    author: "Relativity",
+    category: "tech",
+    intended_feeling: "everyday relativity",
+    emoji: "📡"
+  },
+  {
+    text: "The transistor (1947) is the fundamental building block of modern electronics and computing. 🔌",
+    author: "Electronics",
+    category: "tech",
+    intended_feeling: "switch that changed the world",
+    emoji: "🔌"
+  },
+  {
+    text: "Moore’s Law observed that transistor counts in chips roughly doubled every two years—driving decades of progress. 📈",
+    author: "Computing History",
+    category: "tech",
+    intended_feeling: "exponential ride",
+    emoji: "📈"
+  },
+  {
+    text: "Unicode enables computers to represent text from almost every writing system in a single standard. 🔤",
+    author: "Computer Standards",
+    category: "tech",
+    intended_feeling: "global text",
+    emoji: "🔤"
+  },
+
+  // -----------------------------
+  // BONUS: MORE HUMAN & PSYCHOLOGY
+  // -----------------------------
+  {
+    text: "Your sense of smell is tightly wired to memory; odors can trigger vivid recollections (the Proust effect). 🌸",
+    author: "Neuropsychology",
+    category: "psychology",
+    intended_feeling: "time travel nose",
+    emoji: "🌸"
+  },
+  {
+    text: "Place cells in the hippocampus map your surroundings; together they build an internal GPS. 🗺️",
+    author: "Neuroscience",
+    category: "human",
+    intended_feeling: "brain maps",
+    emoji: "🗺️"
+  },
+  {
+    text: "Your gut hosts trillions of microbes that help digest food, train immunity, and may influence mood. 🦠",
+    author: "Microbiome Science",
+    category: "human",
+    intended_feeling: "inner ecosystem",
+    emoji: "🦠"
+  },
+  {
+    text: "Laughter can reduce stress hormones and boost pain tolerance via endorphins. 😂",
+    author: "Health Psychology",
+    category: "psychology",
+    intended_feeling: "joy chemistry",
+    emoji: "😂"
+  },
+  {
+    text: "Circadian rhythms affect body temperature, alertness, and hormone release across the 24-hour cycle. ⏰",
+    author: "Chronobiology",
+    category: "human",
+    intended_feeling: "biological clock",
+    emoji: "⏰"
+  },
+
+  // -----------------------------
+  // EXTRA: QUICK MYTH-BUSTERS & TRUTHS
+  // -----------------------------
+  {
+    text: "The Great Wall of China isn’t visible from space with the naked eye—low contrast and meandering path make it hard to see. 🧱",
+    author: "Spaceflight Lore",
+    category: "history",
+    intended_feeling: "myth busted",
+    emoji: "🧱"
+  },
+  {
+    text: "Bulls aren’t angered by red; it’s the motion of the cape that provokes a charge. 🐂",
+    author: "Animal Behavior",
+    category: "animal",
+    intended_feeling: "color myth",
+    emoji: "🐂"
+  },
+  {
+    text: "Goldfish don’t have three-second memories; they can learn and remember tasks for months. 🐟",
+    author: "Comparative Cognition",
+    category: "animal",
+    intended_feeling: "smarter than assumed",
+    emoji: "🐟"
+  },
+  {
+    text: "Lightning does strike twice—tall structures and storm hotspots can be hit repeatedly. 🌩️",
+    author: "Meteorology",
+    category: "science",
+    intended_feeling: "patterned chaos",
+    emoji: "🌩️"
+  }
+];
+
+
+ // Initialize the app
+ let currentFactIndex = 0;
+ let savedFacts = JSON.parse(localStorage.getItem('zenFacts_saved')) || [];
+ let factsSeen = JSON.parse(localStorage.getItem('zenFacts_seen')) || 0;
+ let factHistory = [];
+ let selectedFacts = [];
+ let isSelectionMode = false;
+ let startX = 0;
+ let currentX = 0;
+ let isDragging = false;
+
+ // Track seen facts to prevent duplicates
+ let seenFacts = JSON.parse(localStorage.getItem('zenFacts_seenList')) || [];
+ let availableFacts = [...Array(facts.length).keys()]; // All fact indices
+
+ // DOM elements
+ const factsReel = document.getElementById('factsReel');
+ const savedList = document.getElementById('savedList');
+ const emptyState = document.getElementById('emptyState');
+ const savedBubble = document.getElementById('savedBubble');
+ const savedCount = document.getElementById('savedCount');
+ const savedOverlay = document.getElementById('savedOverlay');
+ const selectBtn = document.getElementById('selectBtn');
+ const selectAllBtn = document.getElementById('selectAllBtn');
+ const clearBtn = document.getElementById('clearBtn');
+ const closeBtn = document.getElementById('closeBtn');
+ const shareMultipleBtn = document.getElementById('shareMultipleBtn');
+ const swipeLeftIndicator = document.getElementById('swipeLeftIndicator');
+ const swipeRightIndicator = document.getElementById('swipeRightIndicator');
+ const factsSeenElement = document.getElementById('factsSeen');
+ const factsSavedElement = document.getElementById('factsSaved');
+
+ // Function to get a random fact that hasn't been seen recently
+ function getNextFactIndex() {
+ // If we've seen all facts, reset the seen list
+ if (availableFacts.length === 0) {
+   availableFacts = [...Array(facts.length).keys()];
+   // Remove the oldest seen facts to keep the list manageable
+   if (seenFacts.length > facts.length * 0.7) {
+     seenFacts = seenFacts.slice(-Math.floor(facts.length * 0.3));
+   }
+   localStorage.setItem('zenFacts_seenList', JSON.stringify(seenFacts));
+ }
+ 
+ // Get a random index from available facts
+ const randomIndex = Math.floor(Math.random() * availableFacts.length);
+ const factIndex = availableFacts[randomIndex];
+ 
+ // Remove this index from available facts
+ availableFacts.splice(randomIndex, 1);
+ 
+ // Add to seen facts
+ if (!seenFacts.includes(factIndex)) {
+   seenFacts.push(factIndex);
+   localStorage.setItem('zenFacts_seenList', JSON.stringify(seenFacts));
+ }
+ 
+ return factIndex;
+}
+
+ // Update stats
+ function updateStats() {
+ factsSeenElement.textContent = factsSeen;
+ factsSavedElement.textContent = savedFacts.length;
+ savedCount.textContent = savedFacts.length;
+ }
+
+ // Create the initial fact card
+ function createFactCard() {
+ // Get the next fact index using our new function
+ currentFactIndex = getNextFactIndex();
+ 
+ const fact = facts[currentFactIndex];
+ const factCard = document.createElement('div');
+ factCard.className = `fact-card ${fact.category} slide-in`;
+ factCard.innerHTML = `
+ <button class="back-btn" id="backBtn" ${factHistory.length === 0 ? 'style="display: none;"' : ''}>↶</button>
+ <div class="fact-emoji">${fact.emoji}</div>
+ <div class="fact-text">${fact.text}</div>
+ ${fact.author ? `<div class="fact-source">— ${fact.author}</div>` : ''}
+ ${fact.intended_feeling ? `<div class="fact-feeling">💭 ${fact.intended_feeling}</div>` : ''}
+ <div class="category-tag ${fact.category}">${fact.category}</div>
+ <div class="fact-actions">
+ <button class="action-btn dislike-btn">👎</button>
+ <button class="action-btn like-btn">👍</button>
+ </div>
+ `;
+
+ // Add event listeners for buttons
+ factCard.querySelector('.dislike-btn').addEventListener('click', () => dislikeFact(factCard));
+ factCard.querySelector('.like-btn').addEventListener('click', () => likeFact(factCard));
+ 
+ // Add back button event listener
+ const backBtn = factCard.querySelector('#backBtn');
+ if (backBtn) {
+   backBtn.addEventListener('click', goBack);
+ }
+
+ // Add touch events for swiping
+ factCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+ factCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+ factCard.addEventListener('touchend', handleTouchEnd);
+
+ // Add mouse events for desktop
+ factCard.addEventListener('mousedown', handleMouseDown);
+ document.addEventListener('mousemove', handleMouseMove);
+ document.addEventListener('mouseup', handleMouseUp);
+
+ factsReel.appendChild(factCard);
+ return factCard;
+ }
+
+ // Go back to previous fact
+ function goBack() {
+ if (factHistory.length === 0) return;
+ 
+ const lastFact = factHistory.pop();
+ currentFactIndex = lastFact.index;
+ 
+ // Remove current card
+ const currentCard = document.querySelector('.fact-card');
+ if (currentCard) {
+   currentCard.remove();
+ }
+ 
+ // Create card for the previous fact
+ createFactCard();
+ }
+
+ // Touch event handlers
+ function handleTouchStart(e) {
+ startX = e.touches[0].clientX;
+ isDragging = true;
+ e.preventDefault();
+ }
+
+ function handleTouchMove(e) {
+ if (!isDragging) return;
+ currentX = e.touches[0].clientX;
+ const diff = currentX - startX;
+ e.currentTarget.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+ 
+ // Show/hide swipe indicators
+ if (diff > 50) {
+   swipeRightIndicator.classList.add('show-right');
+   swipeLeftIndicator.classList.remove('show-left');
+ } else if (diff < -50) {
+   swipeLeftIndicator.classList.add('show-left');
+   swipeRightIndicator.classList.remove('show-right');
+ } else {
+   swipeLeftIndicator.classList.remove('show-left');
+   swipeRightIndicator.classList.remove('show-right');
+ }
+ 
+ e.preventDefault();
+ }
+
+ function handleTouchEnd(e) {
+ if (!isDragging) return;
+ isDragging = false;
+ 
+ const diff = currentX - startX;
+ const card = e.currentTarget;
+ 
+ // Hide indicators
+ swipeLeftIndicator.classList.remove('show-left');
+ swipeRightIndicator.classList.remove('show-right');
+ 
+ if (Math.abs(diff) > 100) {
+   if (diff > 0) {
+     likeFact(card);
+   } else {
+     dislikeFact(card);
+   }
+ } else {
+   // Reset position if swipe wasn't far enough
+   card.style.transform = 'translateX(0) rotate(0)';
+ }
+ }
+
+ // Mouse event handlers for desktop
+ function handleMouseDown(e) {
+ if (e.button !== 0) return; // Only left mouse button
+ startX = e.clientX;
+ isDragging = true;
+ e.currentTarget.style.cursor = 'grabbing';
+ }
+
+ function handleMouseMove(e) {
+ if (!isDragging) return;
+ currentX = e.clientX;
+ const diff = currentX - startX;
+ 
+ // Find the active card
+ const cards = document.querySelectorAll('.fact-card');
+ const activeCard = cards[cards.length - 1];
+ 
+ if (activeCard) {
+   activeCard.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+ 
+   // Show/hide swipe indicators
+   if (diff > 50) {
+     swipeRightIndicator.classList.add('show-right');
+     swipeLeftIndicator.classList.remove('show-left');
+   } else if (diff < -50) {
+     swipeLeftIndicator.classList.add('show-left');
+     swipeRightIndicator.classList.remove('show-right');
+   } else {
+     swipeLeftIndicator.classList.remove('show-left');
+     swipeRightIndicator.classList.remove('show-right');
+   }
+ }
+ }
+
+ function handleMouseUp(e) {
+ if (!isDragging) return;
+ isDragging = false;
+ 
+ const diff = currentX - startX;
+ const cards = document.querySelectorAll('.fact-card');
+ const activeCard = cards[cards.length - 1];
+ 
+ // Hide indicators
+ swipeLeftIndicator.classList.remove('show-left');
+ swipeRightIndicator.classList.remove('show-right');
+ 
+ if (activeCard) {
+   activeCard.style.cursor = 'grab';
+ 
+   if (Math.abs(diff) > 100) {
+     if (diff > 0) {
+       likeFact(activeCard);
+     } else {
+       dislikeFact(activeCard);
+     }
+   } else {
+     // Reset position if swipe wasn't far enough
+     activeCard.style.transform = 'translateX(0) rotate(0)';
+   }
+ }
+ }
+
+ // Handle liking a fact
+ function likeFact(card) {
+ // Save current fact to history before moving
+ factHistory.push({ index: currentFactIndex });
+ 
+ card.classList.add('swipe-right');
+ 
+ // Save the fact
+ const currentFact = facts[currentFactIndex];
+ if (!savedFacts.some(f => f.text === currentFact.text)) {
+   savedFacts.push(currentFact);
+   localStorage.setItem('zenFacts_saved', JSON.stringify(savedFacts));
+   updateSavedList();
+ }
+ 
+ // Update stats
+ factsSeen++;
+ localStorage.setItem('zenFacts_seen', JSON.stringify(factsSeen));
+ updateStats();
+ 
+ // Move to next fact
+ setTimeout(() => {
+   card.remove();
+   createFactCard();
+ }, 300);
+ }
+
+ // Handle disliking a fact
+ function dislikeFact(card) {
+ // Save current fact to history before moving
+ factHistory.push({ index: currentFactIndex });
+ 
+ card.classList.add('swipe-left');
+ 
+ // Update stats
+ factsSeen++;
+ localStorage.setItem('zenFacts_seen', JSON.stringify(factsSeen));
+ updateStats();
+ 
+ // Move to next fact
+ setTimeout(() => {
+   card.remove();
+   createFactCard();
+ }, 300);
+ }
+
+ // Update the saved facts list
+ function updateSavedList() {
+ // Clear the list
+ savedList.innerHTML = '';
+ 
+ if (savedFacts.length === 0) {
+   savedList.appendChild(emptyState);
+   emptyState.style.display = 'block';
+   shareMultipleBtn.style.display = 'none';
+   return;
+ }
+ 
+ emptyState.style.display = 'none';
+ 
+ // Add each saved fact
+ savedFacts.forEach((fact, index) => {
+   const savedItem = document.createElement('div');
+   savedItem.className = 'saved-item';
+   savedItem.dataset.index = index;
+   savedItem.innerHTML = `
+   <div class="saved-content-inner">
+     <div class="saved-text">${fact.text}</div>
+     ${fact.author ? `<div class="saved-source">— ${fact.author}</div>` : ''}
+     ${fact.intended_feeling ? `<div class="saved-feeling">💭 ${fact.intended_feeling}</div>` : ''}
+     <div class="category-tag ${fact.category}">${fact.category}</div>
+   </div>
+   <div class="saved-actions">
+     <button class="copy-btn" data-index="${index}">Copy</button>
+     <button class="share-btn" data-index="${index}">Share</button>
+     <button class="remove-btn" data-index="${index}">Remove</button>
+   </div>
+   `;
+ 
+   // Add click event for selection mode
+   savedItem.addEventListener('click', function(e) {
+     if (isSelectionMode && !e.target.closest('.saved-actions')) {
+       this.classList.toggle('selected');
+       const index = parseInt(this.dataset.index);
+ 
+       if (this.classList.contains('selected')) {
+         if (!selectedFacts.includes(index)) {
+           selectedFacts.push(index);
+         }
+       } else {
+         selectedFacts = selectedFacts.filter(i => i !== index);
+       }
+ 
+       // Update share button text
+       updateShareButtonText();
+     }
+   });
+ 
+   savedList.appendChild(savedItem);
+ });
+ 
+ // Add event listeners to the new buttons
+ document.querySelectorAll('.copy-btn').forEach(btn => {
+   btn.addEventListener('click', copyFact);
+ });
+ 
+ document.querySelectorAll('.share-btn').forEach(btn => {
+   btn.addEventListener('click', shareFact);
+ });
+ 
+ document.querySelectorAll('.remove-btn').forEach(btn => {
+   btn.addEventListener('click', removeFact);
+ });
+ 
+ updateStats();
+ }
+
+ // Update share button text
+ function updateShareButtonText() {
+ shareMultipleBtn.textContent = `Share ${selectedFacts.length} Selected Fact${selectedFacts.length !== 1 ? 's' : ''}`;
+ }
+
+ // Select all facts
+ function selectAllFacts() {
+ if (!isSelectionMode) return;
+ 
+ selectedFacts = [...Array(savedFacts.length).keys()];
+ document.querySelectorAll('.saved-item').forEach((item, index) => {
+   item.classList.add('selected');
+ });
+ 
+ updateShareButtonText();
+ }
+
+ // Copy fact to clipboard
+ function copyFact(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ const fact = savedFacts[index];
+ 
+ navigator.clipboard.writeText(`${fact.text} — Shared via ZenSeek`)
+ .then(() => {
+   // Show feedback
+   const originalText = e.target.textContent;
+   e.target.textContent = 'Copied!';
+   setTimeout(() => {
+     e.target.textContent = originalText;
+   }, 2000);
+ })
+ .catch(err => {
+   console.error('Failed to copy: ', err);
+ });
+ }
+
+ // Share fact
+ function shareFact(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ const fact = savedFacts[index];
+ 
+ const shareText = `${fact.text}\n\nLearn more amazing facts at ZenSeek.org`;
+ 
+ if (navigator.share) {
+   navigator.share({
+     title: 'ZenSeek Amazing Fact',
+     text: shareText,
+     url: window.location.href,
+   })
+   .catch(err => {
+     console.error('Error sharing:', err);
+     // Fallback to copying
+     navigator.clipboard.writeText(shareText);
+     e.target.textContent = 'Copied!';
+     setTimeout(() => {
+       e.target.textContent = 'Share';
+     }, 2000);
+   });
+ } else {
+   // Fallback to copying
+   navigator.clipboard.writeText(shareText);
+   e.target.textContent = 'Copied!';
+   setTimeout(() => {
+     e.target.textContent = 'Share';
+   }, 2000);
+ }
+ }
+
+ // Remove fact from saved list
+ function removeFact(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ savedFacts.splice(index, 1);
+ localStorage.setItem('zenFacts_saved', JSON.stringify(savedFacts));
+ updateSavedList();
+ }
+
+ // Toggle selection mode
+ function toggleSelectionMode() {
+ isSelectionMode = !isSelectionMode;
+ savedList.classList.toggle('selection-mode', isSelectionMode);
+ selectBtn.textContent = isSelectionMode ? 'Cancel' : 'Select';
+ 
+ // Clear selection when exiting selection mode
+ if (!isSelectionMode) {
+   selectedFacts = [];
+   document.querySelectorAll('.saved-item').forEach(item => {
+     item.classList.remove('selected');
+   });
+   shareMultipleBtn.style.display = 'none';
+ } else {
+   shareMultipleBtn.style.display = 'block';
+   updateShareButtonText();
+ }
+ }
+
+ // Share multiple facts
+ function shareMultipleFacts() {
+ if (selectedFacts.length === 0) return;
+ 
+ // Sort selected facts to maintain order
+ selectedFacts.sort((a, b) => a - b);
+ 
+ let shareText = "My ZenSeek Amazing Facts Collection\n\n";
+ 
+ selectedFacts.forEach((index, i) => {
+   const fact = savedFacts[index];
+   shareText += `${i+1}. ${fact.text}\n\n`;
+ });
+ 
+ shareText += "\nWant to blow your mind? Discover more amazing facts at ZenSeek.org";
+ 
+ if (navigator.share) {
+   navigator.share({
+     title: 'My ZenSeek Amazing Facts',
+     text: shareText,
+     url: window.location.href,
+   })
+   .catch(err => {
+     console.error('Error sharing:', err);
+     // Fallback to copying
+     navigator.clipboard.writeText(shareText);
+     shareMultipleBtn.textContent = 'Copied!';
+     setTimeout(() => {
+       updateShareButtonText();
+     }, 2000);
+   });
+ } else {
+   // Fallback to copying
+   navigator.clipboard.writeText(shareText);
+   shareMultipleBtn.textContent = 'Copied!';
+   setTimeout(() => {
+     updateShareButtonText();
+   }, 2000);
+ }
+ }
+
+ // Clear all saved facts
+ function clearAllFacts() {
+ if (confirm("Are you sure you want to clear all your saved facts?")) {
+   savedFacts = [];
+   localStorage.setItem('zenFacts_saved', JSON.stringify(savedFacts));
+   updateSavedList();
+   toggleSelectionMode(); // Exit selection mode
+ }
+ }
+
+ // Initialize the app
+ function init() {
+ // Initialize available facts (remove already seen facts)
+ seenFacts.forEach(seenIndex => {
+   const index = availableFacts.indexOf(seenIndex);
+   if (index > -1) {
+     availableFacts.splice(index, 1);
+   }
+ });
+ 
+ createFactCard();
+ updateSavedList();
+ updateStats();
+ 
+ // Event listeners for saved facts overlay
+ savedBubble.addEventListener('click', () => {
+   savedOverlay.classList.add('active');
+ });
+ 
+ closeBtn.addEventListener('click', () => {
+   savedOverlay.classList.remove('active');
+   toggleSelectionMode(); // Exit selection mode if active
+ });
+ 
+ selectBtn.addEventListener('click', toggleSelectionMode);
+ selectAllBtn.addEventListener('click', selectAllFacts);
+ clearBtn.addEventListener('click', clearAllFacts);
+ shareMultipleBtn.addEventListener('click', shareMultipleFacts);
+ }
+
+ // Start the app
+ init();
+ </script>
+</body>
+</html>

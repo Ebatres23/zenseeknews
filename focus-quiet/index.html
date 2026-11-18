@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Focus & Digital Quiet | ZenSeek</title>
+  <meta name="description" content="Evidence‑based routines to reduce noise, enter flow, and reclaim attention — with Apple‑style scrollytelling, a focus timer, circadian coach, jet lag helper, and declutter checklist."/>
+  <style>
+    :root{
+      --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#384a55;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Georgia',serif;background:#0a141a;color:var(--ink);line-height:1.55;overflow-x:hidden}
+
+    /* Header (matches home) */
+    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);
+      background:rgba(10,20,26,.65);border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
+    header .brand{font-weight:700;color:var(--zen-gold);font-size:1.4rem;text-decoration:none}
+    nav a{color:#fff;margin-left:1rem;text-decoration:none;font-weight:500}
+    nav a:hover{color:var(--zen-gold)}
+
+    /* Hero (same system as home) */
+    .hero{position:relative;min-height:64vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:2rem 1rem;isolation:isolate}
+    .hero .media{position:absolute;inset:0;z-index:-2}
+    .hero img{width:100%;height:100%;object-fit:cover;filter:saturate(1.2) contrast(1.06) brightness(1.05);transform:scale(1.02);animation:kb 24s ease-in-out infinite alternate}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.45))}
+    @keyframes kb{0%{transform:scale(1.02)}100%{transform:scale(1.04) translateY(-6px)}}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);color:var(--zen-gold);margin-bottom:.5rem;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+    .hero p{max-width:820px;margin:0 auto .6rem;font-size:1.05rem;color:#eef6f9;text-shadow:0 1px 8px rgba(0,0,0,.3)}
+    .badges{list-style:none;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin:.6rem 0 0}
+    .badges li{border:1px solid var(--zen-gold);color:var(--zen-gold);padding:.28rem .7rem;border-radius:16px;font-size:.85rem;background:rgba(0,0,0,.25)}
+    .meta{margin-top:.5rem;font-size:.85rem;color:#fff;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+    .btns{margin-top:.9rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+    .btn{padding:.7rem 1.4rem;border-radius:999px;font-weight:600;text-decoration:none;border:1px solid transparent}
+    .btn.primary{background:var(--zen-gold);color:#141006}
+    .btn.secondary{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+
+    /* Page container */
+    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+    .page{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.09);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+      padding:clamp(16px,2vw,24px);color:#eaf2f5}
+
+      :root{ --safe-top:86px }               /* keeps anchors from hiding under the top bar */
+html{ scroll-padding-top: var(--safe-top) }
+section[id]{ scroll-margin-top: var(--safe-top) }
+
+ /* Columns: TOC + content */
+    .cols{display:grid;grid-template-columns:280px 1fr;gap:18px}
+    @media(max-width:980px){.cols{grid-template-columns:1fr}}
+    .toc{position:var(--safe-top);top:6rem;align-self:start;background:rgba(11,24,32,.75);border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;padding:14px;backdrop-filter:blur(8px)}
+    .toc h3{color:var(--zen-gold);font-size:1rem;margin:0 0 .4rem}
+    .toc nav a{display:block;color:#d7e6ed;text-decoration:none;padding:.35rem .45rem;border-radius:8px;font-size:.95rem}
+    .toc nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+
+    /* Content cards */
+    .card{background:rgba(255,255,255,.95);color:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0}
+    .card h2{font-size:1.25rem;margin:.2rem 0 .45rem}
+    .tag{display:inline-block;font-size:.78rem;color:#6b7a8a;border:1px solid #e3e7eb;border-radius:14px;padding:.16rem .6rem;margin-bottom:.5rem}
+    .lead{color:#22323b}
+    .sub{color:var(--muted);font-size:.95rem}
+
+    /* Chapter previews */
+    .chapters{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:8px}
+    .chapter{background:rgba(255,255,255,.9);border-radius:12px;overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:0 8px 20px rgba(0,0,0,.16)}
+    .chapter:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.28)}
+    .chapter img{width:100%;height:160px;object-fit:cover}
+    .chapter .body{padding:14px 16px}
+    .chapter h3{margin:.2rem 0 .35rem;font-size:1.05rem;color:var(--ink)}
+    .chapter p{margin:0;color:var(--muted);font-size:.93rem}
+
+    footer{background:#111;color:#bbb;text-align:center;padding:1rem;margin-top:2rem;font-size:.85rem}
+    footer a{color:#fff;text-decoration:none}footer a:hover{color:var(--zen-gold)}
+
+    @media(prefers-reduced-motion:reduce){.hero img{animation:none;transform:none}}
+    /* Scene (Apple-style) */
+    .scene{margin:28px 0;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+    .scene-inner{display:grid;grid-template-columns:minmax(280px,520px) 1fr;gap:20px}
+    @media(max-width:980px){.scene-inner{grid-template-columns:1fr}}
+    .sticky-visual{position:sticky;top:96px;align-self:start;padding:18px}
+    .brain{width:100%;max-width:520px;aspect-ratio:1.2/1;background:radial-gradient(800px 360px at 50% -10%, rgba(212,175,55,.18), transparent 40%)}
+    .brain canvas{width:100%;height:auto;display:block;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#0f1f28,#0a141a)}
+    .caption{color:#d7e6ed;font-size:.92rem;margin-top:8px}
+    .steps{padding:6px}
+    .step{background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0;opacity:.6;transform:translateY(8px);transition:opacity .3s, transform .3s}
+    .step.active{opacity:1;transform:none;border:1px solid #e8ebef}
+
+    /* Toolkit grid */
+    .tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .tool{background:rgba(255,255,255,.95);color:var(--ink);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:14px}
+    .tool h3{margin-bottom:.4rem}
+    .tool .row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin:.4rem 0}
+    .tool input[type="number"], .tool input[type="range"], .tool select{padding:.35rem .5rem;border:1px solid #dfe5ea;border-radius:8px}
+    .tool button{padding:.55rem 1rem;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--zen-gold);color:#141006;font-weight:700;cursor:pointer}
+    .tool button.ghost{background:rgba(0,0,0,.03)}
+
+    footer{background:#111;color:#bbb;text-align:center;padding:1rem;margin-top:2rem;font-size:.85rem}
+    footer a{color:#fff;text-decoration:none} footer a:hover{color:var(--zen-gold)}
+
+    :root{--safe-top:86px} html{scroll-padding-top:var(--safe-top)} section[id]{scroll-margin-top:var(--safe-top)}
+    @media(prefers-reduced-motion:reduce){.hero .media img{animation:none;transform:none}}
+  </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-page">
+  <header>
+    <a href="/" class="brand">ZenSeek</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/first-rate-you/">First-Rate You</a>
+      <a href="/wealth-flow/">Money</a>
+      <a href="/focus-quiet/">Calm</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <picture class="media" aria-hidden="true">
+      <img src="/images/anxiety-relief.jpg" alt="" width="1920" height="1080" fetchpriority="high"/>
+    </picture>
+    <h1>Focus & Digital Quiet</h1>
+    <p>Evidence‑based routines to reduce noise, enter flow, and reclaim attention. Start small, keep it gentle, make it stick. Step away from algorithmic pulls and back into real life.</p>
+    <ul class="badges"><li>✅ Multi‑AI Sourcing</li><li>🧑‍🏫 Human Review</li><li>♾️ Evergreen Updates</li><li>🔎 Source‑Transparent</li></ul>
+    <p class="meta">Verified: Sept 2025</p>
+    <div class="btns"><a class="btn primary" href="#toolkit">Open Toolkit</a><a class="btn secondary" href="#disconnect">Start Guide</a></div>
+  </section>
+
+ <main class="onpage">
+    <div class="box" id="start" aria-expanded="false">
+      <section class="box" id="contents">
+        <!-- TOC -->
+        <aside class="toc">
+          <h3>Contents</h3>
+          <nav>
+        <a href="#disconnect">How to Disconnect</a>
+        <a href="#benefits">Benefits</a>
+        <a href="#risks">Risks</a>
+        <a href="#algorithms">Escaping Algorithms</a>
+        <a href="#reallife">Real‑Life Alternatives</a>
+        <a href="#philosophy">The Power of Philosophy</a>
+        <a href="#toolkit">Toolkit</a>
+        <a href="#verification">Verification</a>
+      </nav>
+    </aside>
+
+    <div>
+      <!-- Apple‑style scrollytelling brain focus scene -->
+      <section id="disconnect" class="scene" aria-labelledby="focusTitle">
+        <div class="scene-inner">
+          <div class="visual">
+            <div class="brain"><canvas id="brainCanvas" width="520" height="432" aria-label="Focus network"></canvas></div>
+            <p class="caption">Scroll the steps → the network shifts from scattered → centered → sustained flow.</p>
+          </div>
+          <div class="steps">
+            <article class="card step" data-mode="scatter"><span class="tag">Step 1</span><h2 class="lead">Interruptions Down</h2><p class="sub">DND, batch notifications, device‑free rooms. Replace micro‑checks with one intentional check block.</p><ul><li>1 hour device‑free daily</li><li>App limits; remove 1–2 triggers weekly</li><li>Grayscale after 9pm</li></ul></article>
+            <article class="card step" data-mode="center"><span class="tag">Step 2</span><h2 class="lead">Single Task, Deep Work</h2><p class="sub">Set a narrow target, clear desk, choose one task. Small win → momentum.</p><ul><li>Define end state in one line</li><li>10–20 min starter sprint</li><li>Headphones = office door</li></ul></article>
+            <article class="card step" data-mode="flow"><span class="tag">Step 3</span><h2 class="lead">Sustain with Rests</h2><p class="sub">Pulse work/rest. End sessions cleanly: save, jot next step, close tabs.</p><ul><li>50/10 cadence or 25/5</li><li>Eyes‑far and posture reset</li><li>Movement snack</li></ul></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="benefits" class="card"><span class="tag">Why it matters</span><h2>Benefits</h2><ul><li><strong>Restored attention:</strong> fewer interruptions → deeper work</li><li><strong>Lower stress:</strong> less notification load → calmer baseline</li><li><strong>Real connection:</strong> more in‑person time</li><li><strong>Healthier reward loops:</strong> break compulsive scrolling</li><li><strong>Physical relief:</strong> eyes, neck, and sleep benefit</li></ul></section>
+
+      <section id="risks" class="card"><span class="tag">Watchouts</span><h2>Risks of Excessive Screen Time</h2><ul><li>Compulsive loops and doomscrolling</li><li>Over‑sexualized feeds distort body image</li><li>Comparison/FOMO → mood hits</li><li>Sedentary strain and sleep disruption</li></ul></section>
+
+      <section id="algorithms" class="card"><span class="tag">Escape</span><h2>Escaping Algorithms & Marketing</h2><ul><li>Limit tracking (privacy tools, ad blockers)</li><li>Research purchases outside ad funnels</li><li>Set clear online goals → avoid aimless scroll</li></ul></section>
+
+      <section id="reallife" class="card"><span class="tag">Infra</span><h2>Real‑Life Alternatives</h2><ul><li>Nature immersion</li><li>Creative pursuits</li><li>Face‑to‑face time</li><li>Mindful practices</li><li>Movement</li></ul></section>
+
+      <section id="philosophy" class="card"><span class="tag">Perspective</span><h2>The Enduring Power of Philosophy</h2><p class="sub">Use simple claims, act with integrity, accept limits, cultivate wonder. Philosophy gives language to choose what matters when the feed tugs elsewhere.</p></section>
+
+      <!-- TOOLKIT -->
+      <section id="toolkit" class="card" aria-labelledby="toolsTitle">
+        <h2 id="toolsTitle">Toolkit</h2>
+        <div class="tool-grid">
+          <!-- Focus Timer / Pomodoro -->
+          <div class="tool" id="focusTool">
+            <h3>Focus Timer</h3>
+            <div class="row">
+              <label for="workMin">Work (min)</label><input id="workMin" type="number" value="50" min="5" step="5"/>
+              <label for="restMin">Rest (min)</label><input id="restMin" type="number" value="10" min="1" step="1"/>
+              <label for="rounds">Rounds</label><input id="rounds" type="number" value="3" min="1" step="1"/>
+            </div>
+            <div class="row">
+              <button id="focusStart">Start</button>
+              <button id="focusPause" class="ghost">Pause</button>
+              <button id="focusReset" class="ghost">Reset</button>
+              <span class="sub">State: <strong id="focusState">Ready</strong> · Left: <strong id="focusLeft">00:00</strong></span>
+            </div>
+            <div class="row"><label>Audio</label><select id="focusAudio"><option value="off">Off</option><option value="soft">Soft chime</option><option value="voice">Voice</option></select><label>Haptics</label><select id="focusHaptics"><option value="off">Off</option><option value="light">Light</option><option value="strong">Strong</option></select></div>
+          </div>
+
+          <!-- Circadian Coach -->
+          <div class="tool">
+            <h3>Circadian Coach</h3>
+            <div class="row"><label for="timeSlider">Time</label><input id="timeSlider" type="range" min="0" max="24" value="12" step="1"></div>
+            <p class="sub">Energy: <strong id="energyLevel">Medium</strong></p>
+            <p class="sub">Tip: align deep work to your peak, admin to your dip.</p>
+          </div>
+
+          <!-- Jet Lag Helper -->
+          <div class="tool">
+            <h3>Jet Lag Helper</h3>
+            <div class="row"><label>Diff (h)</label><input id="tzDiff" type="number" min="1" max="12" value="3"/><label>Dir</label><select id="tzDir"><option value="east">East</option><option value="west">West</option></select><button id="calcJet">Calculate</button></div>
+            <p class="sub">Estimated recovery: <strong id="jetDays">?</strong> day(s)</p>
+          </div>
+
+          <!-- Declutter Checklist (downloadable) -->
+          <div class="tool">
+            <h3>Digital Declutter Checklist</h3>
+            <ul>
+              <li>Disable social notifications</li>
+              <li>Remove unused apps</li>
+              <li>Set screen‑time limits</li>
+              <li>Organize desktop/files</li>
+              <li>Move distracting apps to last page</li>
+            </ul>
+            <button id="dlChecklist" class="ghost">Download checklist</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="verification" class="card"><span class="tag">Verification</span><h2>Built for Clarity</h2><ul><li>Evidence‑informed: attention, circadian, productivity research</li><li>Human‑tested: simplified, safe</li><li>Evergreen: reviewed quarterly</li></ul><p class="sub">Updated: Sept 30, 2025</p></section>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="y"></span> ZenSeek — AI‑sourced, human‑verified, evergreen.</p>
+    <p><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/sitemap.xml">Sitemap</a></p>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('y').textContent=new Date().getFullYear();
+
+    // TOC active link + smooth scroll
+    (function(){ const links=[...document.querySelectorAll('#toc a')]; const ids=links.map(a=>a.getAttribute('href')).map(h=>h.slice(1)); const obs=new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ const id='#'+e.target.id; links.forEach(a=>a.classList.toggle('active', a.getAttribute('href')===id)); } }); },{rootMargin:'-40% 0px -55% 0px', threshold:0}); ids.forEach(id=>{ const el=document.getElementById(id); if(el) obs.observe(el);}); document.querySelector('#toc')?.addEventListener('click',(ev)=>{ const a=ev.target.closest('a'); if(!a) return; const t=document.querySelector(a.getAttribute('href')); if(t){ev.preventDefault(); t.scrollIntoView({behavior:'smooth'});} }); })();
+
+    // Apple‑style scrollytelling: brain network
+    (function(){ const c=document.getElementById('brainCanvas'); const ctx=c.getContext('2d'); const rm=matchMedia('(prefers-reduced-motion: reduce)').matches; let state='scatter'; function fit(){ const dpr=window.devicePixelRatio||1; const w=c.clientWidth||520; const h=Math.round(w*(c.height/c.width)); c.width=Math.max(2,Math.floor(w*dpr)); c.height=Math.max(2,Math.floor(h*dpr)); c.style.width=w+'px'; c.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);} new ResizeObserver(fit).observe(c); fit(); function draw(){ const w=c.width/(devicePixelRatio||1), h=c.height/(devicePixelRatio||1); ctx.clearRect(0,0,w,h); // glow
+      ctx.beginPath(); ctx.arc(w*0.52,h*0.33, Math.min(w,h)*0.26,0,Math.PI*2); ctx.fillStyle='rgba(212,175,55,0.16)'; ctx.fill(); // nodes
+      const nodes = state==='scatter'? 26 : state==='center'? 18 : 12; const jitter = rm?0: (state==='scatter'? 2.2 : state==='center'?1.2:0.6); const cx=w*0.5, cy=h*0.48, R=Math.min(w,h)*0.32; for(let i=0;i<nodes;i++){ const ang = i/nodes*Math.PI*2 + (rm?0: performance.now()*0.0005); const r = state==='scatter'? R*(0.4+0.6*Math.random()) : state==='center'? R*0.55 : R*0.35; const x = cx + Math.cos(ang)*r + (Math.random()-0.5)*jitter; const y = cy + Math.sin(ang)*r + (Math.random()-0.5)*jitter; ctx.beginPath(); ctx.arc(x,y, state==='scatter'?3: state==='center'?3.5:4.5,0,Math.PI*2); ctx.fillStyle= state==='scatter'? '#f6b0b0' : state==='center'? '#9fe3c8' : '#9fb9ff'; ctx.fill(); }
+      // central hub + edges
+      ctx.lineWidth=1.2; ctx.strokeStyle= state==='scatter'? 'rgba(246,176,176,0.5)' : state==='center'? 'rgba(159,227,200,0.6)' : 'rgba(159,185,255,0.7)'; const hubR = state==='flow'? 10:7; ctx.beginPath(); ctx.arc(cx,cy,hubR,0,Math.PI*2); ctx.stroke(); }
+      function loop(){ requestAnimationFrame(loop); draw(); } requestAnimationFrame(loop);
+      const steps=[...document.querySelectorAll('.step')]; const obs=new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ steps.forEach(s=>s.classList.toggle('active', s===e.target)); state=e.target.getAttribute('data-mode'); } }); },{rootMargin:'-35% 0px -55% 0px', threshold:0}); steps.forEach(s=>obs.observe(s)); })();
+
+    // Circadian Coach
+    (function(){ const s=document.getElementById('timeSlider'); const out=document.getElementById('energyLevel'); function upd(){ const h=+s.value; const level = (h>=6&&h<10)?'Rising': (h>=10&&h<14)?'Peak': (h>=14&&h<18)?'Dip': (h>=18&&h<22)?'Evening Steady':'Low (Sleep)'; out.textContent=level; } s.addEventListener('input',upd); upd(); })();
+
+    // Jet Lag Helper
+    (function(){ const btn=document.getElementById('calcJet'); const out=document.getElementById('jetDays'); btn.addEventListener('click',()=>{ const diff=+document.getElementById('tzDiff').value||0; const dir=document.getElementById('tzDir').value; const days=Math.ceil(diff/(dir==='east'?2:3)); out.textContent=days; }); })();
+
+    // Checklist download
+    (function(){ const btn=document.getElementById('dlChecklist'); if(!btn) return; btn.addEventListener('click',()=>{ const txt='Digital Declutter\n\n[ ] Disable social notifications\n[ ] Remove unused apps\n[ ] Set screen‑time limits\n[ ] Organize desktop/files\n[ ] Move distracting apps to last page\n[ ] Unfollow outrage feeds\n[ ] Add bedtime DND\n'; const blob=new Blob([txt],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='zenseek-digital-declutter.txt'; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },0); }); });
+
+    // Focus Timer with audio/voice/haptics
+    (function(){ const workMin=document.getElementById('workMin'); const restMin=document.getElementById('restMin'); const roundsInp=document.getElementById('rounds'); const start=document.getElementById('focusStart'); const pause=document.getElementById('focusPause'); const reset=document.getElementById('focusReset'); const stateEl=document.getElementById('focusState'); const leftEl=document.getElementById('focusLeft'); const audioSel=document.getElementById('focusAudio'); const hSel=document.getElementById('focusHaptics'); let running=false, paused=false, mode='Work', remain=0, round=1, rounds=+roundsInp.value||3, t0=0; let raf;
+      let actx=null; function chime(){ if(audioSel.value!=='soft') return; if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(); o.type='sine'; o.frequency.value=660; g.gain.value=0.0008; o.connect(g).connect(actx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.00001, actx.currentTime+0.25); o.stop(actx.currentTime+0.26); }
+      function speak(txt){ if(audioSel.value!=='voice') return; try{ const u=new SpeechSynthesisUtterance(txt); u.rate=1; u.lang='en-US'; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+      function buzz(){ if(!('vibrate' in navigator)) return; const v=hSel.value; if(v==='off') return; navigator.vibrate(v==='strong'?[50,30,50]:[30]); }
+      function fmt(s){ const m=Math.floor(s/60).toString().padStart(2,'0'); const ss=Math.floor(s%60).toString().padStart(2,'0'); return m+':'+ss; }
+      function setPhase(next){ mode=next; const dur = (mode==='Work'? +workMin.value*60 : +restMin.value*60); remain=dur; t0=performance.now(); stateEl.textContent = mode+(mode==='Work'?` (Round ${round}/${rounds})`:'' ); chime(); speak(mode); buzz(); }
+      function tick(){ if(!running||paused){ raf=requestAnimationFrame(tick); return; } const dt=(performance.now()-t0)/1000; t0=performance.now(); remain=Math.max(0, remain-dt); leftEl.textContent=fmt(remain); if(remain<=0){ if(mode==='Work'){ setPhase('Rest'); } else { if(round>=rounds){ running=false; stateEl.textContent='Done'; chime(); speak('Session complete'); buzz(); cancelAnimationFrame(raf); return; } round++; setPhase('Work'); } } raf=requestAnimationFrame(tick); }
+      start.addEventListener('click',()=>{ if(!running){ rounds=+roundsInp.value||3; round=1; setPhase('Work'); running=true; paused=false; tick(); } else if(paused){ paused=false; t0=performance.now(); } });
+      pause.addEventListener('click',()=>{ paused=!paused; });
+      reset.addEventListener('click',()=>{ running=false; paused=false; stateEl.textContent='Ready'; leftEl.textContent='00:00'; cancelAnimationFrame(raf); });
+    })();
+  </script>
+</body>
+</html>
+

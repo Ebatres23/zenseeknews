@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>ZenSeek — Vortex Safari (Spiral)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{ --zen-gold:#E7C55B; --text:#fff; --barH:66px; }
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+body{
+ margin:0; color:var(--text);
+ background:
+ radial-gradient(900px 700px at 80% -10%, rgba(255,216,225,.16), transparent 55%),
+ radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+ #0a1820;
+ font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+ overflow:hidden;
+ padding-bottom: calc(var(--barH) + env(safe-area-inset-bottom,0px));
+}
+
+/* Header */
+.topbar{ position:fixed; inset:0 0 auto 0; height:48px; z-index:50;
+ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 10px;
+ background:rgba(0,0,0,.34); border-bottom:1px solid rgba(255,255,255,.08); backdrop-filter:blur(8px); }
+.brand{ font-family:'Playfair Display',serif; color:var(--zen-gold); font-weight:700; }
+.subtle{ color:#e5e7eb; font-size:.86rem; }
+
+/* Stage */
+.stage{ position:fixed; inset:48px 0 calc(var(--barH) + env(safe-area-inset-bottom,0px)) 0; display:grid; place-items:center; }
+#game{ width:100vw; height:100%; display:block; touch-action:none; }
+
+/* HUD */
+.hud{ position:fixed; left:50%; top:56px; transform:translateX(-50%); z-index:60;
+ background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:6px 10px;
+ display:flex; gap:8px; align-items:center; font-weight:800; backdrop-filter:blur(6px); }
+.badge{ padding:.25rem .55rem; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.45); white-space:nowrap; }
+.small{ font-size:.85rem; opacity:.9; } .mono{ font-variant-numeric:tabular-nums; }
+
+/* Bottom controls */
+.bottom{
+ position:fixed; left:0; right:0; bottom:0; z-index:70;
+ height: calc(var(--barH) + env(safe-area-inset-bottom,0px));
+ padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; /* Changed to flex for better small-screen handling */
+ background:rgba(10,12,16,.88); border-top:1px solid rgba(255,255,255,.12); backdrop-filter:blur(12px);
+}
+.btn{
+ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border-radius:12px;
+ border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); color:#fff; font:600 14px/1 system-ui; cursor:pointer;
+ transition:transform .08s ease, background .2s ease, border-color .2s ease;
+ flex:1; min-width:80px; max-width:120px; /* Ensure buttons scale and wrap */
+}
+.btn:active{ transform:scale(.96); }
+
+/* Toast modals */
+.toast{
+ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96);
+ background:rgba(0,0,0,.9); padding:16px 18px; border-radius:14px;
+ border:1px solid rgba(255,255,255,.14); width:min(92vw,420px); text-align:center;
+ opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:100;
+}
+.toast.show{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
+
+kbd{
+ font-family:ui-monospace, Menlo, Consolas, monospace;
+ padding:.1rem .35rem; border-radius:6px;
+ border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.12); font-size:.8rem;
+}
+
+@media (max-width:560px){
+ .subtle{font-size:.78rem;}
+ .btn{font-size:13px; min-width:60px;}
+ .hud{gap:6px;}
+}
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+ <div class="topbar">
+ <div class="brand">ZenSeek</div>
+ <div class="subtle">Vortex Safari — Rotate to dodge</div>
+ </div>
+
+ <div class="hud" id="hud">
+ <span class="badge">Score: <span id="score" class="mono">0</span></span>
+ <span class="badge">Best: <span id="best" class="mono">0</span></span>
+ <span class="badge small">Animal: <span id="animalName">🦁 Lion</span></span>
+ <span class="badge small">Difficulty: <span id="diffName">Normal</span></span>
+ </div>
+
+ <div class="stage">
+ <canvas id="game" width="1" height="1" aria-label="Vortex game canvas"></canvas>
+ </div>
+
+ <!-- Help -->
+ <div id="help" class="toast" role="dialog" aria-modal="true">
+ <h3 style="margin:.2rem 0 0; color:var(--zen-gold); font-family:'Playfair Display',serif;">How to Play</h3>
+ <p class="small" style="margin:.6rem 0 0;">
+ Your animal sits on a circular track. Bright arc obstacles rush inward in a visible spiral tunnel.<br/>
+ Rotate around the ring to dodge. You can't leave the ring.
+ </p>
+ <p class="small" style="margin:.6rem 0 0;">Controls: <kbd>←/A</kbd> left • <kbd>→/D</kbd> right • <kbd>Space</kbd> dash • <kbd>P</kbd> pause • <kbd>M</kbd> mute • <kbd>L</kbd> leaderboard • <kbd>N</kbd> next animal.</p>
+ <button id="helpClose" class="btn" style="margin-top:.6rem;">Got it</button>
+ </div>
+
+ <!-- Leaderboard -->
+ <div id="lb" class="toast" role="dialog" aria-modal="true">
+ <h3 style="margin:.2rem 0 8px; color:var(--zen-gold); font-family:'Playfair Display',serif;">🏆 Leaderboard</h3>
+ <div id="lbList" style="text-align:left;"></div>
+ <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
+ <button id="lbClear" class="btn"> Clear</button>
+ <button id="lbClose" class="btn">Close</button>
+ </div>
+ </div>
+
+ <div class="bottom">
+ <button id="btnStart" class="btn">▶️ Start</button>
+ <button id="btnLeft" class="btn">↶ Left</button>
+ <button id="btnRight" class="btn">↷ Right</button>
+ <button id="btnPause" class="btn">⏸️ Pause</button>
+ <button id="btnMore" class="btn" title="Cycle difficulty">🎚️ Difficulty</button>
+ <button id="btnAnimal" class="btn" title="Cycle animal">🦒 Animal</button> <!-- New animal selection button -->
+ <button id="btnScores" class="btn">🏆 Scores</button>
+ <button id="btnMute" class="btn">🔊 Sound</button>
+ </div>
+
+<script>
+// ==================== GAME INITIALIZATION ====================
+const animalRoster = [
+ {name:"Lion",emoji:"🦁"},{name:"Elephant",emoji:"🐘"},{name:"Giraffe",emoji:"🦒"},{name:"Kangaroo",emoji:"🦘"},
+ {name:"Panda",emoji:"🐼"},{name:"Koala",emoji:"🐨"},{name:"Tiger",emoji:"🐯"},{name:"Zebra",emoji:"🦓"},
+ {name:"Fox",emoji:"🦊"},{name:"Raccoon",emoji:"🦝"},{name:"Rabbit",emoji:"🐰"},{name:"Bear",emoji:"🐻"}
+];
+
+const DIFFS = {
+ Easy: { arcMin:0.7, arcMax:1.3, spawnEvery:1000, speed:200, gain:1.004, dash:1.7 },
+ Normal: { arcMin:0.5, arcMax:1.0, spawnEvery:850, speed:250, gain:1.007, dash:1.9 },
+ Hard: { arcMin:0.35, arcMax:0.9, spawnEvery:720, speed:300, gain:1.010, dash:2.1 }
+};
+
+// Game state
+let difficulty = localStorage.getItem('vs_diff') || 'Normal';
+let animalIdx = +localStorage.getItem('vs_animalIdx') || 0;
+let animal = animalRoster[animalIdx] || animalRoster[0];
+let playing = false, paused = false, gameOver = false;
+let score = 0, bestScore = +(localStorage.getItem('vs_best') || 0);
+let last = 0, perf = 0, spawnTimer = 0, obstacles = [];
+let speed = 240, spawnEvery = 850, speedGain = 1.007, dashMul = 1.9;
+let theta = -Math.PI/2, targetTheta = theta;
+let leftHeld = false, rightHeld = false;
+
+// Audio
+let ACtx, muted = (localStorage.getItem('vs_mute') ?? '0') === '1';
+function ensureACtx(){ 
+ if(!ACtx) ACtx = new (window.AudioContext||window.webkitAudioContext)(); 
+ if(ACtx.state==='suspended') ACtx.resume?.(); 
+}
+function beep(f=720, ms=80, v=0.045){ 
+ if(muted) return; 
+ ensureACtx(); 
+ const o = ACtx.createOscillator(), g = ACtx.createGain(); 
+ o.type = 'square'; o.frequency.value = f; g.gain.value = v; 
+ o.connect(g).connect(ACtx.destination); 
+ o.start(); 
+ o.stop(ACtx.currentTime + ms/1000); 
+}
+
+// Canvas setup
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d', {alpha:true});
+let W = innerWidth, H = innerHeight-48, cx = 0, cy = 0, R = 0, ringW = 0;
+
+function size(){
+ const dpr = window.devicePixelRatio || 1;
+ W = innerWidth; 
+ H = innerHeight-48;
+ cvs.width = W * dpr; 
+ cvs.height = H * dpr; 
+ cvs.style.width = W + 'px'; 
+ cvs.style.height = H + 'px'; 
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ 
+ cx = W/2; 
+ cy = H/2; 
+ const m = Math.min(W,H);
+ R = m * 0.33; 
+ ringW = Math.max(14, m * 0.028);
+}
+size();
+addEventListener('resize', size, {passive:true});
+
+// UI Elements
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const animalNameEl = document.getElementById('animalName');
+const diffNameEl = document.getElementById('diffName');
+const help = document.getElementById('help');
+const helpClose = document.getElementById('helpClose');
+const btnStart = document.getElementById('btnStart');
+const btnLeft = document.getElementById('btnLeft');
+const btnRight = document.getElementById('btnRight');
+const btnPause = document.getElementById('btnPause');
+const btnMore = document.getElementById('btnMore');
+const btnAnimal = document.getElementById('btnAnimal'); // New animal button
+const btnScores = document.getElementById('btnScores');
+const btnMute = document.getElementById('btnMute');
+const lb = document.getElementById('lb');
+const lbList = document.getElementById('lbList');
+const lbClose = document.getElementById('lbClose');
+const lbClear = document.getElementById('lbClear');
+
+// Initialize UI
+animalNameEl.textContent = `${animal.emoji} ${animal.name}`;
+diffNameEl.textContent = difficulty;
+bestEl.textContent = bestScore;
+
+// ==================== LEADERBOARD ====================
+function loadLB(){ 
+ try{ return JSON.parse(localStorage.getItem('vs_lb')||'[]'); }
+ catch{ return []; } 
+}
+function saveLB(x){ localStorage.setItem('vs_lb', JSON.stringify(x)); }
+function addScore(n){ 
+ const list = loadLB(); 
+ list.push({score:n, date:new Date().toISOString()}); 
+ list.sort((a,b)=>b.score-a.score); 
+ saveLB(list.slice(0,10)); 
+}
+function renderLB(){
+ const list = loadLB(); 
+ lbList.innerHTML = '';
+ if(!list.length){ 
+ lbList.innerHTML = '<div>No scores yet — play a round!</div>'; 
+ return; 
+ }
+ list.forEach((e,i)=>{ 
+ const d = new Date(e.date).toLocaleString();
+ const row = document.createElement('div');
+ row.style.cssText = 'display:flex; justify-content:space-between; gap:12px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:10px; margin:6px 0;';
+ row.innerHTML = `<strong>#${i+1}</strong><span>Score: ${e.score}</span><span style="opacity:.8">${d}</span>`;
+ lbList.appendChild(row);
+ });
+}
+function openLB(){ renderLB(); lb.classList.add('show'); }
+function closeLB(){ lb.classList.remove('show'); }
+
+// Leaderboard event listeners
+lbClose.addEventListener('click', closeLB);
+lbClear.addEventListener('click', ()=>{ localStorage.removeItem('vs_lb'); renderLB(); });
+btnScores.addEventListener('click', openLB);
+
+// ==================== GAME LOGIC ====================
+function wrapPI(a){ 
+ while(a > Math.PI) a -= Math.PI*2; 
+ while(a < -Math.PI) a += Math.PI*2; 
+ return a; 
+}
+function angDist(a,b){ return Math.abs(wrapPI(a-b)); }
+function playerPos(){ return {x: cx+Math.cos(theta)*R, y: cy+Math.sin(theta)*R}; }
+function playerAngularSpan(){ return Math.max(0.12, (ringW*0.9)/R); }
+
+function resetConfig(){
+ const d = DIFFS[difficulty] || DIFFS.Normal;
+ speed = d.speed; 
+ spawnEvery = d.spawnEvery; 
+ speedGain = d.gain; 
+ dashMul = d.dash;
+}
+
+function resetGame(){
+ leftHeld = false;
+ rightHeld = false;
+ targetTheta = theta;
+ playing = false; 
+ paused = false; 
+ gameOver = false; 
+ score = 0; 
+ scoreEl.textContent = 0;
+ obstacles.length = 0; 
+ spawnTimer = 400; 
+ theta = -Math.PI/2; 
+ targetTheta = theta; 
+ last = performance.now(); 
+ perf = last;
+ resetConfig(); 
+ drawFrame(last, true); 
+ btnPause.textContent = '⏸️ Pause'; 
+ beep(560,70,0.035);
+}
+
+function startGame(){
+ leftHeld = false;
+ rightHeld = false;
+ targetTheta = theta;
+ playing = true; 
+ paused = false; 
+ gameOver = false; 
+ score = 0; 
+ scoreEl.textContent = 0;
+ obstacles.length = 0; 
+ spawnTimer = 400; 
+ last = performance.now(); 
+ resetConfig();
+ help.classList.remove('show'); 
+ btnPause.textContent = ' Pause'; 
+ beep(700,80,0.05);
+ requestAnimationFrame(step);
+}
+
+function endGame(){
+ playing = false; 
+ gameOver = true; 
+ btnPause.textContent = '▶️ Resume';
+ beep(240,180,0.06);
+ bestScore = Math.max(bestScore, score); 
+ bestEl.textContent = bestScore; 
+ localStorage.setItem('vs_best', String(bestScore));
+ addScore(score);
+ 
+ // Game over overlay
+ ctx.fillStyle = 'rgba(0,0,0,0.6)'; 
+ ctx.fillRect(0,0,W,H);
+ ctx.fillStyle = '#fff'; 
+ ctx.font = '700 26px Montserrat, system-ui'; 
+ ctx.textAlign = 'center';
+ ctx.fillText('Game Over', W/2, H/2 - 14);
+ ctx.font = '600 16px Montserrat, system-ui'; 
+ ctx.fillText('Tap / Click to try again', W/2, H/2 + 12);
+}
+
+// ==================== RENDERING ====================
+function drawVortex(t){
+ // Background gradient
+ const rg = ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*0.8);
+ rg.addColorStop(0,'#06141b'); 
+ rg.addColorStop(0.5,'#0a1f2a'); 
+ rg.addColorStop(1,'#0b2230');
+ ctx.fillStyle = rg; 
+ ctx.fillRect(0,0,W,H);
+
+ // Spiral arms
+ ctx.save(); 
+ ctx.translate(cx,cy);
+ const arms = 12, spin = t * 0.0012;
+ for(let i=0; i<arms; i++){
+ const a = spin + (i/arms)*Math.PI*2;
+ ctx.rotate(a);
+ const w = 14, len = Math.max(W,H)*0.9;
+ ctx.globalAlpha = 0.16; 
+ ctx.fillStyle = '#7bdcff';
+ ctx.fillRect(R*0.15, -w/2, len, w);
+ ctx.rotate(-a);
+ }
+ ctx.restore();
+
+ // Moving rings
+ const ringCount = 10;
+ for(let i=0; i<ringCount; i++){
+ const p = (i/ringCount);
+ const base = Math.max(W,H)*0.65;
+ const r = base - ((t*0.25) % base) - p*base*0.12;
+ ctx.globalAlpha = 0.14;
+ ctx.lineWidth = 2 + (1-p)*4;
+ ctx.strokeStyle = i%2 ? '#39e2b9' : '#58d6ff';
+ ctx.beginPath(); 
+ ctx.arc(cx,cy, Math.abs(r), 0, Math.PI*2); 
+ ctx.stroke();
+ }
+
+ // Player track
+ ctx.globalAlpha = 1; 
+ ctx.lineWidth = ringW; 
+ ctx.strokeStyle = 'rgba(231,197,91,0.35)';
+ ctx.beginPath(); 
+ ctx.arc(cx,cy,R,0,Math.PI*2); 
+ ctx.stroke();
+}
+
+function spawnObstacle(){
+ const d = DIFFS[difficulty] || DIFFS.Normal;
+ const arc = d.arcMin + Math.random()*(d.arcMax - d.arcMin);
+ const angle = Math.random()*Math.PI*2;
+ const thickness = Math.max(18, ringW*0.9);
+ const palette = ['#58d6ff','#39e2b9','#f7c44d','#ff77aa','#9ad2ff','#ffd98b'];
+ const color = palette[Math.floor(Math.random()*palette.length)];
+ obstacles.push({ 
+ r: Math.max(W,H)*0.75, 
+ thick: thickness, 
+ angle, 
+ arc, 
+ color, 
+ speedMul: 1+Math.random()*0.08, 
+ passed: false 
+ });
+}
+
+function drawObstacle(o, dt){
+ o.r -= speed * o.speedMul * dt;
+ ctx.save(); 
+ ctx.translate(cx,cy); 
+ ctx.shadowColor = o.color;
+ ctx.shadowBlur = 16; 
+ ctx.strokeStyle = o.color;
+ ctx.lineWidth = o.thick; 
+ ctx.beginPath(); 
+ ctx.arc(0,0,o.r, o.angle-o.arc/2, o.angle+o.arc/2); 
+ ctx.stroke();
+ ctx.restore();
+}
+
+function collides(o){
+ const radialHit = Math.abs(o.r - R) <= (o.thick/2 + ringW*0.5);
+ if(!radialHit) return false;
+ const d = angDist(theta, o.angle);
+ return d <= (o.arc/2 + playerAngularSpan()/2 + 0.02);
+}
+
+function prune(){ 
+ obstacles = obstacles.filter(o => o.r + o.thick > R - ringW); 
+}
+
+function drawPlayer(){
+ const p = playerPos();
+ 
+ // Highlight player section
+ ctx.save(); 
+ ctx.strokeStyle = 'rgba(231,197,91,0.9)'; 
+ ctx.lineWidth = ringW*0.9;
+ ctx.beginPath(); 
+ ctx.arc(cx,cy,R, theta-0.08, theta+0.08); 
+ ctx.stroke(); 
+ ctx.restore();
+ 
+ // Emoji character
+ ctx.save();
+ ctx.textAlign = 'center'; 
+ ctx.textBaseline = 'middle';
+ const sz = Math.floor(ringW*1.7); 
+ ctx.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+ ctx.fillStyle = '#fff'; // Explicitly set fill color
+ ctx.globalCompositeOperation = 'source-over'; // Ensure no blending issues
+ 
+ // Shadow
+ ctx.globalAlpha = 0.28; 
+ ctx.beginPath(); 
+ ctx.arc(p.x, p.y+6, ringW*0.7, 0, Math.PI*2); 
+ ctx.fillStyle = '#000'; 
+ ctx.fill(); 
+ ctx.globalAlpha = 1;
+ 
+ // Glow ring
+ ctx.lineWidth = 3; 
+ ctx.strokeStyle = 'rgba(231,197,91,0.9)'; 
+ ctx.beginPath(); 
+ ctx.arc(p.x,p.y, ringW*0.7, 0, Math.PI*2); 
+ ctx.stroke();
+ 
+ // Emoji with fallback
+ try {
+ ctx.fillStyle = '#fff';
+ ctx.fillText(animal.emoji, p.x, p.y+1);
+ } catch(e) {
+ // Fallback if emoji fails
+ ctx.fillStyle = 'rgba(231,197,91,0.9)';
+ ctx.beginPath();
+ ctx.arc(p.x, p.y, ringW*0.6, 0, Math.PI*2);
+ ctx.fill();
+ }
+ ctx.restore();
+}
+
+function drawFrame(ts, staticOnly = false){
+ ctx.clearRect(0,0,W,H); 
+ drawVortex(ts);
+ if(!staticOnly){ 
+ obstacles.forEach(o => drawObstacle(o, 0)); 
+ }
+ drawPlayer();
+}
+
+// ==================== GAME LOOP ====================
+function step(ts){
+ if(!playing || paused){ 
+ last = ts; 
+ requestAnimationFrame(step); 
+ return; 
+ }
+ 
+ const dt = Math.min(0.033, (ts-last)/1000 || 0); 
+ last = ts;
+
+ // Rotation input
+ const angVel = 2.8;
+ if(leftHeld) theta -= angVel * dt;
+ if(rightHeld) theta += angVel * dt;
+
+ // Pointer aiming
+ theta = wrapPI(theta + wrapPI(targetTheta - theta) * 0.18);
+
+ // Spawn obstacles with limit
+ spawnTimer += dt * 1000;
+ if(spawnTimer > spawnEvery && obstacles.length < 10){
+ spawnTimer = 0;
+ const roll = Math.random();
+ if(roll < 0.25 && obstacles.length < 8){
+ spawnObstacle(); 
+ spawnObstacle(); 
+ } else if(roll > 0.9){
+ const d = DIFFS[difficulty];
+ obstacles.push({ 
+ r: Math.max(W,H)*0.75, 
+ thick: Math.max(18,ringW*0.9), 
+ angle: Math.random()*Math.PI*2, 
+ arc: d.arcMax+0.45, 
+ color: '#ff77aa', 
+ speedMul: 1.02, 
+ passed: false 
+ });
+ } else { 
+ spawnObstacle(); 
+ }
+ speed *= speedGain;
+ spawnEvery = Math.max(420, spawnEvery-2);
+ }
+
+ // Draw frame
+ ctx.clearRect(0,0,W,H);
+ drawVortex(ts);
+ 
+ // Check collisions and update obstacles
+ let collisionDetected = false;
+ for(let i = obstacles.length-1; i >= 0; i--){
+ const o = obstacles[i];
+ drawObstacle(o, dt);
+
+ if(collides(o)){ 
+ collisionDetected = true; 
+ break; 
+ }
+
+ if(!o.passed && o.r <= R){
+ o.passed = true; 
+ score++; 
+ scoreEl.textContent = score; 
+ beep(920,70,0.05);
+ }
+ }
+
+ if(collisionDetected){ 
+ endGame(); 
+ return; 
+ }
+
+ prune();
+ drawPlayer();
+ requestAnimationFrame(step);
+}
+
+// ==================== CONTROLS ====================
+function setDiff(name){
+ difficulty = name; 
+ localStorage.setItem('vs_diff', name); 
+ diffNameEl.textContent = name; 
+ resetGame();
+}
+
+function setAnimal(idx){
+ animalIdx = idx % animalRoster.length;
+ animal = animalRoster[animalIdx];
+ animalNameEl.textContent = `${animal.emoji} ${animal.name}`;
+ localStorage.setItem('vs_animalIdx', String(animalIdx));
+ resetGame();
+}
+
+// Button controls
+btnStart.addEventListener('click', startGame);
+
+// Left/right button controls
+btnLeft.addEventListener('mousedown', ()=>{ leftHeld = true; });
+btnLeft.addEventListener('mouseup', ()=>{ leftHeld = false; });
+btnLeft.addEventListener('mouseleave', ()=>{ leftHeld = false; });
+btnLeft.addEventListener('touchstart', (e)=>{ e.preventDefault(); leftHeld = true; }, {passive:false});
+btnLeft.addEventListener('touchend', ()=>{ leftHeld = false; }, {passive:false});
+
+btnRight.addEventListener('mousedown', ()=>{ rightHeld = true; });
+btnRight.addEventListener('mouseup', ()=>{ rightHeld = false; });
+btnRight.addEventListener('mouseleave', ()=>{ rightHeld = false; });
+btnRight.addEventListener('touchstart', (e)=>{ e.preventDefault(); rightHeld = true; }, {passive:false});
+btnRight.addEventListener('touchend', ()=>{ rightHeld = false; }, {passive:false});
+
+// Pause button
+btnPause.addEventListener('click', ()=>{
+ if(!playing || gameOver){ 
+ startGame(); 
+ } else { 
+ paused = !paused; 
+ btnPause.textContent = paused ? '▶️ Resume' : '⏸️ Pause'; 
+ beep(paused ? 440 : 780, 80, 0.04); 
+ }
+});
+
+// Difficulty cycling
+btnMore.addEventListener('click', ()=>{
+ const order = ['Easy','Normal','Hard'];
+ const i = (order.indexOf(difficulty) + 1) % order.length;
+ setDiff(order[i]);
+});
+
+// Animal cycling
+btnAnimal.addEventListener('click', ()=>{
+ setAnimal(animalIdx + 1);
+ beep(760,70,0.05);
+});
+
+// Help
+helpClose.addEventListener('click', ()=> help.classList.remove('show'));
+
+// Mute button
+function refreshMute(){ 
+ btnMute.textContent = muted ? '🔇 Muted' : '🔊 Sound'; 
+}
+btnMute.addEventListener('click', ()=>{ 
+ muted = !muted; 
+ localStorage.setItem('vs_mute', muted ? '1' : '0'); 
+ if(!muted) beep(760,70,0.05); 
+ refreshMute(); 
+});
+refreshMute();
+
+// Keyboard controls
+document.addEventListener('keydown', (e)=>{
+ if(e.code === 'Space'){
+ const dir = rightHeld ? 1 : (leftHeld ? -1 : (Math.random()<0.5 ? -1 : 1));
+ const maxDash = 0.28 * dashMul;
+ theta = wrapPI(theta + dir * maxDash);
+ beep(880,60,0.06);
+ } else if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ 
+ leftHeld = true; 
+ } else if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ 
+ rightHeld = true; 
+ } else if(e.key === 'p' || e.key === 'P'){
+ if(!playing || gameOver){ 
+ startGame(); 
+ } else { 
+ paused = !paused; 
+ btnPause.textContent = paused ? '▶️ Resume' : '⏸️ Pause'; 
+ }
+ } else if(e.key === 'm' || e.key === 'M'){ 
+ muted = !muted; 
+ localStorage.setItem('vs_mute', muted ? '1' : '0'); 
+ if(!muted) beep(760,70,0.05); 
+ refreshMute(); 
+ } else if(e.key === 'l' || e.key === 'L'){ 
+ openLB(); 
+ } else if(e.key === 'r' || e.key === 'R'){ 
+ resetGame(); 
+ } else if(e.key === 'n' || e.key === 'N'){ // Added keyboard control for animal cycling
+ setAnimal(animalIdx + 1);
+ }
+});
+
+document.addEventListener('keyup', (e)=>{
+ if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftHeld = false;
+ if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightHeld = false;
+});
+
+// Touch/mouse aiming
+function setTarget(e){
+ const rect = cvs.getBoundingClientRect();
+ const x = e.clientX - rect.left, y = e.clientY - rect.top;
+ targetTheta = Math.atan2(y-cy, x-cx);
+}
+
+cvs.addEventListener('pointerdown', (e)=>{ 
+ e.preventDefault(); 
+ setTarget(e); 
+ if(!playing || gameOver) {
+ setTimeout(startGame, 100);
+ }
+}, {passive:false});
+
+cvs.addEventListener('pointermove', (e)=>{ 
+ if(e.buttons || e.pressure > 0) setTarget(e); 
+}, {passive:true});
+
+cvs.addEventListener('pointerup', ()=>{ targetTheta = theta; }, {passive:true});
+cvs.addEventListener('pointercancel', ()=>{ targetTheta = theta; }, {passive:true});
+
+// Clean up input on focus loss
+window.addEventListener('blur', ()=>{ 
+ leftHeld = false; 
+ rightHeld = false; 
+ targetTheta = theta; 
+});
+document.addEventListener('visibilitychange', ()=>{ 
+ if(document.hidden){ 
+ leftHeld = false; 
+ rightHeld = false; 
+ targetTheta = theta; 
+ } 
+});
+
+// ==================== STARTUP ====================
+function drawStart(){
+ drawFrame(performance.now(), true);
+ ctx.fillStyle = 'rgba(255,255,255,0.92)'; 
+ ctx.font = '700 22px Montserrat, system-ui'; 
+ ctx.textAlign = 'center';
+ ctx.fillText('Tap / Click to Start', W/2, H/2 + R + 48);
+}
+
+// Initialize game
+(function boot(){
+ resetConfig();
+ drawStart();
+ help.classList.add('show');
+})();
+</script>
+</body>
+</html>

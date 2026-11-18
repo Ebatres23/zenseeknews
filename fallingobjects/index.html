@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>ZenSeek — Safari Fall (Dodge)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{ --zen-gold:#E7C55B; --text:#fff; --barH:66px; }
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+body{
+ margin:0; color:var(--text);
+ background:
+ radial-gradient(900px 700px at 80% -10%, rgba(255,216,225,.16), transparent 55%),
+ radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+ #0a1820;
+ font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+ overflow:hidden;
+ padding-bottom: calc(var(--barH) + env(safe-area-inset-bottom,0px));
+}
+
+/* Header */
+.topbar{ position:fixed; inset:0 0 auto 0; height:48px; z-index:50;
+ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 10px;
+ background:rgba(0,0,0,.34); border-bottom:1px solid rgba(255,255,255,.08); backdrop-filter:blur(8px); }
+.brand{ font-family:'Playfair Display',serif; color:var(--zen-gold); font-weight:700; }
+.subtle{ color:#e5e7eb; font-size:.86rem; }
+
+/* Stage */
+.stage{ position:fixed; inset:48px 0 calc(var(--barH) + env(safe-area-inset-bottom,0px)) 0; display:grid; place-items:center; }
+#game{ width:100vw; height:100%; display:block; touch-action:none; }
+
+/* HUD */
+.hud{ position:fixed; left:50%; top:56px; transform:translateX(-50%); z-index:60;
+ background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:6px 10px;
+ display:flex; gap:8px; align-items:center; font-weight:800; backdrop-filter:blur(6px); }
+.badge{ padding:.25rem .55rem; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.45); white-space:nowrap; }
+.small{ font-size:.85rem; opacity:.9; } .mono{ font-variant-numeric:tabular-nums; }
+
+/* Bottom controls */
+.bottom{
+ position:fixed; left:0; right:0; bottom:0; z-index:70;
+ height: calc(var(--barH) + env(safe-area-inset-bottom,0px));
+ padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;
+ background:rgba(10,12,16,.88); border-top:1px solid rgba(255,255,255,.12); backdrop-filter:blur(12px);
+}
+.btn{
+ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border-radius:12px;
+ border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); color:#fff; font:600 14px/1 system-ui; cursor:pointer;
+ transition:transform .08s ease, background .2s ease, border-color .2s ease;
+ flex:1; min-width:80px; max-width:120px;
+}
+.btn:active{ transform:scale(.96); }
+
+/* Toast modals */
+.toast{
+ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96);
+ background:rgba(0,0,0,.9); padding:16px 18px; border-radius:14px;
+ border:1px solid rgba(255,255,255,.14); width:min(92vw,420px); text-align:center;
+ opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:100;
+}
+.toast.show{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
+
+kbd{
+ font-family:ui-monospace, Menlo, Consolas, monospace;
+ padding:.1rem .35rem; border-radius:6px;
+ border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.12); font-size:.8rem;
+}
+
+@media (max-width:560px){
+ .subtle{font-size:.78rem;}
+ .btn{font-size:13px; min-width:60px;}
+ .hud{gap:6px;}
+}
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+ <div class="topbar">
+ <div class="brand">ZenSeek</div>
+ <div class="subtle">Safari Fall — Dodge falling emojis</div>
+ </div>
+
+ <div class="hud" id="hud">
+ <span class="badge">Score: <span id="score" class="mono">0</span></span>
+ <span class="badge">Best: <span id="best" class="mono">0</span></span>
+ <span class="badge small">Animal: <span id="animalName">🦁 Lion</span></span>
+ <span class="badge small">Difficulty: <span id="diffName">Normal</span></span>
+ </div>
+
+ <div class="stage">
+ <canvas id="game" width="1" height="1" aria-label="Safari fall game canvas"></canvas>
+ </div>
+
+ <!-- Help -->
+ <div id="help" class="toast" role="dialog" aria-modal="true">
+ <h3 style="margin:.2rem 0 0; color:var(--zen-gold); font-family:'Playfair Display',serif;">How to Play</h3>
+ <p class="small" style="margin:.6rem 0 0;">
+ Your animal stands on a safari plain. Emoji obstacles fall from the sky.<br/>
+ Move left/right to dodge them. Stay alert!
+ </p>
+ <p class="small" style="margin:.6rem 0 0;">Controls: <kbd>←/A</kbd> left • <kbd>→/D</kbd> right • <kbd>Space</kbd> dash • <kbd>P</kbd> pause • <kbd>M</kbd> mute • <kbd>L</kbd> leaderboard • <kbd>N</kbd> next animal.</p>
+ <button id="helpClose" class="btn" style="margin-top:.6rem;">Got it</button>
+ </div>
+
+ <!-- Leaderboard -->
+ <div id="lb" class="toast" role="dialog" aria-modal="true">
+ <h3 style="margin:.2rem 0 8px; color:var(--zen-gold); font-family:'Playfair Display',serif;">🏆 Leaderboard</h3>
+ <div id="lbList" style="text-align:left;"></div>
+ <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
+ <button id="lbClear" class="btn"> Clear</button>
+ <button id="lbClose" class="btn">Close</button>
+ </div>
+ </div>
+
+ <div class="bottom">
+ <button id="btnStart" class="btn">▶️ Start</button>
+ <button id="btnLeft" class="btn">← Left</button>
+ <button id="btnRight" class="btn">→ Right</button>
+ <button id="btnPause" class="btn">⏸️ Pause</button>
+ <button id="btnMore" class="btn" title="Cycle difficulty">⨂ Difficulty</button>
+ <button id="btnAnimal" class="btn" title="Cycle animal">🦒 Animal</button>
+ <button id="btnScores" class="btn"> Scores</button>
+ <button id="btnMute" class="btn"> Sound</button>
+ </div>
+
+<script>
+// ==================== GAME INITIALIZATION ====================
+const animalRoster = [
+ {name:"Lion",emoji:"🦁"},{name:"Elephant",emoji:"🐘"},{name:"Giraffe",emoji:"🦒"},{name:"Kangaroo",emoji:"🦘"},
+ {name:"Panda",emoji:"🐼"},{name:"Koala",emoji:"🐨"},{name:"Tiger",emoji:"🐯"},{name:"Zebra",emoji:"🦓"},
+ {name:"Fox",emoji:"🦊"},{name:"Raccoon",emoji:"🦝"},{name:"Rabbit",emoji:"🐰"},{name:"Bear",emoji:"🐻"}
+];
+
+const obstacleEmojis = ['🌧️', '🪵', '🌴', '🌵', '🦒', '🦓'];
+
+const DIFFS = {
+ Easy: { obsMin:1, obsMax:2, spawnEvery:1200, speed:300, gain:1.004, dash:80 },
+ Normal: { obsMin:2, obsMax:3, spawnEvery:900, speed:400, gain:1.007, dash:100 },
+ Hard: { obsMin:3, obsMax:4, spawnEvery:700, speed:500, gain:1.010, dash:120 }
+};
+
+// Game state
+let difficulty = localStorage.getItem('sd_diff') || 'Normal';
+let animalIdx = +localStorage.getItem('sd_animalIdx') || 0;
+let animal = animalRoster[animalIdx] || animalRoster[0];
+let playing = false, paused = false, gameOver = false;
+let score = 0, bestScore = +(localStorage.getItem('sd_best') || 0);
+let last = 0, spawnTimer = 0, obstacles = [];
+let speed = 400, spawnEvery = 900, speedGain = 1.007, dashMul = 100;
+let playerX = 0, targetX = 0, playAreaWidth = 0;
+let leftHeld = false, rightHeld = false;
+
+// Audio
+let ACtx, muted = (localStorage.getItem('sd_mute') ?? '0') === '1';
+function ensureACtx(){ 
+ if(!ACtx) ACtx = new (window.AudioContext||window.webkitAudioContext)(); 
+ if(ACtx.state==='suspended') ACtx.resume?.(); 
+}
+function beep(f=720, ms=80, v=0.045){ 
+ if(muted) return; 
+ ensureACtx(); 
+ const o = ACtx.createOscillator(), g = ACtx.createGain(); 
+ o.type = 'square'; o.frequency.value = f; g.gain.value = v; 
+ o.connect(g).connect(ACtx.destination); 
+ o.start(); 
+ o.stop(ACtx.currentTime + ms/1000); 
+}
+
+// Canvas setup
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d', {alpha:true});
+let W = innerWidth, H = innerHeight-48, cx = 0, cy = 0;
+
+function size(){
+ const dpr = window.devicePixelRatio || 1;
+ W = innerWidth; 
+ H = innerHeight-48;
+ cvs.width = W * dpr; 
+ cvs.height = H * dpr; 
+ cvs.style.width = W + 'px'; 
+ cvs.style.height = H + 'px'; 
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ 
+ cx = W/2; 
+ cy = H/2; 
+ playAreaWidth = Math.min(W * 0.8, 400);
+}
+size();
+addEventListener('resize', size, {passive:true});
+
+// UI Elements
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const animalNameEl = document.getElementById('animalName');
+const diffNameEl = document.getElementById('diffName');
+const help = document.getElementById('help');
+const helpClose = document.getElementById('helpClose');
+const btnStart = document.getElementById('btnStart');
+const btnLeft = document.getElementById('btnLeft');
+const btnRight = document.getElementById('btnRight');
+const btnPause = document.getElementById('btnPause');
+const btnMore = document.getElementById('btnMore');
+const btnAnimal = document.getElementById('btnAnimal');
+const btnScores = document.getElementById('btnScores');
+const btnMute = document.getElementById('btnMute');
+const lb = document.getElementById('lb');
+const lbList = document.getElementById('lbList');
+const lbClose = document.getElementById('lbClose');
+const lbClear = document.getElementById('lbClear');
+
+// Initialize UI
+animalNameEl.textContent = `${animal.emoji} ${animal.name}`;
+diffNameEl.textContent = difficulty;
+bestEl.textContent = bestScore;
+
+// ==================== LEADERBOARD ====================
+function loadLB(){ 
+ try{ return JSON.parse(localStorage.getItem('sd_lb')||'[]'); }
+ catch{ return []; } 
+}
+function saveLB(x){ localStorage.setItem('sd_lb', JSON.stringify(x)); }
+function addScore(n){ 
+ const list = loadLB(); 
+ list.push({score:n, date:new Date().toISOString()}); 
+ list.sort((a,b)=>b.score-a.score); 
+ saveLB(list.slice(0,10)); 
+}
+function renderLB(){
+ const list = loadLB(); 
+ lbList.innerHTML = '';
+ if(!list.length){ 
+ lbList.innerHTML = '<div>No scores yet — play a round!</div>'; 
+ return; 
+ }
+ list.forEach((e,i)=>{ 
+ const d = new Date(e.date).toLocaleString();
+ const row = document.createElement('div');
+ row.style.cssText = 'display:flex; justify-content:space-between; gap:12px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:10px; margin:6px 0;';
+ row.innerHTML = `<strong>#${i+1}</strong><span>Score: ${e.score}</span><span style="opacity:.8">${d}</span>`;
+ lbList.appendChild(row);
+ });
+}
+function openLB(){ renderLB(); lb.classList.add('show'); }
+function closeLB(){ lb.classList.remove('show'); }
+
+// Leaderboard event listeners
+lbClose.addEventListener('click', closeLB);
+lbClear.addEventListener('click', ()=>{ localStorage.removeItem('sd_lb'); renderLB(); });
+btnScores.addEventListener('click', openLB);
+
+// ==================== GAME LOGIC ====================
+function playerPos(){ return {x: cx + playerX, y: H * 0.75}; }
+
+function resetConfig(){
+ const d = DIFFS[difficulty] || DIFFS.Normal;
+ speed = d.speed; 
+ spawnEvery = d.spawnEvery; 
+ speedGain = d.gain; 
+ dashMul = d.dash;
+}
+
+function resetGame(){
+ leftHeld = false;
+ rightHeld = false;
+ targetX = playerX;
+ playing = false; 
+ paused = false; 
+ gameOver = false; 
+ score = 0; 
+ scoreEl.textContent = 0;
+ obstacles.length = 0; 
+ spawnTimer = 400; 
+ playerX = 0; 
+ targetX = 0; 
+ last = performance.now(); 
+ resetConfig(); 
+ drawFrame(last, true); 
+ btnPause.textContent = '⏸️ Pause'; 
+ beep(560,70,0.035);
+}
+
+function startGame(){
+ leftHeld = false;
+ rightHeld = false;
+ targetX = playerX;
+ playing = true; 
+ paused = false; 
+ gameOver = false; 
+ score = 0; 
+ scoreEl.textContent = 0;
+ obstacles.length = 0; 
+ spawnTimer = 400; 
+ last = performance.now(); 
+ resetConfig();
+ help.classList.remove('show'); 
+ btnPause.textContent = ' Pause'; 
+ beep(700,80,0.05);
+ requestAnimationFrame(step);
+}
+
+function endGame(){
+ playing = false; 
+ gameOver = true; 
+ btnPause.textContent = '▶️ Resume';
+ beep(240,180,0.06);
+ bestScore = Math.max(bestScore, score); 
+ bestEl.textContent = bestScore; 
+ localStorage.setItem('sd_best', String(bestScore));
+ addScore(score);
+ 
+ // Game over overlay
+ ctx.fillStyle = 'rgba(0,0,0,0.6)'; 
+ ctx.fillRect(0,0,W,H);
+ ctx.fillStyle = '#fff'; 
+ ctx.font = '700 26px Montserrat, system-ui'; 
+ ctx.textAlign = 'center';
+ ctx.fillText('Game Over', W/2, H/2 - 14);
+ ctx.font = '600 16px Montserrat, system-ui'; 
+ ctx.fillText('Tap / Click to try again', W/2, H/2 + 12);
+}
+
+// ==================== RENDERING ====================
+function drawBackground(t){
+ // Starry sky
+ const bgGrad = ctx.createRadialGradient(cx, 0, 0, cx, 0, W);
+ bgGrad.addColorStop(0, '#0a1820');
+ bgGrad.addColorStop(1, '#1c2a38');
+ ctx.fillStyle = bgGrad;
+ ctx.fillRect(0,0,W,H);
+
+ // Stars
+ ctx.fillStyle = 'rgba(255,255,255,0.6)';
+ for (let i = 0; i < 50; i++) {
+ const x = Math.random() * W;
+ const y = Math.random() * H * 0.3;
+ const size = Math.random() * 2;
+ ctx.beginPath();
+ ctx.arc(x, y, size, 0, Math.PI * 2);
+ ctx.fill();
+ }
+
+ // Horizon silhouette
+ ctx.fillStyle = '#1a2b2f';
+ ctx.beginPath();
+ ctx.moveTo(0, H * 0.35);
+ for (let x = 0; x <= W; x += 50) {
+ const y = H * 0.35 + Math.sin(x * 0.01 + t * 0.001) * 20;
+ ctx.lineTo(x, y);
+ }
+ ctx.lineTo(W, H);
+ ctx.lineTo(0, H);
+ ctx.closePath();
+ ctx.fill();
+
+ // Ground
+ const groundGrad = ctx.createLinearGradient(0, H * 0.35, 0, H);
+ groundGrad.addColorStop(0, '#2f4f4f');
+ groundGrad.addColorStop(1, '#3c5f5f');
+ ctx.fillStyle = groundGrad;
+ ctx.fillRect(0, H * 0.35, W, H);
+}
+
+function spawnObstacle(){
+ const d = DIFFS[difficulty] || DIFFS.Normal;
+ const numObs = Math.floor(d.obsMin + Math.random() * (d.obsMax - d.obsMin + 1));
+ for (let i = 0; i < numObs; i++) {
+ const x = (Math.random() - 0.5) * playAreaWidth * 1.2; // Wider spawn range for variety
+ const y = -50;
+ const size = 40 + Math.random() * 30; // Slightly larger size range for challenge
+ const emoji = obstacleEmojis[Math.floor(Math.random() * obstacleEmojis.length)];
+ obstacles.push({ x, y, size, emoji, passed: false });
+ }
+}
+
+function drawObstacle(o, dt){
+ o.y += speed * dt;
+ 
+ ctx.save();
+ ctx.textAlign = 'center';
+ ctx.textBaseline = 'middle';
+ ctx.font = `${o.size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+ ctx.fillStyle = '#fff';
+ ctx.globalCompositeOperation = 'source-over';
+ ctx.shadowColor = '#FFD700';
+ ctx.shadowBlur = 10;
+ try {
+ ctx.fillText(o.emoji, cx + o.x, o.y);
+ } catch(e) {
+ ctx.fillStyle = '#808080';
+ ctx.beginPath();
+ ctx.arc(cx + o.x, o.y, o.size / 2, 0, Math.PI * 2);
+ ctx.fill();
+ }
+ ctx.restore();
+}
+
+function collides(o){
+ const p = playerPos();
+ const distX = Math.abs(p.x - (cx + o.x));
+ const distY = Math.abs(p.y - o.y);
+ const playerSize = 40;
+ return distX < (playerSize + o.size) / 2 && distY < (playerSize + o.size) / 2;
+}
+
+function prune(){ 
+ obstacles = obstacles.filter(o => o.y < H + o.size); 
+}
+
+function drawPlayer(){
+ const p = playerPos();
+ 
+ // Emoji character
+ ctx.save();
+ ctx.textAlign = 'center'; 
+ ctx.textBaseline = 'middle';
+ const sz = 50; 
+ ctx.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+ ctx.fillStyle = '#fff';
+ ctx.globalCompositeOperation = 'source-over';
+ 
+ // Shadow
+ ctx.globalAlpha = 0.28; 
+ ctx.beginPath(); 
+ ctx.arc(p.x, p.y + 6, sz / 2, 0, Math.PI*2); 
+ ctx.fillStyle = '#000'; 
+ ctx.fill(); 
+ ctx.globalAlpha = 1;
+ 
+ // Glow
+ ctx.lineWidth = 3; 
+ ctx.strokeStyle = 'rgba(231,197,91,0.9)'; 
+ ctx.beginPath(); 
+ ctx.arc(p.x, p.y, sz / 2, 0, Math.PI*2); 
+ ctx.stroke();
+ 
+ // Emoji with fallback
+ try {
+ ctx.fillStyle = '#fff';
+ ctx.fillText(animal.emoji, p.x, p.y + 1);
+ } catch(e) {
+ ctx.fillStyle = 'rgba(231,197,91,0.9)';
+ ctx.beginPath();
+ ctx.arc(p.x, p.y, sz / 2 - 5, 0, Math.PI*2);
+ ctx.fill();
+ }
+ ctx.restore();
+}
+
+function drawFrame(ts, staticOnly = false){
+ ctx.clearRect(0,0,W,H); 
+ drawBackground(ts);
+ if(!staticOnly){ 
+ obstacles.forEach(o => drawObstacle(o, 0)); 
+ }
+ drawPlayer();
+}
+
+// ==================== GAME LOOP ====================
+function step(ts){
+ if(!playing || paused){ 
+ last = ts; 
+ requestAnimationFrame(step); 
+ return; 
+ }
+ 
+ const dt = Math.min(0.033, (ts-last)/1000 || 0); 
+ last = ts;
+
+ // Movement input
+ const moveVel = 300;
+ if(leftHeld) playerX -= moveVel * dt;
+ if(rightHeld) playerX += moveVel * dt;
+
+ // Clamp to play area
+ playerX = Math.max(-playAreaWidth/2 + 40, Math.min(playAreaWidth/2 - 40, playerX));
+
+ // Pointer aiming
+ playerX += (targetX - playerX) * 0.18;
+
+ // Spawn obstacles
+ spawnTimer += dt * 1000;
+ if(spawnTimer > spawnEvery && obstacles.length < 15){
+ spawnTimer = 0;
+ spawnObstacle();
+ speed *= speedGain;
+ spawnEvery = Math.max(500, spawnEvery - 5);
+ }
+
+ // Draw frame
+ ctx.clearRect(0,0,W,H);
+ drawBackground(ts);
+ 
+ // Update and check collisions
+ let collisionDetected = false;
+ for(let i = obstacles.length-1; i >= 0; i--){
+ const o = obstacles[i];
+ drawObstacle(o, dt);
+
+ if(collides(o)){ 
+ collisionDetected = true; 
+ break; 
+ }
+
+ if(!o.passed && o.y > playerPos().y){
+ o.passed = true; 
+ score++; 
+ scoreEl.textContent = score; 
+ beep(920,70,0.05);
+ }
+ }
+
+ if(collisionDetected){ 
+ endGame(); 
+ return; 
+ }
+
+ prune();
+ drawPlayer();
+ requestAnimationFrame(step);
+}
+
+// ==================== CONTROLS ====================
+function setDiff(name){
+ difficulty = name; 
+ localStorage.setItem('sd_diff', name); 
+ diffNameEl.textContent = name; 
+ resetGame();
+}
+
+function setAnimal(idx){
+ animalIdx = idx % animalRoster.length;
+ animal = animalRoster[animalIdx];
+ animalNameEl.textContent = `${animal.emoji} ${animal.name}`;
+ localStorage.setItem('sd_animalIdx', String(animalIdx));
+ resetGame();
+}
+
+// Button controls
+btnStart.addEventListener('click', startGame);
+
+// Left/right button controls
+btnLeft.addEventListener('mousedown', ()=>{ leftHeld = true; });
+btnLeft.addEventListener('mouseup', ()=>{ leftHeld = false; });
+btnLeft.addEventListener('mouseleave', ()=>{ leftHeld = false; });
+btnLeft.addEventListener('touchstart', (e)=>{ e.preventDefault(); leftHeld = true; }, {passive:false});
+btnLeft.addEventListener('touchend', ()=>{ leftHeld = false; }, {passive:false});
+
+btnRight.addEventListener('mousedown', ()=>{ rightHeld = true; });
+btnRight.addEventListener('mouseup', ()=>{ rightHeld = false; });
+btnRight.addEventListener('mouseleave', ()=>{ rightHeld = false; });
+btnRight.addEventListener('touchstart', (e)=>{ e.preventDefault(); rightHeld = true; }, {passive:false});
+btnRight.addEventListener('touchend', ()=>{ rightHeld = false; }, {passive:false});
+
+// Pause button
+btnPause.addEventListener('click', ()=>{
+ if(!playing || gameOver){ 
+ startGame(); 
+ } else { 
+ paused = !paused; 
+ btnPause.textContent = paused ? '▶️ Resume' : '⏸️ Pause'; 
+ beep(paused ? 440 : 780, 80, 0.04); 
+ }
+});
+
+// Difficulty cycling
+btnMore.addEventListener('click', ()=>{
+ const order = ['Easy','Normal','Hard'];
+ const i = (order.indexOf(difficulty) + 1) % order.length;
+ setDiff(order[i]);
+});
+
+// Animal cycling
+btnAnimal.addEventListener('click', ()=>{
+ setAnimal(animalIdx + 1);
+ beep(760,70,0.05);
+});
+
+// Help
+helpClose.addEventListener('click', ()=> help.classList.remove('show'));
+
+// Mute button
+function refreshMute(){ 
+ btnMute.textContent = muted ? '🔇 Muted' : '🔊 Sound'; 
+}
+btnMute.addEventListener('click', ()=>{ 
+ muted = !muted; 
+ localStorage.setItem('sd_mute', muted ? '1' : '0'); 
+ if(!muted) beep(760,70,0.05); 
+ refreshMute(); 
+});
+refreshMute();
+
+// Keyboard controls
+document.addEventListener('keydown', (e)=>{
+ if(e.code === 'Space'){
+ const dir = rightHeld ? 1 : (leftHeld ? -1 : (Math.random()<0.5 ? -1 : 1));
+ playerX += dir * dashMul;
+ beep(880,60,0.06);
+ } else if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ 
+ leftHeld = true; 
+ } else if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ 
+ rightHeld = true; 
+ } else if(e.key === 'p' || e.key === 'P'){
+ if(!playing || gameOver){ 
+ startGame(); 
+ } else { 
+ paused = !paused; 
+ btnPause.textContent = paused ? '▶️ Resume' : '⏸️ Pause'; 
+ }
+ } else if(e.key === 'm' || e.key === 'M'){ 
+ muted = !muted; 
+ localStorage.setItem('sd_mute', muted ? '1' : '0'); 
+ if(!muted) beep(760,70,0.05); 
+ refreshMute(); 
+ } else if(e.key === 'l' || e.key === 'L'){ 
+ openLB(); 
+ } else if(e.key === 'r' || e.key === 'R'){ 
+ resetGame(); 
+ } else if(e.key === 'n' || e.key === 'N'){ 
+ setAnimal(animalIdx + 1);
+ }
+});
+
+document.addEventListener('keyup', (e)=>{
+ if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftHeld = false;
+ if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightHeld = false;
+});
+
+// Touch/mouse aiming
+function setTarget(e){
+ const rect = cvs.getBoundingClientRect();
+ const x = e.clientX - rect.left;
+ targetX = x - cx;
+}
+
+cvs.addEventListener('pointerdown', (e)=>{ 
+ e.preventDefault(); 
+ setTarget(e); 
+ if(!playing || gameOver) {
+ setTimeout(startGame, 100);
+ }
+}, {passive:false});
+
+cvs.addEventListener('pointermove', (e)=>{ 
+ if(e.buttons || e.pressure > 0) setTarget(e); 
+}, {passive:true});
+
+cvs.addEventListener('pointerup', ()=>{ targetX = playerX; }, {passive:true});
+cvs.addEventListener('pointercancel', ()=>{ targetX = playerX; }, {passive:true});
+
+// Clean up input on focus loss
+window.addEventListener('blur', ()=>{ 
+ leftHeld = false; 
+ rightHeld = false; 
+ targetX = playerX; 
+});
+document.addEventListener('visibilitychange', ()=>{ 
+ if(document.hidden){ 
+ leftHeld = false; 
+ rightHeld = false; 
+ targetX = playerX; 
+ } 
+});
+
+// ==================== STARTUP ====================
+function drawStart(){
+ drawFrame(performance.now(), true);
+ ctx.fillStyle = 'rgba(255,255,255,0.92)'; 
+ ctx.font = '700 22px Montserrat, system-ui'; 
+ ctx.textAlign = 'center';
+ ctx.fillText('Tap / Click to Start', W/2, H/2 + 100);
+}
+
+// Initialize game
+(function boot(){
+ resetConfig();
+ drawStart();
+ help.classList.add('show');
+})();
+</script>
+</body>
+</html>

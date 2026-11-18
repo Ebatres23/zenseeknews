@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Animal Tic-Tac-Toe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --zen-gold:#E7C55B; --shell:#1876f279; --text:#fff; --muted:#a9b8c9;
+  --bottom-bar-h:66px;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:focus{ outline:none; } 
+:focus-visible{ outline:2px solid rgba(231,197,91,.8); outline-offset:3px; border-radius:10px; }
+html, body { height:100%; }
+body{
+  margin:0; color:var(--text);
+  background:
+    radial-gradient(1000px 700px at 85% -10%, rgba(255,216,225,.16), transparent 55%),
+    radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(217,249,231,.14), transparent 60%),
+    var(--shell);
+  font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+  overflow:hidden;
+}
+
+/* Top bar */
+.topbar{
+  position:fixed; inset:0 0 auto 0; height:48px; z-index:80;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:0 10px; backdrop-filter: blur(8px);
+  background: rgba(0,0,0,.34); border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.brand{ font-family:'Playfair Display', serif; color:var(--zen-gold); font-weight:700; letter-spacing:.2px; }
+.top-actions{ display:flex; gap:8px; align-items:center; }
+.link-btn, .mode-link{
+  display:inline-flex; align-items:center; gap:6px; color:#e5e7eb; text-decoration:none;
+  border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.35);
+  padding:6px 10px; border-radius:10px; font-size:.82rem; font-weight:700;
+}
+
+/* Stage — allow scrolling (was overflow:hidden) */
+.stage{ 
+  position:fixed; inset:70px 0 0 0;
+  display:flex; flex-direction: column;
+  /* transform-style:preserve-3d;  // not needed here */
+  overflow:auto;                     /* ✅ allow scroll */
+  -webkit-overflow-scrolling: touch; /* ✅ momentum scroll on iOS */
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure the animal picker can fill and scroll nicely */
+.animal-selection{
+  min-height: calc(100dvh - 110px);                 /* room under the topbar/HUD */
+  padding-bottom: calc(var(--bottom-bar-h) + 16px);  /* room above the bottom bar */
+}
+
+/* Make the Start button “stick” above the bottom bar on small screens */
+.start-wrap{
+  position: sticky;
+  bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  display:flex; justify-content:center;
+  z-index: 2; /* above grid */
+}
+
+/* HUD */
+.hud{
+  position:fixed; left:50%; top:50px; transform:translateX(-50%); z-index:90;
+  background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:4px 6px;
+  backdrop-filter: blur(6px); display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;
+  max-width:min(96vw, 860px);
+}
+.hud .progress{ display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:.9rem; font-weight:700; }
+.btn{ border:1px solid rgba(255,255,255,.16); background:rgba(0,0,0,.5); padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; font-size:.9rem; line-height:1; transition:.2s; }
+@media (pointer:fine){ .btn:hover{ transform:translateY(-2px); box-shadow:0 4px 8px rgba(0,0,0,0.3); background:rgba(0,0,0,0.6);} }
+.btn:active{ transform:translateY(1px); }
+
+/* Game board */
+.game-board { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:10px; }
+.board {
+  --W: min(90vw, 420px);
+  width: var(--W); height: var(--W); /* square board */
+  display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  gap:10px; background: rgba(0,0,0,.25); border-radius:16px; padding:10px;
+  border:2px solid rgba(255,255,255,.1); position:relative; overflow:hidden;
+}
+.cell{
+  background: rgba(255,255,255,.08); border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; transition:background-color .2s; touch-action:manipulation;
+  aspect-ratio:1/1;
+}
+@media (pointer:fine){ .cell:hover{ background:rgba(255,255,255,.14); cursor:pointer; } }
+.cell.win{ box-shadow:0 0 0 3px rgba(231,197,91,.7) inset, 0 0 16px rgba(231,197,91,.5); }
+
+.piece{
+  width:78%; height:78%; border-radius:16px; overflow:hidden; box-shadow:0 6px 10px rgba(0,0,0,.45);
+  user-select:none; transform:scale(.96);
+}
+.piece img{ width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-user-drag:none; }
+
+/* Game info */
+.game-info{ display:flex; justify-content:space-between; align-items:center; width:100%; max-width:520px;
+  padding:10px; background:rgba(0,0,0,.3); border-radius:12px; margin-bottom:10px; border:1px solid rgba(255,255,255,.1); }
+.player-info{ display:flex; align-items:center; gap:10px; }
+.player-piece{ width:30px; height:30px; border-radius:10px; overflow:hidden; }
+.current-turn{ font-weight:800; color:var(--zen-gold); }
+
+/* Mode & animal selection */
+.mode-selection, .animal-selection { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:16px; text-align:center; }
+.mode-selection h2, .animal-selection h2{ font-family:'Playfair Display', serif; color: var(--zen-gold); font-size:1.8rem; margin:6px 0; }
+.mode-buttons{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.mode-btn{
+  padding:12px 18px; border-radius:12px; background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.2); color:#fff; font-weight:700; cursor:pointer; transition:.2s; min-width:150px;
+}
+@media (pointer:fine){ .mode-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 16px rgba(0,0,0,.3); background:rgba(0,0,0,.7);} }
+
+.difficulty-selection{ display:flex; gap:8px; }
+.difficulty-btn{ padding:8px 14px; border-radius:10px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); color:#fff; cursor:pointer; }
+.difficulty-btn.selected{ border-color:var(--zen-gold); background:rgba(231,197,91,.2); }
+
+.selecting-as{ display:flex; gap:8px; }
+.select-tab{
+  padding:6px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.35); cursor:pointer; font-weight:800;
+}
+.select-tab.active{ background:rgba(231,197,91,.2); border-color:var(--zen-gold); color:var(--zen-gold); }
+
+.picks{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.pick-pill{
+  display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:9999px;
+  background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); font-weight:700;
+}
+.pick-pill img{ width:22px; height:22px; border-radius:6px; object-fit:cover; }
+
+.animal-options{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr));
+  gap:12px; width:100%; max-width:540px;
+}
+.animal-option{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:12px; border-radius:12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1);
+  cursor:pointer; transition:.2s; position:relative;
+}
+@media (pointer:fine){ .animal-option:hover{ transform:translateY(-3px); box-shadow:0 8px 16px rgba(0,0,0,.3); background:rgba(0,0,0,.5); } }
+.badge{
+  position:absolute; top:6px; right:6px; font-size:.72rem; font-weight:900; padding:3px 7px; border-radius:9999px;
+  background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18);
+}
+.badge.p1{ color:#ffb3b3; } .badge.p2{ color:#b6fff8; }
+
+.animal-preview{ width:84px; height:84px; border-radius:12px; overflow:hidden; border:2px solid rgba(255,255,255,.2); }
+.animal-preview img{ width:100%; height:100%; object-fit:cover; -webkit-user-drag:none; user-select:none; }
+
+/* Celebration + Confetti */
+#confettiCanvas{ position:fixed; inset:0; width:100vw; height:100dvh; pointer-events:none; z-index:85; }
+.celebration { position: fixed; inset:0; display:flex; justify-content:center; align-items:center; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+.celebration.show { opacity: 1; pointer-events: all; }
+.celebration-content { background: rgba(255,255,255,0.95); padding: 1.4rem; border-radius: 20px; text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: scale(0.86); transition: transform 0.5s; }
+.celebration.show .celebration-content { transform: scale(1); }
+.celebration h2 { color: #E7C55B; font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: .8rem; }
+.celebration p { color: #333; font-size: 1.05rem; margin-bottom: 1rem; }
+
+/* Bottom Bar */
+.bottom-bar{
+  position:fixed; left:0; right:0; bottom:0; height:calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+  gap:10px; align-items:center; z-index:9999; backdrop-filter:blur(12px); background:rgba(10,12,16,.55); border-top:1px solid rgba(255,255,255,.12);
+}
+.bottom-bar .bar-btn{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); color:#fff; font:600 14px/1 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif; text-shadow:0 1px 1px rgba(0,0,0,.35); transition:transform .08s, background .2s, border-color .2s; }
+.bottom-bar .bar-btn:active{ transform:scale(.98); }
+
+/* Mobile */
+@media (max-width:768px){ .board{ --W:min(94vw, 380px); gap:8px; padding:8px; } }
+@media (max-width:480px){
+  .mode-buttons{ flex-direction:column; width:100%; gap:10px; }
+  .mode-btn{ width:100%; }
+  .game-info{ flex-direction:column; gap:8px; }
+}
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand text-lg">Animal Tic-Tac-Toe</div>
+    <div class="top-actions">
+      <a href="/" class="link-btn" id="homeLink">🏠 Home</a>
+      <button class="mode-link link-btn" id="changeModeBtn">🎮 Change Mode</button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud" id="hud">
+    <div class="progress">Status:&nbsp;<span id="gameStatus">Select Game Mode</span></div>
+    <button id="muteBtn" class="btn" type="button" aria-label="Mute/unmute" title="Mute/unmute">🔊</button>
+    <button id="resetBtn" class="btn" type="button" aria-label="Reset game" title="Reset game">↺</button>
+  </div>
+
+  <canvas id="confettiCanvas" width="1" height="1"></canvas>
+
+  <!-- Celebration -->
+  <div id="celebration" class="celebration" aria-hidden="true">
+    <div class="celebration-content">
+      <h2 id="celebrationTitle">Nice!</h2>
+      <p id="celebrationMessage">You won!</p>
+      <button id="playAgainBtn" class="btn" style="background:#E7C55B;color:#000;padding:10px 20px;font-size:1.05rem;">Play Again!</button>
+    </div>
+  </div>
+
+  <!-- Stage -->
+  <section class="stage" id="stage">
+    <!-- Mode selection -->
+    <div id="modeSelection" class="mode-selection">
+      <h2>Animal Tic-Tac-Toe</h2>
+      <p>Choose your game mode:</p>
+      <div class="mode-buttons">
+        <button id="twoPlayerBtn" class="mode-btn">Two Players</button>
+        <button id="vsComputerBtn" class="mode-btn">Play vs Computer</button>
+      </div>
+      <div id="difficultySelection" class="difficulty-selection" style="display:none;">
+        <button id="easyBtn" class="difficulty-btn">Easy</button>
+        <button id="hardBtn" class="difficulty-btn">Hard</button>
+      </div>
+    </div>
+
+    <!-- Animal selection -->
+    <div id="animalSelection" class="animal-selection" style="display:none;">
+      <h2>Choose Your Animals</h2>
+      <div class="picks">
+        <span class="pick-pill" id="p1Pick">P1: <em>none</em></span>
+        <span class="pick-pill" id="p2Pick">P2: <em>none</em></span>
+      </div>
+      <div class="selecting-as">
+        <button id="selectP1" class="select-tab active" type="button">Selecting: Player 1</button>
+        <button id="selectP2" class="select-tab" type="button">Selecting: Player 2</button>
+      </div>
+      <div class="animal-options" id="animalOptions"></div>
+<div class="start-wrap">
+  <button id="startGameBtn" class="btn" disabled>Start Game</button>
+</div>
+      <small style="opacity:.85">Pick a different animal for each player.</small>
+    </div>
+
+    <!-- Game screen -->
+    <div id="gameScreen" class="game-board" style="display:none;">
+      <div class="game-info">
+        <div class="player-info">
+          <div class="player-piece" id="player1Piece"></div>
+          <span>Player 1</span>
+        </div>
+        <div class="current-turn" id="currentTurn">Player 1's Turn</div>
+        <div class="player-info">
+          <div class="player-piece" id="player2Piece"></div>
+          <span id="opponentLabel">Player 2</span>
+        </div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <!-- Bottom bar -->
+  <nav id="bottom-bar" class="bottom-bar" role="toolbar" aria-label="Primary actions"></nav>
+
+<script>
+/* ---------- Animals (same set as your other game) ---------- */
+const animals = [
+  { name: "Lion", image: "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg" },
+  { name: "Elephant", image: "https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg" },
+  { name: "Giraffe", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG/640px-Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG" },
+  { name: "Panda", image: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Grosser_Panda.JPG" },
+  { name: "Koala", image: "https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_climbing_tree.jpg" },
+  { name: "Penguin", image: "https://upload.wikimedia.org/wikipedia/commons/0/07/Emperor_Penguin_Manchot_empereur.jpg" },
+  { name: "Dolphin", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bottlenose_dolphin_with_young.JPG/640px-Bottlenose_dolphin_with_young.JPG" },
+  { name: "Tiger", image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Royal_Bengal_Tiger_at_Kanha_National_Park.jpg" }
+];
+
+/* ---------- State ---------- */
+let game = {
+  mode:null, difficulty:null,
+  board:Array(9).fill(0), // 0 empty, 1 P1, 2 P2/CPU
+  current:1,
+  p1:null, p2:null,
+  over:false, muted:false
+};
+let selectingFor = 1;
+
+/* ---------- Elements ---------- */
+const boardEl = document.getElementById('board');
+const currentTurn = document.getElementById('currentTurn');
+const gameStatus = document.getElementById('gameStatus');
+const player1Piece = document.getElementById('player1Piece');
+const player2Piece = document.getElementById('player2Piece');
+const opponentLabel = document.getElementById('opponentLabel');
+
+const modeSelection = document.getElementById('modeSelection');
+const animalSelection = document.getElementById('animalSelection');
+const gameScreen = document.getElementById('gameScreen');
+
+const twoPlayerBtn = document.getElementById('twoPlayerBtn');
+const vsComputerBtn = document.getElementById('vsComputerBtn');
+const difficultySelection = document.getElementById('difficultySelection');
+const easyBtn = document.getElementById('easyBtn');
+const hardBtn = document.getElementById('hardBtn');
+
+const animalOptionsContainer = document.getElementById('animalOptions');
+const startGameBtn = document.getElementById('startGameBtn');
+const p1Pick = document.getElementById('p1Pick');
+const p2Pick = document.getElementById('p2Pick');
+const selectP1 = document.getElementById('selectP1');
+const selectP2 = document.getElementById('selectP2');
+const changeModeBtn = document.getElementById('changeModeBtn');
+const homeLink = document.getElementById('homeLink');
+
+const muteBtn = document.getElementById('muteBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const celebration = document.getElementById('celebration');
+const celebrationTitle = document.getElementById('celebrationTitle');
+const celebrationMessage = document.getElementById('celebrationMessage');
+const playAgainBtn = document.getElementById('playAgainBtn');
+
+const confettiCanvas = document.getElementById('confettiCanvas');
+const celebrationContent = document.querySelector('.celebration-content');
+
+/* ---------- Audio ---------- */
+let ACtx=null, audioPrimed=false;
+function ensureAudioCtx(){ if(!ACtx) ACtx = new (window.AudioContext||window.webkitAudioContext)(); if(ACtx.state==='suspended') ACtx.resume?.(); }
+function primeAudioOnce(){ if(audioPrimed) return; ensureAudioCtx(); try{ const o=ACtx.createOscillator(), g=ACtx.createGain(); o.frequency.value=880; g.gain.value=0.02; o.connect(g).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),120);}catch{} audioPrimed=true; }
+function tone(f=880, ms=100, g=0.03){ if(game.muted) return; ensureAudioCtx(); const o=ACtx.createOscillator(), a=ACtx.createGain(); o.type='sine'; o.frequency.value=f; a.gain.value=g; o.connect(a).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(), ms); }
+function updateMuteUI(){ muteBtn.textContent = game.muted ? '🔇' : '🔊'; }
+function toggleMute(){ ensureAudioCtx(); if(ACtx?.state==='suspended') ACtx.resume?.(); game.muted=!game.muted; localStorage.setItem('ttt_mute', game.muted?'1':'0'); if(!game.muted) tone(880,100,0.03); updateMuteUI(); }
+
+/* ---------- Confetti ---------- */
+let ctx, bursts=[];
+function sizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; ctx=confettiCanvas.getContext('2d'); }
+sizeCanvas(); addEventListener('resize', sizeCanvas); addEventListener('orientationchange', ()=>setTimeout(sizeCanvas,250));
+function burst(x,y,colors=['#E7C55B','#FFD166','#FF9E6D']){
+  const N=70, parts=[]; for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2, s=2+Math.random()*4;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,g:0.08+Math.random()*0.06,life:60+(Math.random()*20|0),
+      color:colors[i%colors.length], size:2+Math.random()*3, rot:Math.random()*Math.PI, vr:(Math.random()-.5)*0.2});
+  } bursts.push(parts); if(bursts.length===1) requestAnimationFrame(tick);
+}
+function tick(){
+  if(!ctx){ requestAnimationFrame(tick); return; }
+  ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  bursts = bursts.filter(parts=>{
+    for(const p of parts){
+      p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,p.life/80);
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); ctx.restore();
+    }
+    return parts.some(p=>p.life>0);
+  });
+  if(bursts.length) requestAnimationFrame(tick);
+}
+function celebrate(title,msg){
+  celebrationTitle.textContent=title; celebrationMessage.textContent=msg;
+  celebration.classList.add('show');
+  const r=celebrationContent.getBoundingClientRect();
+  burst(r.left+r.width/2, r.top+r.height/2);
+  if(!game.muted){ tone(880,180,0.05); setTimeout(()=>tone(1100,200,0.05),200); setTimeout(()=>tone(1320,300,0.05),400); }
+}
+
+/* ---------- UI flows ---------- */
+function showMode(){ modeSelection.style.display='flex'; animalSelection.style.display='none'; gameScreen.style.display='none'; gameStatus.textContent='Select Game Mode';
+  selectingFor=1; game.p1=null; game.p2=null; p1Pick.innerHTML='P1: <em>none</em>'; p2Pick.innerHTML='P2: <em>none</em>'; selectP1.classList.add('active'); selectP2.classList.remove('active'); }
+function showPicker(){ modeSelection.style.display='none'; animalSelection.style.display='flex'; gameScreen.style.display='none'; gameStatus.textContent='Choose Your Animals'; renderPicker(); validateStart(); }
+function startGame(){
+  if(game.mode==='twoPlayer'){
+    if(!(game.p1 && game.p2)){ alert('Pick an animal for both players.'); return; }
+  }else{
+    if(!game.p1){ alert('Please pick your animal.'); return; }
+    if(!game.p2){ const others=animals.filter(a=>a.name!==game.p1.name); game.p2 = others[Math.floor(Math.random()*others.length)]; }
+  }
+  modeSelection.style.display='none'; animalSelection.style.display='none'; gameScreen.style.display='flex';
+  player1Piece.innerHTML=`<img src="${game.p1.image}" alt="${game.p1.name}" draggable="false">`;
+  player2Piece.innerHTML=`<img src="${game.p2.image}" alt="${game.p2.name}" draggable="false">`;
+  opponentLabel.textContent = (game.mode==='vsComputer') ? 'Computer' : 'Player 2';
+  resetBoardHard();
+  primeAudioOnce();
+}
+
+/* ---------- Picker ---------- */
+function renderPicker(){
+  animalOptionsContainer.innerHTML='';
+  animals.forEach(an=>{
+    const card=document.createElement('div'); card.className='animal-option';
+    const prev=document.createElement('div'); prev.className='animal-preview';
+    const img=document.createElement('img'); img.src=an.image; img.alt=an.name; img.draggable=false;
+    const name=document.createElement('span'); name.textContent=an.name;
+    prev.appendChild(img); card.appendChild(prev); card.appendChild(name);
+
+    if(game.p1?.name===an.name){ const b=document.createElement('span'); b.className='badge p1'; b.textContent='P1'; card.appendChild(b); }
+    if(game.p2?.name===an.name){ const b=document.createElement('span'); b.className='badge p2'; b.textContent='P2'; card.appendChild(b); }
+
+    card.addEventListener('click', ()=>{
+      if(selectingFor===1){
+        if(game.p2 && game.p2.name===an.name){ alert('Player 2 already chose that animal.'); return; }
+        game.p1=an; p1Pick.innerHTML=`P1: <img src="${an.image}" alt=""> ${an.name}`;
+        if(game.mode==='twoPlayer'){ selectingFor=2; selectP1.classList.remove('active'); selectP2.classList.add('active'); }
+      }else{
+        if(game.p1 && game.p1.name===an.name){ alert('Player 1 already chose that animal.'); return; }
+        game.p2=an; p2Pick.innerHTML=`P2: <img src="${an.image}" alt=""> ${an.name}`;
+      }
+      renderPicker(); validateStart(); if(!game.muted) tone(760,60,0.03);
+    }, {passive:true});
+    animalOptionsContainer.appendChild(card);
+  });
+}
+function validateStart(){
+  const enabled = (game.mode==='twoPlayer') ? (game.p1 && game.p2) : !!game.p1;
+  startGameBtn.disabled = !enabled;
+  if(enabled){
+    // Just bring it into view if needed — won’t jump if already visible
+    startGameBtn.scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+}
+
+/* ---------- Board + Logic ---------- */
+const WINS = [
+  [0,1,2],[3,4,5],[6,7,8], // rows
+  [0,3,6],[1,4,7],[2,5,8], // cols
+  [0,4,8],[2,4,6]          // diags
+];
+function resetBoardHard(){
+  game.board = Array(9).fill(0); game.current=1; game.over=false;
+  renderBoard(); updateTurn(); gameStatus.textContent='Game in Progress';
+}
+function renderBoard(){
+  boardEl.innerHTML='';
+  for(let i=0;i<9;i++){
+    const c=document.createElement('div'); c.className='cell'; c.dataset.i=i;
+    c.addEventListener('click', ()=>cellClick(i), {passive:true});
+    const v=game.board[i];
+    if(v){
+      const p=document.createElement('div'); p.className='piece';
+      const img=document.createElement('img');
+      if(v===1){ img.src=game.p1.image; img.alt=game.p1.name; }
+      else { img.src=game.p2.image; img.alt=game.p2.name; }
+      p.appendChild(img); c.appendChild(p);
+    }
+    boardEl.appendChild(c);
+  }
+}
+function cellClick(i){
+  if(game.over || game.board[i]!==0) return;
+  if(game.mode==='vsComputer' && game.current===2) return; // block taps during CPU turn
+  move(i, game.current);                                   // ✅ use whoever's turn it is
+  if(game.over) return;
+  if(game.mode==='vsComputer'){
+    setTimeout(()=>cpuMove(), 350);
+  }
+}
+function move(i, who){
+  game.board[i]=who; renderBoard();
+  const winLine = winnerLine();
+  if(winLine){
+    game.over=true; highlight(winLine);
+    const name = (who===1) ? 'Player 1' : (game.mode==='vsComputer' ? 'Computer' : 'Player 2');
+    celebrate('Winner!', `${name} wins!`); gameStatus.textContent=`${name} Wins!`; return;
+  }
+  if(isDraw()){ game.over=true; celebrate('Draw!', 'Cat game!'); gameStatus.textContent='Draw'; return; }
+  game.current = (who===1?2:1); updateTurn();
+}
+function winnerLine(){
+  for(const line of WINS){
+    const [a,b,c]=line; const v=game.board[a];
+    if(v!==0 && v===game.board[b] && v===game.board[c]) return line;
+  }
+  return null;
+}
+function highlight(line){
+  line.forEach(idx=>{
+    const el = boardEl.querySelector(`.cell[data-i="${idx}"]`);
+    el && el.classList.add('win');
+  });
+}
+function isDraw(){ return game.board.every(v=>v!==0); }
+function updateTurn(){
+  currentTurn.textContent = (game.current===1) ? "Player 1's Turn" : (game.mode==='vsComputer' ? "Computer's Turn" : "Player 2's Turn");
+}
+
+/* ---------- CPU (Easy/Hard) ---------- */
+function cpuMove(){
+  if(game.over) return;
+  let i;
+  if(game.difficulty==='easy'){
+    const avail = game.board.map((v,idx)=>v===0?idx:null).filter(v=>v!==null);
+    i = avail[Math.floor(Math.random()*avail.length)];
+  }else{
+    // Hard: 1) win 2) block 3) fork/block fork (simple) 4) center 5) corner 6) side
+    i = findWinningMove(2) ?? findWinningMove(1) ?? findFork(2) ?? blockFork() ?? center() ?? corner() ?? side();
+  }
+  if(i==null){ // fallback
+    i = game.board.findIndex(v=>v===0);
+  }
+  move(i, 2);
+}
+function findWinningMove(player){
+  for(let idx=0; idx<9; idx++){
+    if(game.board[idx]===0){
+      game.board[idx]=player;
+      const win = winnerLine()!=null;
+      game.board[idx]=0;
+      if(win) return idx;
+    }
+  }
+  return null;
+}
+function findFork(player){
+  // fork: a move that creates 2 threats
+  for(let idx=0; idx<9; idx++){
+    if(game.board[idx]===0){
+      game.board[idx]=player;
+      let threats=0;
+      for(const line of WINS){
+        const [a,b,c]=line;
+        const arr=[game.board[a],game.board[b],game.board[c]];
+        if(arr.filter(v=>v===player).length===2 && arr.includes(0)) threats++;
+      }
+      game.board[idx]=0;
+      if(threats>=2) return idx;
+    }
+  }
+  return null;
+}
+function blockFork(){
+  // if opponent has a fork opportunity, block it
+  const opp=1;
+  const fork=findFork(opp);
+  if(fork!=null){
+    // try to play in that spot if legal
+    if(game.board[fork]===0) return fork;
+  }
+  return null;
+}
+function center(){ return game.board[4]===0 ? 4 : null; }
+function corner(){
+  const corners=[0,2,6,8].filter(i=>game.board[i]===0);
+  if(corners.length) return corners[Math.floor(Math.random()*corners.length)];
+  return null;
+}
+function side(){
+  const sides=[1,3,5,7].filter(i=>game.board[i]===0);
+  if(sides.length) return sides[Math.floor(Math.random()*sides.length)];
+  return null;
+}
+
+/* ---------- Controls ---------- */
+function resetSoft(){
+  celebration.classList.remove('show');
+  game.board = Array(9).fill(0); game.current=1; game.over=false;
+  renderBoard(); updateTurn(); gameStatus.textContent='Game in Progress';
+}
+
+/* ---------- Events ---------- */
+twoPlayerBtn.addEventListener('click', ()=>{ game.mode='twoPlayer'; difficultySelection.style.display='none'; showPicker(); if(!game.muted) tone(660,80,0.03); }, {passive:true});
+vsComputerBtn.addEventListener('click', ()=>{ game.mode='vsComputer'; difficultySelection.style.display='flex'; if(!game.muted) tone(660,80,0.03); }, {passive:true});
+easyBtn.addEventListener('click', ()=>{ [easyBtn,hardBtn].forEach(b=>b.classList.remove('selected')); easyBtn.classList.add('selected'); game.difficulty='easy'; showPicker(); if(!game.muted) tone(760,60,0.03); }, {passive:true});
+hardBtn.addEventListener('click', ()=>{ [easyBtn,hardBtn].forEach(b=>b.classList.remove('selected')); hardBtn.classList.add('selected'); game.difficulty='hard'; showPicker(); if(!game.muted) tone(760,60,0.03); }, {passive:true});
+
+selectP1.addEventListener('click', ()=>{ selectingFor=1; selectP1.classList.add('active'); selectP2.classList.remove('active'); }, {passive:true});
+selectP2.addEventListener('click', ()=>{ selectingFor=2; selectP2.classList.add('active'); selectP1.classList.remove('active'); }, {passive:true});
+startGameBtn.addEventListener('click', startGame, {passive:true});
+
+muteBtn.addEventListener('click', toggleMute);
+resetBtn.addEventListener('click', resetSoft);
+playAgainBtn.addEventListener('click', resetSoft);
+
+changeModeBtn.addEventListener('click', ()=>{
+  celebration.classList.remove('show');
+  const keepMute = game.muted;
+  game = { mode:null, difficulty:null, board:Array(9).fill(0), current:1, p1:null, p2:null, over:false, muted:keepMute };
+  updateMuteUI(); showMode(); if(!game.muted) tone(520,90,0.03);
+});
+homeLink.addEventListener('click', (e)=>{
+  if(location.protocol==='file:'){ e.preventDefault(); history.length>1 ? history.back() : alert('Home link: set your site root URL.'); }
+});
+
+/* ---------- Bottom bar ---------- */
+(function setupBottomBar(){
+  const bar=document.getElementById('bottom-bar');
+  ['muteBtn','resetBtn'].forEach(id=>{ const btn=document.getElementById(id); btn.classList.add('bar-btn'); bar.appendChild(btn); });
+})();
+
+/* ---------- Init ---------- */
+function init(){
+  game.muted = (localStorage.getItem('ttt_mute') ?? '0') === '1'; updateMuteUI();
+  showMode();
+  const prime=()=>{ primeAudioOnce(); window.removeEventListener('pointerdown', prime); window.removeEventListener('keydown', prime); };
+  window.addEventListener('pointerdown', prime, {passive:true}); window.addEventListener('keydown', prime);
+}
+init();
+</script>
+</body>
+</html>

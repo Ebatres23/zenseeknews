@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import threading
+from html.parser import HTMLParser
 from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -52,6 +53,8 @@ class StoryRouteTests(unittest.TestCase):
                 page = response.read().decode("utf-8")
         self.assertIn(self.item["headline"], page)
         self.assertIn("Reputable source links", page)
+        self.assertIn('href="/article.css"', page)
+        self.assertIn(self.item["published"], page)
 
     def test_story_uses_saved_generated_content(self):
         item = dict(self.item, content={"headline": "Saved headline", "story": ["Saved story"]})
@@ -65,6 +68,42 @@ class StoryRouteTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as error:
             urlopen(f"{self.base_url}/story/missing")
         self.assertEqual(error.exception.code, 404)
+
+    def test_featured_guides_and_images_exist(self):
+        class FeaturedLinks(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.in_card = False
+                self.links = []
+                self.images = []
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == "a" and "orb-link" in attrs.get("class", "").split():
+                    self.in_card = True
+                    self.links.append(attrs["href"])
+                elif tag == "img" and self.in_card:
+                    self.images.append(attrs["src"])
+
+            def handle_endtag(self, tag):
+                if tag == "a":
+                    self.in_card = False
+
+        parser = FeaturedLinks()
+        parser.feed((app.ROOT / "index.html").read_text(encoding="utf-8"))
+        self.assertTrue(parser.links)
+        for link in parser.links:
+            with self.subTest(link=link):
+                target = app.ROOT / link.lstrip("/")
+                if link.endswith("/"):
+                    target /= "index.html"
+                with urlopen(f"{self.base_url}{link}") as response:
+                    content = response.read()
+                    self.assertEqual(content, target.read_bytes())
+                    self.assertIn(b'href="/guide-theme.css"', content)
+        for image in parser.images:
+            with self.subTest(image=image):
+                self.assertTrue((app.ROOT / image.lstrip("/")).is_file())
 
 
 if __name__ == "__main__":

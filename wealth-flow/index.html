@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Money Made Simple — The Wealth Flow Handbook | ZenSeek</title>
+  <meta name="description" content="Plain words. Calm guidance. Occasional demos to make it click. Understand the game, avoid traps, and build steady wealth — without the noise. AI-sourced, human-verified, evergreen."/>
+  <link rel="canonical" href="https://zenseek.org/wealth-flow/"/>
+
+  <!-- Social -->
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content="Money Made Simple — The Wealth Flow Handbook"/>
+  <meta property="og:description" content="Understand the game, avoid traps, and build steady wealth — without the noise."/>
+  <meta property="og:url" content="https://zenseek.org/wealth-flow/"/>
+  <meta property="og:image" content="https://zenseek.org/images/river2-hero.jpg"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+
+  <style>
+
+:root{
+      --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#384a55;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Georgia',serif;background:#0a141a;color:var(--ink);line-height:1.55;overflow-x:hidden}
+
+    /* Header (matches home) */
+    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);
+      background:rgba(10,20,26,.65);border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
+    header .brand{font-weight:700;color:var(--zen-gold);font-size:1.4rem;text-decoration:none}
+    nav a{color:#fff;margin-left:1rem;text-decoration:none;font-weight:500}
+    nav a:hover{color:var(--zen-gold)}
+
+    /* Hero (same system as home) */
+    .hero{position:relative;min-height:64vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:2rem 1rem;isolation:isolate}
+    .hero .media{position:absolute;inset:0;z-index:-2}
+    .hero img{width:100%;height:100%;object-fit:cover;filter:saturate(1.2) contrast(1.06) brightness(1.05);transform:scale(1.02);animation:kb 24s ease-in-out infinite alternate}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.45))}
+    @keyframes kb{0%{transform:scale(1.02)}100%{transform:scale(1.04) translateY(-6px)}}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);color:var(--zen-gold);margin-bottom:.5rem;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+    .hero p{max-width:820px;margin:0 auto .6rem;font-size:1.05rem;color:#eef6f9;text-shadow:0 1px 8px rgba(0,0,0,.3)}
+    .badges{list-style:none;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin:.6rem 0 0}
+    .badges li{border:1px solid var(--zen-gold);color:var(--zen-gold);padding:.28rem .7rem;border-radius:16px;font-size:.85rem;background:rgba(0,0,0,.25)}
+    .meta{margin-top:.5rem;font-size:.85rem;color:#fff;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+    .btns{margin-top:.9rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+    .btn{padding:.7rem 1.4rem;border-radius:999px;font-weight:600;text-decoration:none;border:1px solid transparent}
+    .btn.primary{background:var(--zen-gold);color:#141006}
+    .btn.secondary{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+
+    /* Page container */
+    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+    .page{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.09);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+      padding:clamp(16px,2vw,24px);color:#eaf2f5}
+
+      :root{ --safe-top:86px }               /* keeps anchors from hiding under the top bar */
+html{ scroll-padding-top: var(--safe-top) }
+section[id]{ scroll-margin-top: var(--safe-top) }
+
+ /* Columns: TOC + content */
+    .cols{display:grid;grid-template-columns:280px 1fr;gap:18px}
+    @media(max-width:980px){.cols{grid-template-columns:1fr}}
+    .toc{position:var(--safe-top);top:6rem;align-self:start;background:rgba(11,24,32,.75);border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;padding:14px;backdrop-filter:blur(8px)}
+    .toc h3{color:var(--zen-gold);font-size:1rem;margin:0 0 .4rem}
+    .toc nav a{display:block;color:#d7e6ed;text-decoration:none;padding:.35rem .45rem;border-radius:8px;font-size:.95rem}
+    .toc nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+
+    /* Content cards */
+    .card{background:rgba(255,255,255,.95);color:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0}
+    .card h2{font-size:1.25rem;margin:.2rem 0 .45rem}
+    .tag{display:inline-block;font-size:.78rem;color:#6b7a8a;border:1px solid #e3e7eb;border-radius:14px;padding:.16rem .6rem;margin-bottom:.5rem}
+    .lead{color:#22323b}
+    .sub{color:var(--muted);font-size:.95rem}
+
+    /* Chapter previews */
+    .chapters{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:8px}
+    .chapter{background:rgba(255,255,255,.9);border-radius:12px;overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:0 8px 20px rgba(0,0,0,.16)}
+    .chapter:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.28)}
+    .chapter img{width:100%;height:160px;object-fit:cover}
+    .chapter .body{padding:14px 16px}
+    .chapter h3{margin:.2rem 0 .35rem;font-size:1.05rem;color:var(--ink)}
+    .chapter p{margin:0;color:var(--muted);font-size:.93rem}
+
+    footer{background:#111;color:#bbb;text-align:center;padding:1rem;margin-top:2rem;font-size:.85rem}
+    footer a{color:#fff;text-decoration:none}footer a:hover{color:var(--zen-gold)}
+
+    @media(prefers-reduced-motion:reduce){.hero img{animation:none;transform:none}}
+  </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-page">
+  <header>
+    <a href="/" class="brand">ZenSeek</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/first-rate-you/">First-Rate You</a>
+      <a href="/wealth-flow/">Money</a>
+      <a href="/focus-quiet/">Calm</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <picture class="media" aria-hidden="true">
+      <source type="image/avif" srcset="/images/river2-hero-1280.avif 1280w, /images/river2-hero-1920.avif 1920w" sizes="100vw"/>
+      <source type="image/webp" srcset="/images/river2-hero-1280.webp 1280w, /images/river2-hero-1920.webp 1920w" sizes="100vw"/>
+      <img src="/images/flowers.png" alt="" width="1920" height="1080" fetchpriority="high"
+           onerror="this.onerror=null;this.src='/images/river2-hero.jpg'">
+    </picture>
+
+    <div class="hero-content">
+      <h1>Money Made Simple — The Wealth Flow Handbook</h1>
+      <p>Plain words. Calm guidance. Occasional demos to make it click.<br/>Understand the game, avoid traps, and build steady wealth — without the noise.</p>
+      <ul class="kpis" aria-label="Trust badges">
+        <li class="kpi">✅ Multi-AI Sourcing</li>
+        <li class="kpi">🧑‍🏫 Human Review</li>
+        <li class="kpi">♾️ Evergreen Updates</li>
+        <li class="kpi">🔎 Source-Transparent</li>
+      </ul>
+      <p style="color:#fff;opacity:.9;margin-top:.4rem">Verified: Sep 29, 2025 ·
+        <button class="btn secondary" id="traceToggle" style="border-color:var(--zen-gold);color:#fff" aria-expanded="false" aria-controls="traceBox">Show Credibility Trace</button>
+      </p>
+      <div id="traceBox" class="card" style="display:none;max-width:780px;margin:.6rem auto;text-align:left" aria-live="polite">
+        <strong>Sourcing summary</strong>
+        <ul style="margin:.5rem 0 0 1.1rem">
+          <li>Independent AI sweeps compare reputable sources (FDIC/CFPB, academic finance texts, IRS/agency docs).</li>
+          <li>Human review simplifies language and tests the demos for clarity and edge cases.</li>
+          <li>Evergreen maintenance: re-verified quarterly or when policies/rates shift materially.</li>
+        </ul>
+        <em>Educational only — not financial advice.</em>
+      </div>
+      <div class="btns" style="margin-top:.6rem">
+        <a href="#contents" class="btn primary">Jump to Contents</a>
+        <a href="/tools/money-clarity/" class="btn secondary">Money Clarity Calculators</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ON-PAGE NAV -->
+
+   <main class="onpage">
+    <div class="box" id="start" aria-expanded="false">
+      <section class="box" id="contents">
+        <!-- TOC -->
+        <aside class="toc">
+          <h3>Contents</h3>
+          <nav>
+            <a href="#ch1">1. Why Money Feels Stressful</a>
+            <a href="#ch2">2. Borrowing, Simply</a>
+            <a href="#ch3">3. The Payment Trap</a>
+            <a href="#ch4">4. Car Buying without Regret</a>
+            <a href="#ch5">5. Programs to Know</a>
+            <a href="#ch6">6. Credit Confidence</a>
+            <a href="#ch7">7. The Savings Snowball</a>
+            <a href="#appendix">Appendix: Quick Wins</a>
+          </nav>
+        </aside>
+
+        <!-- CONTENT -->
+        <div>
+          <!-- PART I -->
+          <article class="card" id="part1">
+            <span class="tag">Part I — The Game of Money</span>
+            <h2>Why Money Feels Stressful</h2>
+            <p>Modern money talk is engineered to sell urgency: “limited time,” “low monthly,” “don’t miss out.” Algorithms amplify envy; ads normalize debt. The goal here isn’t to opt out of the world — it’s to step back into choice. With a few clear ideas and a couple of simple tools, you can make strong, calm decisions.</p>
+            <p class="sub"><strong>Mindset for this book:</strong> understand the levers (rate, time, total), ignore hype, choose slowly.</p>
+            <div class="grid">
+              <div class="kpi"><strong>Rate:</strong> the price of money (APR). Small changes matter over time.</div>
+              <div class="kpi"><strong>Time:</strong> longer terms lower payments but increase total paid.</div>
+              <div class="kpi"><strong>Total:</strong> the only number that captures reality.</div>
+            </div>
+          </article>
+
+          <!-- Borrowing, Simply -->
+          <article class="card" id="ch2">
+            <span class="tag">2. Borrowing, Simply</span>
+            <h2>Borrowing, Simply</h2>
+            <p>Interest is the rent on money. APR is the yearly cost including some fees. Your monthly payment depends on three levers: amount, rate, and time. Extend time and payments drop — but the total cost rises.</p>
+            <div class="fields" style="margin-top:.4rem">
+              <label>Amount ($)
+                <input id="loanAmt" type="number" min="0" step="100" value="20000" inputmode="decimal">
+              </label>
+              <label>APR (%)
+                <input id="loanApr" type="number" min="0" step="0.01" value="6.5" inputmode="decimal">
+              </label>
+              <label>Years
+                <input id="loanYears" type="number" min="0.5" step="0.5" value="5" inputmode="decimal">
+              </label>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><strong>Monthly payment:</strong> <span id="loanMonthly">$0</span></div>
+              <div class="kpi"><strong>Total paid:</strong> <span id="loanTotal">$0</span></div>
+              <div class="kpi"><strong>Interest total:</strong> <span id="loanInterest">$0</span></div>
+            </div>
+            <p class="sub">Tiny rate changes can mean big dollars over time. <strong>Shop the loan, not just the product.</strong></p>
+          </article>
+
+          <!-- Payment Trap -->
+          <article class="card" id="ch3">
+            <span class="tag">3. The Payment Trap</span>
+            <h2>The Payment Trap</h2>
+            <p>“Can you afford the monthly?” is the wrong question. The right ones are: <em>What’s the total I’ll pay?</em> and <em>How much of each payment is interest?</em> Paying a little extra to principal early can cut both time and interest.</p>
+            <div class="fields" style="margin-top:.4rem">
+              <label>Amount ($)
+                <input id="trapAmt" type="number" min="0" step="100" value="20000">
+              </label>
+              <label>APR (%)
+                <input id="trapApr" type="number" min="0" step="0.01" value="8.0">
+              </label>
+              <label>Years
+                <input id="trapYears" type="number" min="0.5" step="0.5" value="5">
+              </label>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><strong>Total cost:</strong> <span id="trapTotal">$0</span></div>
+              <div class="kpi"><strong>Interest share:</strong> <span id="trapInterestShare">0%</span></div>
+              <div class="kpi"><strong>Principal share:</strong> <span id="trapPrincipalShare">0%</span></div>
+            </div>
+            <div class="bar" aria-label="Interest percentage vs principal"><span id="trapBar" style="width:0%"></span></div>
+            <p class="sub">Add <strong>$25–$50</strong> to principal in the first year — it often trims months off the loan.</p>
+          </article>
+
+          <!-- PART II -->
+          <article class="card" id="part2">
+            <span class="tag">Part II — Smarter Big Purchases</span>
+            <h2>Car Buying without Regret</h2>
+            <p>Five calm steps: 1) set a payment for a bad month, 2) know your trade vs. payoff, 3) get a credit-union quote, 4) compare buy vs. lease, 5) ask for the worksheet (fees/taxes in writing).</p>
+
+            <div class="fields" style="margin-top:.4rem">
+              <label>Price ($)
+                <input id="carPrice" type="number" min="0" step="500" value="32000">
+              </label>
+              <label>Loan APR (%)
+                <input id="carApr" type="number" min="0" step="0.01" value="6.0">
+              </label>
+              <label>Loan years
+                <input id="carYears" type="number" min="1" step="1" value="5">
+              </label>
+              <label>Down ($)
+                <input id="carDown" type="number" min="0" step="500" value="3000">
+              </label>
+              <label>Lease months
+                <input id="leaseMonths" type="number" min="12" step="12" value="36">
+              </label>
+              <label>Residual (% of MSRP)
+                <input id="leaseResidual" type="number" min="30" max="80" step="1" value="60">
+              </label>
+              <label>Money factor (e.g., 0.0025)
+                <input id="leaseMF" type="number" min="0" step="0.0001" value="0.0025">
+              </label>
+              <label>Tax rate (%)
+                <input id="taxRate" type="number" min="0" max="15" step="0.1" value="8.5">
+              </label>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><strong>Loan payment:</strong> <span id="buyMonthly">$0</span></div>
+              <div class="kpi"><strong>Lease payment:</strong> <span id="leaseMonthly">$0</span></div>
+              <div class="kpi"><strong>Estimated total over term:</strong> <span id="carTotals">$0 vs $0</span></div>
+            </div>
+            <p class="sub">States/lenders differ on what’s taxed and how residuals are set. Always read the worksheet.</p>
+          </article>
+
+          <!-- Programs to Know -->
+          <article class="card" id="ch5">
+            <span class="tag">5. Programs to Know</span>
+            <h2>Programs to Know</h2>
+            <ul>
+              <li><strong>FHA:</strong> as low as 3.5% down (credit rules apply).</li>
+              <li><strong>USDA Rural:</strong> 0% down in eligible areas with income limits.</li>
+              <li><strong>VA:</strong> 0% down for eligible veterans/service members.</li>
+              <li><strong>State/Local DPA:</strong> grants or forgivable loans for down payment/closing costs.</li>
+            </ul>
+            <p class="sub">Call a local credit union and your city/county housing office — they’ll know current programs and income caps.</p>
+          </article>
+
+          <!-- PART III -->
+          <article class="card" id="part3">
+            <span class="tag">Part III — Building Financial Power</span>
+            <h2>Credit Confidence</h2>
+            <ol>
+              <li><strong>Pay on time</strong> — set autopay at least for the minimum.</li>
+              <li><strong>Keep balances low</strong> — aim under 30% of limits (lower is better).</li>
+              <li><strong>Keep old accounts</strong> — age helps scores; avoid frequent new accounts.</li>
+            </ol>
+            <p class="sub">Underwriting also looks at steady income, housing stability, and overall debts. A thin file improves with a secured card and an on-time streak.</p>
+          </article>
+
+          <!-- Savings Snowball -->
+          <article class="card" id="ch7">
+            <span class="tag">7. The Savings Snowball</span>
+            <h2>The Savings Snowball</h2>
+            <p>Small automatic amounts grow quietly. Increase by a little each year and time does the heavy lifting.</p>
+            <div class="fields" style="margin-top:.4rem">
+              <label>Weekly saved ($)
+                <input id="savWeekly" type="number" min="0" step="5" value="25">
+              </label>
+              <label>Years
+                <input id="savYears" type="number" min="1" step="1" value="5">
+              </label>
+              <label>Annual return (%)
+                <input id="savReturn" type="number" min="0" step="0.1" value="5.0">
+              </label>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><strong>Total contributed:</strong> <span id="savContrib">$0</span></div>
+              <div class="kpi"><strong>Growth/earnings:</strong> <span id="savGrowth">$0</span></div>
+              <div class="kpi"><strong>Future value:</strong> <span id="savFuture">$0</span></div>
+            </div>
+          </article>
+
+          <!-- Appendix -->
+          <article class="card" id="appendix">
+            <span class="tag">Appendix</span>
+            <h2>Quick Wins & Calm Rules</h2>
+            <ul>
+              <li>Shop the loan — always get at least two offers.</li>
+              <li>Attack high interest first; minimums on others.</li>
+              <li>Automate bills & savings to prevent slips.</li>
+              <li>Buffer fund: first $500–$1,000 beats any optimization.</li>
+              <li>Avoid lifestyle creep: raises go to debt/savings first.</li>
+              <li>Sleep on big buys: decide after one night, not in the showroom.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="y"></span> ZenSeek — AI-sourced, human-verified, evergreen.</p>
+    <p><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/sitemap.xml">Sitemap</a></p>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Credibility Trace toggle
+    (function(){
+      const btn = document.getElementById('traceToggle');
+      const box = document.getElementById('traceBox');
+      if(!btn || !box) return;
+      btn.addEventListener('click', ()=>{
+        const open = box.style.display !== 'block';
+        box.style.display = open ? 'block' : 'none';
+        btn.setAttribute('aria-expanded', String(open));
+        btn.textContent = open ? 'Hide Credibility Trace' : 'Show Credibility Trace';
+      });
+    })();
+
+    // Safe number helpers
+    const $ = (id)=>document.getElementById(id);
+    const money = (x)=>isFinite(x)? x.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}):'—';
+    const pct = (x)=>isFinite(x)? (x.toFixed(0)+'%') : '—';
+
+    // Loan payment formula
+    function loanMonthly(P, apr, years){
+      const r = (apr/100)/12;
+      const n = Math.round(years*12);
+      if(r===0) return P/n;
+      return P * (r / (1 - Math.pow(1+r, -n)));
+    }
+
+    // Borrowing, Simply demo
+    function updateBorrow(){
+      const P = parseFloat($('loanAmt').value)||0;
+      const apr = parseFloat($('loanApr').value)||0;
+      const years = parseFloat($('loanYears').value)||0;
+      const m = loanMonthly(P,apr,years);
+      const n = Math.round(years*12);
+      const total = m*n;
+      const interest = total - P;
+      $('loanMonthly').textContent = money(m);
+      $('loanTotal').textContent = money(total);
+      $('loanInterest').textContent = money(interest);
+    }
+    ['loanAmt','loanApr','loanYears'].forEach(id=>$(id).addEventListener('input',updateBorrow));
+
+    // Payment Trap demo
+    function updateTrap(){
+      const P = parseFloat($('trapAmt').value)||0;
+      const apr = parseFloat($('trapApr').value)||0;
+      const years = parseFloat($('trapYears').value)||0;
+      const m = loanMonthly(P,apr,years);
+      const n = Math.round(years*12);
+      const total = m*n;
+      const interest = Math.max(total - P, 0);
+      const intShare = total>0? (interest/total*100):0;
+      const prinShare = 100 - intShare;
+      $('trapTotal').textContent = money(total);
+      $('trapInterestShare').textContent = pct(intShare);
+      $('trapPrincipalShare').textContent = pct(prinShare);
+      $('trapBar').style.width = Math.max(0, Math.min(100, intShare)) + '%';
+    }
+    ['trapAmt','trapApr','trapYears'].forEach(id=>$(id).addEventListener('input',updateTrap));
+
+    // Car: buy vs lease (simplified; worksheet rules vary by state)
+    function updateCar(){
+      const price = parseFloat($('carPrice').value)||0;
+      const apr = parseFloat($('carApr').value)||0;
+      const years = parseFloat($('carYears').value)||0;
+      const down = parseFloat($('carDown').value)||0;
+      const months = Math.round(parseFloat($('leaseMonths').value)||36);
+      const residualPct = (parseFloat($('leaseResidual').value)||60)/100;
+      const mf = parseFloat($('leaseMF').value)||0.0025;
+      const tax = (parseFloat($('taxRate').value)||0)/100;
+
+      // BUY
+      const buyPrincipal = Math.max(price - down, 0);
+      const buyPayment = loanMonthly(buyPrincipal, apr, years);
+      const buyMonthlyWithTax = buyPayment * (1+tax); // many states tax the payment
+      const buyTotal = buyMonthlyWithTax * Math.round(years*12) + down;
+
+      // LEASE (simplified)
+      const msrp = price; // treat input price as MSRP for demo
+      const residualVal = msrp * residualPct;
+      const capCost = Math.max(msrp - down, 0);
+      const depreciation = Math.max((capCost - residualVal) / months, 0);
+      const financeCharge = (capCost + residualVal) * mf; // money factor finance portion
+      const leaseBase = depreciation + financeCharge;
+      const leaseMonthly = leaseBase * (1+tax);
+      const leaseTotal = leaseMonthly * months + down;
+
+      $('buyMonthly').textContent = money(buyMonthlyWithTax);
+      $('leaseMonthly').textContent = money(leaseMonthly);
+      $('carTotals').textContent = money(buyTotal) + ' (buy) vs ' + money(leaseTotal) + ' (lease)';
+    }
+    ['carPrice','carApr','carYears','carDown','leaseMonths','leaseResidual','leaseMF','taxRate']
+      .forEach(id=>$(id).addEventListener('input',updateCar));
+
+    // Savings Snowball (weekly)
+    function updateSavings(){
+      const weekly = parseFloat($('savWeekly').value)||0;
+      const years = Math.round(parseFloat($('savYears').value)||0);
+      const rYear = (parseFloat($('savReturn').value)||0)/100;
+      const n = Math.max(1, years*52);
+      const i = rYear/52;
+      const contrib = weekly*n;
+      const fv = i>0 ? weekly * ((Math.pow(1+i, n)-1)/i) : contrib;
+      const growth = Math.max(fv - contrib, 0);
+      $('savContrib').textContent = money(contrib);
+      $('savGrowth').textContent = money(growth);
+      $('savFuture').textContent = money(fv);
+    }
+    ['savWeekly','savYears','savReturn'].forEach(id=>$(id).addEventListener('input',updateSavings));
+
+    // Init on load
+    updateBorrow(); updateTrap(); updateCar(); updateSavings();
+
+    // If the browser can’t autoplay, hide video (poster shows from CSS)
+    (function(){
+      const v = document.getElementById('hero-video');
+      if(!v) return;
+      const p = v.play && v.play();
+      if(p && typeof p.catch === 'function'){ p.catch(()=>{ v.style.display='none'; }); }
+    })();
+  </script>
+  <script>
+  (function(){
+    const nav = document.getElementById('toc-wealth');
+    const chipsWrap = document.getElementById('tocWealthChips');
+    const toggle = document.getElementById('tocWealthToggle');
+
+    toggle?.addEventListener('click', ()=>{
+      const open = nav.getAttribute('aria-expanded') !== 'true';
+      nav.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.textContent = open ? 'Hide sections' : 'Show sections';
+    });
+
+    const links = chipsWrap ? [...chipsWrap.querySelectorAll('a')] : [];
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const id = '#'+e.target.id;
+          links.forEach(a=>a.classList.toggle('active', a.getAttribute('href')===id));
+        }
+      });
+    }, {rootMargin:'-40% 0px -55% 0px', threshold:0});
+
+    ['part1','ch2','ch3','part2','ch5','part3','ch7','appendix'].forEach(id=>{
+      const el = document.getElementById(id); if(el) obs.observe(el);
+    });
+  })();
+</script>
+
+</body>
+</html>

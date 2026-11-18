@@ -106,6 +106,11 @@ SWAGGER_HTML = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ZenSeek API Documentation</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    body { margin: 0; background: #f6f7f4; color: #202b25; }
+    .swagger-ui .info .title, .swagger-ui h1, .swagger-ui h2 { color: #202b25; font-family: Georgia, serif; }
+    .swagger-ui a { color: #2f6d4e; }
+  </style>
 </head>
 <body>
   <div id="swagger-ui"></div>

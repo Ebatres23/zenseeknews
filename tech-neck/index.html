@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Tech Neck Relief — Apple-Style Scroll Guide | ZenSeek</title>
+  <meta name="description" content="Reverse tech neck with a beautiful, on-theme scrollytelling guide: dynamic posture illustration, quick self-tests, workstation fixes, and a 4-week stabilizer plan."/>
+  <link rel="canonical" href="https://zenseek.org/tech-neck/"/>
+
+  <style>
+    :root{ --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#6b7a8a; --shell:#0a141a }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Georgia,serif;background:var(--shell);color:var(--ink);line-height:1.55;overflow-x:hidden}
+    a{color:#e7f1f7;text-decoration:none} a:hover{color:var(--zen-gold)}
+
+    /* Header (matches ZenSeek) */
+    header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);
+      background:rgba(10,20,26,.65);border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
+    header .brand{font-weight:700;color:var(--zen-gold);font-size:1.4rem;text-decoration:none}
+    nav a{color:#fff;margin-left:1rem;text-decoration:none;font-weight:500}
+    nav a:hover{color:var(--zen-gold)}
+
+    /* Hero */
+    .hero{position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;overflow:hidden;padding:2rem 1rem;isolation:isolate}
+    .hero .media{position:absolute;inset:0;z-index:-2}
+    .hero .media img{width:100%;height:100%;object-fit:cover;filter:saturate(1.08) contrast(1.04) brightness(1.05);
+      transform:scale(1.03);animation:kb 28s ease-in-out infinite alternate}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.48))}
+    @keyframes kb{0%{transform:scale(1.03)}100%{transform:scale(1.06) translateY(-6px)}}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);color:var(--zen-gold);margin-bottom:.6rem;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+    .hero p{max-width:900px;margin:0 auto .6rem;font-size:1.06rem;color:#eef6f9;text-shadow:0 1px 8px rgba(0,0,0,.3)}
+    .badges{list-style:none;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin:.6rem 0 0}
+    .badges li{border:1px solid var(--zen-gold);color:var(--zen-gold);padding:.28rem .7rem;border-radius:16px;font-size:.85rem;background:rgba(0,0,0,.25)}
+    .meta{margin-top:.5rem;font-size:.85rem;color:#fff;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+    .btns{margin-top:.9rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+    .btn{padding:.7rem 1.4rem;border-radius:999px;font-weight:600;text-decoration:none;border:1px solid transparent}
+    .btn.primary{background:var(--zen-gold);color:#141006}
+    .btn.secondary{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+
+    /* Main layout */
+    .main-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+    
+    /* Table of Contents - Fixed at the top on desktop, static on mobile */
+    .toc-container {
+      position: sticky;
+      top: 80px;
+      z-index: 40;
+      margin-bottom: 1.5rem;
+      background: rgba(11,24,32,.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      justify-content: center;
+    }
+    
+    .toc h3 {
+      color: var(--zen-gold);
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .toc nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      justify-content: center;
+    }
+    
+    .toc nav a {
+      display: block;
+      color: #d7e6ed;
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    
+    .toc nav a:hover {
+      background: rgba(255,255,255,.06);
+      color: #fff;
+    }
+    
+    .toc nav a.active {
+      background: rgba(212,175,55,.15);
+      color: var(--zen-gold);
+      font-weight: 600;
+    }
+
+    /* Content cards */
+    .card{background:rgba(255,255,255,.95);color:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0}
+    .card h2{font-size:1.25rem;margin:.2rem 0 .45rem}
+    .tag{display:inline-block;font-size:.78rem;color:#6b7a8a;border:1px solid #e3e7eb;border-radius:14px;padding:.16rem .6rem;margin-bottom:.5rem}
+    .lead{color:#22323b}
+    .sub{color:var(--muted);font-size:.95rem}
+
+    /* Apple-style scroll scene */
+    .scene{margin:28px 0;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+    .scene-inner{display:grid;grid-template-columns:minmax(280px,520px) 1fr;gap:20px}
+    @media(max-width:980px){.scene-inner{grid-template-columns:1fr}}
+    .sticky-visual{position:sticky;top:96px;align-self:start;padding:18px}
+    .neck{width:100%;max-width:520px;aspect-ratio:1.2/1;background:radial-gradient(800px 360px at 50% -10%, rgba(212,175,55,.18), transparent 40%)}
+    .neck canvas{width:100%;height:auto;display:block;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#0f1f28,#0a141a)}
+    .caption{color:#d7e6ed;font-size:.92rem;margin-top:8px}
+    .steps{padding:6px}
+    .step{background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0;opacity:.6;transform:translateY(8px);transition:opacity .3s, transform .3s}
+    .step.active{opacity:1;transform:none;border:1px solid #e8ebef}
+    .metric{display:flex;gap:10px;align-items:baseline;margin-top:10px}
+    .metric .num{font-weight:700;font-size:1.25rem;color:#22323b}
+    .metric .label{color:#6b7a8a}
+
+    /* Anchor safety for sticky header */
+    :root{--safe-top:86px} html{scroll-padding-top:var(--safe-top)} section[id]{scroll-margin-top:var(--safe-top)}
+
+    footer{background:#111;color:#bbb;text-align:center;padding:1rem;margin-top:2rem;font-size:.85rem}
+    footer a{color:#fff;text-decoration:none} footer a:hover{color:var(--zen-gold)}
+    @media(prefers-reduced-motion:reduce){.hero .media img{animation:none;transform:none}}
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .toc-container {
+        position: static; /* Remove sticky behavior on mobile */
+        margin-bottom: 1rem;
+        padding: 12px;
+      }
+      
+      .toc nav {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      
+      .toc nav a {
+        text-align: center;
+        padding: 0.5rem;
+      }
+      
+      .scene-inner {
+        gap: 10px;
+      }
+      
+      .sticky-visual {
+        position: static; /* Remove sticky on mobile for the visual too */
+        padding: 12px;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-page">
+  <header>
+    <a href="/" class="brand">ZenSeek</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/first-rate-you/">First-Rate You</a>
+      <a href="/wealth-flow/">Money</a>
+      <a href="/focus-quiet/">Calm</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <picture class="media" aria-hidden="true">
+      <img src="/images/river-flow-1920.webp" alt="" width="1920" height="1080" fetchpriority="high"/>
+    </picture>
+    <h1>Tech Neck Relief — Scroll Guide</h1>
+    <p>Understand what tech neck actually is, see it animated as you scroll, then fix it with a precise 4-week plan. Cleaner mechanics. Less pain. Better focus.</p>
+    <ul class="badges" aria-label="Trust badges">
+      <li>✅ Multi-AI Sourcing</li><li>🧑‍🏫 Human Review</li><li>♾️ Evergreen Updates</li><li>🔎 Source-Transparent</li>
+    </ul>
+    <p class="meta">Verified: Sept 2025</p>
+    <div class="btns">
+      <a class="btn primary" href="#section1">Jump to Contents</a>
+      <a class="btn secondary" href="#scroll-scene">See Animation</a>
+    </div>
+  </section>
+
+  <main class="onpage">
+    <div class="main-container">
+      <!-- TABLE OF CONTENTS - Fixed at the top on desktop, static on mobile -->
+      <div class="toc-container" id="toc">
+        <div class="toc">
+          <h3>Contents</h3>
+          <nav>
+            <a href="#section1">1. See Tech Neck in Motion</a>
+            <a href="#section2">2. Quick Self-Tests</a>
+            <a href="#section3">3. Workstation Setup</a>
+            <a href="#section4">4. 4-Week Protocol</a>
+            <a href="#section5">5. Sleep & Breath</a>
+            <a href="#section6">6. Red Flags</a>
+            <a href="#section7">7. Maintenance</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div>
+        <!-- APPLE-STYLE SCROLL SCENE (keeps #section1 id) -->
+        <section id="section1" class="scene">
+          <div class="scene-inner" id="scroll-scene">
+            <!-- Sticky visual -->
+            <div class="sticky-visual">
+              <div class="neck">
+                <canvas id="neckCanvas" width="520" height="432" aria-label="Neck posture illustration"></canvas>
+              </div>
+              <p class="caption">Scroll the steps → the diagram transitions from forward head → neutral → avoid over-extension.</p>
+              <div class="metric">
+                <div class="num" id="loadNum">~ 27 lbs</div>
+                <div class="label">estimated effective head load at current posture</div>
+              </div>
+            </div>
+
+            <!-- Steps -->
+            <div class="steps">
+              <div class="step" data-state="forward">
+                <span class="tag">Step 1</span>
+                <h2>Forward Head Posture (FHP)</h2>
+                <p class="sub">Each inch ahead adds ~10 lbs of effective load. Muscles overwork; joints compress.</p>
+                <ul>
+                  <li>Heaviness, suboccipital tightness, upper-trap burn</li>
+                  <li>Often paired with rounded shoulders, rib flare</li>
+                </ul>
+              </div>
+              <div class="step" data-state="neutral">
+                <span class="tag">Step 2</span>
+                <h2>Neutral Stack</h2>
+                <p class="sub">Tiny chin-nod, eyes level, sternum soft. Load drops closer to true head weight.</p>
+                <ul>
+                  <li>Wall cue: head touches without chin tipping up</li>
+                  <li>Base cue: blades down/back, ribs quiet</li>
+                </ul>
+              </div>
+              <div class="step" data-state="over">
+                <span class="tag">Step 3</span>
+                <h2>Avoid Over-Extension</h2>
+                <p class="sub">Don't shove head back with lifted chin. Keep the nod; lengthen the back of the neck.</p>
+                <ul>
+                  <li>Think "crown tall," not "chin high"</li>
+                  <li>Breath low and quiet; jaw unclenched</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Self-tests -->
+        <article id="section2" class="card">
+          <span class="tag">Check Yourself</span>
+          <h2 class="lead">Quick Self-Tests</h2>
+          <ul>
+            <li><strong>Wall Stack:</strong> Heels, hips, blades on wall. Can your head touch without the chin lifting?</li>
+            <li><strong>2-Finger Nod:</strong> Fingers on bony chin; nod small. Feel throat muscles engage without SCMs bulging.</li>
+            <li><strong>Screen Challenge:</strong> Phone at eye level; hold nod 60s without upper-trap burn.</li>
+          </ul>
+        </article>
+
+        <!-- Workstation -->
+        <article id="section3" class="card">
+          <span class="tag">Environment</span>
+          <h2>Workstation Setup — 3 Moves</h2>
+          <ol>
+            <li><strong>Raise screens:</strong> Top third at eye level. Laptop → stand + external keyboard.</li>
+            <li><strong>Anchor elbows:</strong> Forearms supported to unload traps.</li>
+            <li><strong>Bring work to you:</strong> Keyboard close; mouse at shoulder width.</li>
+          </ol>
+          <p class="sub">Cadence: 50 minutes work / 10 minutes move + eyes-far (look 20+ ft away).</p>
+        </article>
+
+        <!-- Protocol -->
+        <article id="section4" class="card">
+          <span class="tag">Plan</span>
+          <h2>4-Week Stabilizer Protocol</h2>
+          <p class="sub">10–15 minutes/day. Low load, high precision. Endurance stabilizers, not gym movers.</p>
+          <h3>Week 1 — Awareness & Activation</h3>
+          <ul><li><strong>Supine Chin Nod:</strong> tiny "yes," no lift. 5s × 10.</li><li><strong>Scapular Setting:</strong> blades down/back. 10s × 10.</li></ul>
+          <h3>Week 2 — Endurance</h3>
+          <ul><li><strong>Nod + 1" Lift:</strong> keep nod; float head. 5s × 5–8.</li><li><strong>Prone Head Lift:</strong> forehead on towel. 5s × 10.</li><li><strong>Wall Angels:</strong> 10 × 2.</li></ul>
+          <h3>Week 3 — Curve Support</h3>
+          <ul><li><strong>Cervical Roll/Orthotic:</strong> 5–10 min daily.</li><li><strong>Nod Holds:</strong> 10s × 10.</li><li><strong>Band Rows:</strong> 12 × 2.</li></ul>
+          <h3>Week 4 — Integration</h3>
+          <ul><li><strong>Seated Nod:</strong> 10s × 10.</li><li><strong>Wall Stack:</strong> 30–60s × 3.</li><li><strong>Desk Reset:</strong> every 30 min: 5 nods + 10 scap squeezes.</li></ul>
+        </article>
+
+        <!-- Sleep & Breath -->
+        <article id="section5" class="card">
+          <span class="tag">Recovery</span>
+          <h2>Sleep & Breath (High Leverage)</h2>
+          <ul>
+            <li><strong>Pillow:</strong> Side: fill shoulder-to-jaw gap. Back: low pillow under skull + small neck roll.</li>
+            <li><strong>Breath:</strong> 3 rounds of physiological sigh (two short inhales + long exhale) before bed/flare-ups.</li>
+            <li><strong>Jaw:</strong> Tongue on roof; teeth apart — jaw gripping drives neck tension.</li>
+          </ul>
+        </article>
+
+        <!-- Red flags -->
+        <article id="section6" class="card">
+          <span class="tag">Safety</span>
+          <h2>Red Flags — See a Clinician</h2>
+          <ul>
+            <li>New/worsening numbness, tingling, or weakness in arm/hand</li>
+            <li>Unrelenting night pain, fever, unexplained weight loss</li>
+            <li>Trauma with severe pain or limited motion</li>
+            <li>Dizziness/visual changes triggered by neck movement</li>
+          </ul>
+        </article>
+
+        <!-- Maintenance -->
+        <article id="section7" class="card">
+          <span class="tag">Daily</span>
+          <h2>The 60-Second Maintenance</h2>
+          <ol>
+            <li>5 tiny nods (slow, smooth)</li>
+            <li>10 scap squeezes (down/back, no shrug)</li>
+            <li>20-second eyes-far gaze</li>
+          </ol>
+          <p class="sub">Do this whenever you pick up your phone or before opening a new tab.</p>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="y"></span> ZenSeek — AI-sourced, human-verified, evergreen.</p>
+    <p><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/sitemap.xml">Sitemap</a></p>
+  </footer>
+
+  <script>
+    // Year stamp
+    document.getElementById('y').textContent=new Date().getFullYear();
+
+    // Smooth scroll + active TOC
+    (function(){
+      const links=[...document.querySelectorAll('.toc a')];
+      const ids=links.map(a=>a.getAttribute('href')).filter(Boolean).map(h=>h.slice(1));
+      const obs=new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting){
+            const id='#'+e.target.id;
+            links.forEach(a=>a.classList.toggle('active', a.getAttribute('href')===id));
+          }
+        });
+      },{rootMargin:'-20% 0px -55% 0px', threshold:0});
+      ids.forEach(id=>{const el=document.getElementById(id); if(el) obs.observe(el);});
+      document.querySelector('.toc')?.addEventListener('click',(ev)=>{
+        const a=ev.target.closest('a'); if(!a) return;
+        const t=document.querySelector(a.getAttribute('href'));
+        if(t){ev.preventDefault(); t.scrollIntoView({behavior:'smooth'})}
+      });
+    })();
+
+    // Apple-style scrollytelling: sticky canvas + steps
+    (function(){
+      const canvas = document.getElementById('neckCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let state = 'forward'; // 'neutral' | 'over'
+      const loadEl = document.getElementById('loadNum');
+
+      // Hi-DPI fit without flicker
+      function fit(){
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth || 520;
+        const cssH = Math.round(cssW * (canvas.height / canvas.width));
+        canvas.width = Math.max(2, Math.floor(cssW * dpr));
+        canvas.height = Math.max(2, Math.floor(cssH * dpr));
+        canvas.style.width = cssW + 'px';
+        canvas.style.height = cssH + 'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      
+      // Initialize canvas size
+      fit();
+      window.addEventListener('resize', fit);
+
+      function drawNeck(){
+        const w = canvas.width/(window.devicePixelRatio||1);
+        const h = canvas.height/(window.devicePixelRatio||1);
+        ctx.clearRect(0,0,w,h);
+
+        // backdrop glow
+        ctx.beginPath();
+        ctx.arc(w*0.52,h*0.33, Math.min(w,h)*0.26, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(212,175,55,0.16)';
+        ctx.fill();
+
+        // base spine curve (interpolates between states)
+        const kF = {head:[0.70,0.32], curve:[ [0.40,0.36],[0.62,0.44],[0.66,0.56] ]};
+        const kN = {head:[0.64,0.30], curve:[ [0.40,0.36],[0.60,0.44],[0.64,0.56] ]};
+        const kO = {head:[0.60,0.29], curve:[ [0.40,0.36],[0.58,0.44],[0.62,0.56] ]};
+
+        const A = state==='forward'?kF: state==='neutral'?kN:kO;
+        // subtle idle motion if not reduced
+        const t = performance.now()*0.001;
+        const breathe = rm? 0 : 0.006*Math.sin(t);
+
+        // head
+        ctx.beginPath();
+        ctx.arc(w*A.head[0], h*A.head[1], Math.min(w,h)*0.08*(state==='forward'?1.05: state==='over'?0.98:1.0), 0, Math.PI*2);
+        ctx.fillStyle = state==='forward'? '#f6b0b0' : state==='neutral'? '#9fe3c8' : '#9fb9ff';
+        ctx.fill();
+
+        // neck curve
+        ctx.beginPath();
+        const c = A.curve;
+        ctx.moveTo(w*c[0][0], h*c[0][1]);
+        ctx.quadraticCurveTo(w*c[1][0]+breathe*h, h*c[1][1], w*c[2][0], h*c[2][1]);
+        ctx.strokeStyle = state==='forward'? '#D4AF37' : state==='neutral' ? '#9fe3c8' : '#7aa0ff';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // caption line
+        ctx.font = '14px Georgia';
+        ctx.fillStyle = 'rgba(231,241,247,0.92)';
+        const text = state==='forward'?'Forward head: load ↑' : state==='neutral'?'Neutral stack: load ↓':'Over-extended: joints ↑';
+        ctx.fillText(text, 16, 26);
+      }
+
+      // step observer switches states + numbers
+      const steps = [...document.querySelectorAll('.step')];
+      const obs = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting){
+            steps.forEach(s=>s.classList.remove('active'));
+            e.target.classList.add('active');
+            state = e.target.getAttribute('data-state');
+            if(loadEl){
+              loadEl.textContent = state==='forward'?'~ 27 lbs' : state==='neutral'?'~ 12 lbs' : '~ 18 lbs';
+            }
+          }
+        });
+      }, {rootMargin:'-20% 0px -30% 0px', threshold:0});
+      steps.forEach(s=>obs.observe(s));
+
+      // Initialize first step as active
+      if (steps.length > 0) {
+        steps[0].classList.add('active');
+      }
+
+      // stable render loop (no flicker)
+      function loop(){ 
+        requestAnimationFrame(loop); 
+        drawNeck(); 
+      }
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

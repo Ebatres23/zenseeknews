@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>ZenSeek Brain Teasers | Swipe to Solve Fun Riddles</title>
+ <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <style>
+ :root {
+ --zen-gold: #D4AF37;
+ --text: #fff;
+ --ink: #0b1a22;
+ --muted: #6b7a8a;
+ --shell: #0a141a;
+ --success: #4CAF50;
+ --danger: #F44336;
+ --classic: #2196F3;
+ --logic: #4CAF50;
+ --wordplay: #9C27B0;
+ --lateral: #FF9800;
+ --math: #3F51B5;
+ --tricky: #E91E63;
+ --mystery: #795548;
+ --paradox: #607D8B;
+ --science: #00BCD4;
+ }
+ 
+ * {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ }
+ 
+ body {
+ font-family: 'Montserrat', 'Inter', sans-serif;
+ background: var(--shell);
+ color: var(--text);
+ line-height: 1.6;
+ overflow-x: hidden;
+ }
+ 
+ /* Header */
+ header {
+ position: sticky;
+ top: 0;
+ z-index: 50;
+ backdrop-filter: blur(10px);
+ background: rgba(10, 20, 26, 0.85);
+ border-bottom: 1px solid rgba(255, 255, 255, .08);
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: .8rem 1rem;
+ }
+ 
+ header .brand {
+ font-weight: 700;
+ color: var(--zen-gold);
+ font-size: 1.6rem;
+ text-decoration: none;
+ font-family: 'Playfair Display', serif;
+ }
+ 
+/* Hero - Mobile Optimized */
+.hero {
+ position: relative;
+ min-height: 50vh;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ text-align: center;
+ overflow: hidden;
+ padding: 1rem;
+ isolation: isolate;
+ background: linear-gradient(135deg, #0a141a 0%, #1a2b35 100%);
+ transition: opacity 0.3s ease;
+ z-index: 1;
+}
+
+.hero::after {
+ content: "";
+ position: absolute;
+ inset: 0;
+ z-index: -1;
+ background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+}
+
+/* Continuation Background */
+.background-continuation {
+ position: relative;
+ min-height: 50vh;
+ background: linear-gradient(135deg, #1a2b35 0%, #0a141a 100%);
+ background-size: cover;
+ background-position: center;
+ z-index: 0;
+}
+
+ .hero h1 {
+ font-size: clamp(1.8rem, 5vw, 2.5rem);
+ color: var(--zen-gold);
+ margin-bottom: 0.5rem;
+ text-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+ font-family: 'Playfair Display', serif;
+ font-weight: 700;
+ }
+ 
+ .hero p {
+ max-width: 900px;
+ margin: 0 auto 0.5rem;
+ font-size: 1rem;
+ color: #eef6f9;
+ text-shadow: 0 1px 8px rgba(0, 0, 0, .3);
+ font-weight: 400;
+ line-height: 1.5;
+ }
+
+ /* Mobile Instructions */
+ .mobile-instructions {
+ display: flex;
+ justify-content: center;
+ gap: 1rem;
+ margin-top: 1rem;
+ width: 100%;
+ }
+
+ .instruction {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ font-size: 0.8rem;
+ color: #eef6f9;
+ }
+
+ .instruction-icon {
+ width: 40px;
+ height: 40px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.2rem;
+ margin-bottom: 0.3rem;
+ }
+
+ .swipe-left-icon {
+ background: var(--danger);
+ }
+
+ .swipe-right-icon {
+ background: var(--success);
+ }
+
+ .tap-icon {
+ background: var(--zen-gold);
+ }
+ 
+ /* Main Container - Mobile Optimized */
+ .main-container {
+ max-width: 500px;
+ margin: 0 auto;
+ padding: 0.5rem;
+ position: relative;
+ z-index: 2;
+ margin-top: -70vh;
+ }
+ 
+ /* Riddles Reel - Made slightly smaller */
+ .riddles-reel {
+ position: relative;
+ height: 60vh;
+ margin-bottom: 0.5rem;
+ }
+ 
+ /* Riddle Card - Made slightly smaller */
+ .riddle-card {
+ position: sticky;
+ width: 100%;
+ height: 100%;
+ background: rgba(255, 255, 255, 1);
+ color: var(--ink);
+ border-radius: 16px;
+ box-shadow: 0 15px 35px rgba(0, 0, 0, 0.514), 0 5px 15px rgba(0, 0, 0, 0.425);
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ padding: 1.2rem;
+ text-align: center;
+ transition: transform 0.3s ease, opacity 0.3s ease;
+ cursor: grab;
+ user-select: none;
+ border: 2px solid rgba(212, 175, 55, 0.3);
+ overflow-y: auto;
+ }
+
+ .riddle-card::-webkit-scrollbar {
+ width: 0;
+ }
+
+ .riddle-emoji {
+ font-size: 2.2rem;
+ margin-bottom: 0.9rem;
+ }
+
+ .riddle-text {
+ font-size: 1.2rem;
+ line-height: 1.4;
+ margin-bottom: 0.7rem;
+ font-family: 'Playfair Display', serif;
+ font-weight: 500;
+ color: #1a1a1a;
+ }
+ 
+ .riddle-answer {
+ font-size: 0.85rem;
+ color: var(--muted);
+ font-style: italic;
+ margin-bottom: 0.4rem;
+ display: none;
+ }
+ 
+ .riddle-answer.show {
+ display: block;
+ }
+ 
+ .riddle-feeling {
+ font-size: 0.75rem;
+ color: var(--zen-gold);
+ margin-bottom: 0.4rem;
+ font-weight: 500;
+ }
+
+ .category-tag {
+ display: inline-block;
+ padding: 0.25rem 0.7rem;
+ border-radius: 20px;
+ font-size: 0.75rem;
+ margin-top: 0.4rem;
+ color: white;
+ font-weight: 500;
+ }
+ 
+ /* Category-specific card styles */
+ .riddle-card.classic {
+ background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--classic);
+ }
+ 
+ .riddle-card.logic {
+ background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--logic);
+ }
+ 
+ .riddle-card.wordplay {
+ background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--wordplay);
+ }
+ 
+ .riddle-card.lateral {
+ background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--lateral);
+ }
+ 
+ .riddle-card.math {
+ background: linear-gradient(135deg, rgba(63, 81, 181, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--math);
+ }
+ 
+ .riddle-card.tricky {
+ background: linear-gradient(135deg, rgba(233, 30, 99, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--tricky);
+ }
+ 
+ .riddle-card.mystery {
+ background: linear-gradient(135deg, rgba(121, 85, 72, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--mystery);
+ }
+ 
+ .riddle-card.paradox {
+ background: linear-gradient(135deg, rgba(96, 125, 139, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--paradox);
+ }
+ 
+ .riddle-card.science {
+ background: linear-gradient(135deg, rgba(0, 188, 212, 0.15), rgba(255, 255, 255, 1));
+ border-left: 6px solid var(--science);
+ }
+ 
+ .riddle-card:active {
+ cursor: grabbing;
+ }
+ 
+ .riddle-actions {
+ display: flex;
+ gap: 1rem;
+ margin-top: 0.5rem;
+ }
+ 
+ /* 3D Action Buttons - Mobile Optimized */
+ .action-btn {
+ width: 58px;
+ height: 58px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.4rem;
+ border: none;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ position: relative;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 10px rgba(0,0,0,0.3);
+ }
+ 
+ .action-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 12px rgba(0,0,0,0.3);
+ }
+ 
+ .action-btn:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 4px rgba(0,0,0,0.2);
+ }
+ 
+ .dislike-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .like-btn {
+ background: var(--success);
+ color: white;
+ }
+
+ .reveal-btn {
+ background: var(--zen-gold);
+ color: white;
+ border: none;
+ border-radius: 20px;
+ padding: 0.5rem 1rem;
+ font-size: 0.8rem;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ position: relative;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ margin-top: 0.5rem;
+ }
+ 
+ .reveal-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .reveal-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ /* 3D Back Button */
+ .back-btn {
+ background: var(--zen-gold);
+ color: white;
+ position: absolute;
+ top: 8px;
+ left: 8px;
+ width: 35px;
+ height: 35px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1rem;
+ border: none;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ z-index: 10;
+ }
+ 
+ .back-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .back-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ /* Floating Arrows */
+ .swipe-indicators {
+ position: absolute;
+ top: 50%;
+ left: 0;
+ right: 0;
+ transform: translateY(-50%);
+ display: flex;
+ justify-content: space-between;
+ padding: 0 1rem;
+ pointer-events: none;
+ z-index: 5;
+ }
+ 
+ .swipe-left-indicator, .swipe-right-indicator {
+ width: 50px;
+ height: 50px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.5rem;
+ opacity: 0;
+ transition: opacity 0.3s;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+ }
+ 
+ .swipe-left-indicator {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .swipe-right-indicator {
+ background: var(--success);
+ color: white;
+ }
+ 
+ .show-left {
+ opacity: 1;
+ }
+ 
+ .show-right {
+ opacity: 1;
+ }
+ 
+ /* 3D Saved Riddles Bubble */
+ .saved-bubble {
+ position: fixed;
+ bottom: 15px;
+ right: 15px;
+ width: 60px;
+ height: 60px;
+ background: var(--zen-gold);
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ transition: all 0.3s ease;
+ z-index: 100;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 12px rgba(0,0,0,0.3);
+ }
+ 
+ .saved-bubble:hover {
+ transform: translateY(-3px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 14px rgba(0,0,0,0.3);
+ }
+ 
+ .saved-bubble:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .saved-count {
+ position: absolute;
+ top: -5px;
+ right: -5px;
+ background: var(--danger);
+ color: white;
+ border-radius: 50%;
+ width: 20px;
+ height: 20px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 0.7rem;
+ font-weight: bold;
+ box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+ }
+ 
+ /* Saved Riddles Overlay - Mobile Optimized */
+ .saved-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background: rgba(0, 0, 0, 0.7);
+ backdrop-filter: blur(10px);
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ z-index: 1000;
+ opacity: 0;
+ pointer-events: none;
+ transition: opacity 0.3s ease;
+ }
+ 
+ .saved-overlay.active {
+ opacity: 1;
+ pointer-events: all;
+ }
+ 
+ .saved-container {
+ background: rgba(255, 255, 255, 0.95);
+ color: var(--ink);
+ border-radius: 16px;
+ width: 95%;
+ max-width: 600px;
+ max-height: 85vh;
+ overflow: hidden;
+ display: flex;
+ flex-direction: column;
+ box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+ }
+ 
+ .saved-header {
+ padding: 0.8rem;
+ background: var(--zen-gold);
+ color: #141006;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ }
+ 
+ .saved-header h2 {
+ margin: 0;
+ font-family: 'Playfair Display', serif;
+ font-size: 1.3rem;
+ font-weight: 700;
+ }
+ 
+ .saved-controls {
+ display: flex;
+ gap: 0.5rem;
+ flex-wrap: wrap;
+ }
+ 
+ /* 3D Control Buttons */
+ .control-btn {
+ padding: 0.4rem 0.8rem;
+ border-radius: 20px;
+ border: none;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.8rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .control-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .control-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ .select-btn {
+ background: white;
+ color: var(--zen-gold);
+ }
+ 
+ .select-all-btn {
+ background: #2196F3;
+ color: white;
+ }
+ 
+ .clear-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .close-btn {
+ background: transparent;
+ color: #141006;
+ font-size: 1.3rem;
+ width: 35px;
+ height: 35px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: none;
+ }
+ 
+ .close-btn:hover {
+ transform: none;
+ box-shadow: none;
+ background: rgba(255,255,255,0.2);
+ }
+ 
+ .saved-content {
+ flex: 1;
+ overflow-y: auto;
+ padding: 0.8rem;
+ }
+ 
+ .saved-list {
+ display: grid;
+ gap: 0.8rem;
+ }
+ 
+ /* Updated saved item layout - stacked design */
+ .saved-item {
+ background: rgba(255, 255, 255, 0.9);
+ color: var(--ink);
+ border-radius: 12px;
+ padding: 1rem;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+ display: flex;
+ flex-direction: column;
+ border: 1px solid rgba(212, 175, 55, 0.1);
+ transition: all 0.2s;
+ }
+ 
+ .saved-item.selected {
+ background: rgba(212, 175, 55, 0.2);
+ border: 1px solid var(--zen-gold);
+ }
+ 
+ .saved-content-inner {
+ flex: 1;
+ margin-bottom: 0.8rem;
+ }
+ 
+ .saved-text {
+ font-family: 'Playfair Display', serif;
+ font-size: 1.1rem;
+ margin-bottom: 0.4rem;
+ line-height: 1.3;
+ color: #1a1a1a;
+ }
+ 
+ .saved-answer {
+ font-size: 0.9rem;
+ color: var(--muted);
+ font-style: italic;
+ margin-bottom: 0.3rem;
+ display: none;
+ }
+ 
+ .saved-answer.show {
+ display: block;
+ }
+ 
+ .saved-feeling {
+ font-size: 0.8rem;
+ color: var(--zen-gold);
+ margin-bottom: 0.3rem;
+ font-weight: 500;
+ }
+ 
+ .saved-actions {
+ display: flex;
+ gap: 0.4rem;
+ justify-content: flex-end;
+ }
+ 
+ /* 3D Action Buttons in Saved Riddles */
+ .copy-btn, .share-btn, .remove-btn {
+ padding: 0.4rem 0.8rem;
+ border-radius: 15px;
+ border: none;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.8rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 3px 0 rgba(0,0,0,0.2),
+  0 4px 6px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn:hover, .share-btn:hover, .remove-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 5px 0 rgba(0,0,0,0.2),
+  0 6px 8px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn:active, .share-btn:active, .remove-btn:active {
+ transform: translateY(3px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 1px 3px rgba(0,0,0,0.2);
+ }
+ 
+ .copy-btn, .share-btn {
+ background: var(--zen-gold);
+ color: #141006;
+ }
+ 
+ .remove-btn {
+ background: var(--danger);
+ color: white;
+ }
+ 
+ .empty-state {
+ text-align: center;
+ padding: 1.5rem;
+ color: var(--muted);
+ font-style: italic;
+ font-size: 1rem;
+ }
+ 
+ .selection-mode .saved-item {
+ cursor: pointer;
+ }
+ 
+ .selection-mode .saved-actions {
+ display: none;
+ }
+ 
+ /* 3D Share Multiple Button */
+ .share-multiple-btn {
+ margin-top: 0.8rem;
+ padding: 0.6rem 1.2rem;
+ background: var(--zen-gold);
+ color: #141006;
+ border: none;
+ border-radius: 20px;
+ font-weight: 600;
+ cursor: pointer;
+ display: none;
+ font-size: 0.9rem;
+ transition: all 0.2s;
+ position: relative;
+ box-shadow: 
+  0 4px 0 rgba(0,0,0,0.2),
+  0 6px 10px rgba(0,0,0,0.2);
+ }
+ 
+ .share-multiple-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 
+  0 6px 0 rgba(0,0,0,0.2),
+  0 8px 12px rgba(0,0,0,0.2);
+ }
+ 
+ .share-multiple-btn:active {
+ transform: translateY(4px);
+ box-shadow: 
+  0 0px 0 rgba(0,0,0,0.2),
+  0 2px 4px rgba(0,0,0,0.2);
+ }
+ 
+ .selection-mode .share-multiple-btn {
+ display: block;
+ }
+ 
+ /* Footer */
+ footer {
+ background: #111;
+ color: #bbb;
+ text-align: center;
+ padding: 0.8rem;
+ margin-top: 1rem;
+ font-size: .8rem;
+ }
+ 
+ footer a {
+ color: #fff;
+ text-decoration: none;
+ }
+ 
+ footer a:hover {
+ color: var(--zen-gold);
+ }
+ 
+ /* Animation for new cards */
+ @keyframes slideIn {
+ from { transform: translateY(20px); opacity: 0; }
+ to { transform: translateY(0); opacity: 1; }
+ }
+ 
+ .slide-in {
+ animation: slideIn 0.3s ease-out;
+ }
+ 
+ /* Swipe animations */
+ .swipe-right {
+ transform: translateX(200px) rotate(15deg);
+ opacity: 0;
+ }
+ 
+ .swipe-left {
+ transform: translateX(-200px) rotate(-15deg);
+ opacity: 0;
+ }
+ 
+ /* Stats */
+ .stats {
+ display: flex;
+ justify-content: space-between;
+ margin-bottom: 0.8rem;
+ color: var(--muted);
+ font-size: 0.9rem;
+ font-weight: 500;
+ }
+ 
+ .attribution {
+ text-align: center;
+ margin-top: 1rem;
+ color: var(--muted);
+ font-size: 0.8rem;
+ font-style: italic;
+ }
+
+ /* Category-specific tag colors */
+ .classic { background: var(--classic); }
+ .logic { background: var(--logic); }
+ .wordplay { background: var(--wordplay); }
+ .lateral { background: var(--lateral); }
+ .math { background: var(--math); }
+ .tricky { background: var(--tricky); }
+ .mystery { background: var(--mystery); }
+ .paradox { background: var(--paradox); }
+ .science { background: var(--science); }
+
+ /* Mobile-specific styles */
+ @media (max-width: 768px) {
+   .hero {
+     min-height: 40vh;
+   }
+   
+   .main-container {
+     margin-top: -60vh;
+   }
+   
+   .riddles-reel {
+     height: 55vh;
+   }
+   
+   .riddle-card {
+     padding: 1rem;
+   }
+   
+   .riddle-text {
+     font-size: 1.1rem;
+   }
+   
+   .action-btn {
+     width: 55px;
+     height: 55px;
+   }
+   
+   .saved-container {
+     width: 98%;
+     max-width: 95%;
+   }
+   
+   .saved-controls {
+     flex-direction: column;
+     gap: 0.3rem;
+   }
+   
+   .control-btn {
+     font-size: 0.7rem;
+     padding: 0.3rem 0.6rem;
+   }
+ }
+ </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+ <header>
+ <a href="/" class="brand">ZenSeek</a>
+ </header>
+
+<section class="hero" id="hero">
+ <h1>ZenSeek Brain Teasers</h1>
+ <p>Swipe right to save riddles that stump your friends. Swipe left for more challenges.</p>
+ <div class="mobile-instructions">
+   <div class="instruction">
+     <div class="instruction-icon swipe-left-icon">👎</div>
+     <span>Swipe Left</span>
+   </div>
+   <div class="instruction">
+     <div class="instruction-icon swipe-right-icon">👍</div>
+     <span>Swipe Right</span>
+   </div>
+   <div class="instruction">
+     <div class="instruction-icon tap-icon">🤔</div>
+     <span>Tap for More</span>
+   </div>
+ </div>
+</section>
+<section class="background-continuation" id="backgroundContinuation"></section>
+
+ <div class="main-container">
+ <!-- Stats -->
+ <div class="stats">
+ <div>Riddles seen: <span id="riddlesSeen">0</span></div>
+ <div>Saved: <span id="riddlesSaved">0</span></div>
+ </div>
+
+ <!-- Riddles Reel -->
+ <div class="riddles-reel" id="riddlesReel">
+ <!-- Riddle cards will be inserted here by JavaScript -->
+ </div>
+ 
+ <!-- Floating Arrows -->
+ <div class="swipe-indicators">
+ <div class="swipe-left-indicator" id="swipeLeftIndicator">←</div>
+ <div class="swipe-right-indicator" id="swipeRightIndicator">→</div>
+ </div>
+
+ <!-- Saved Riddles Bubble -->
+ <div class="saved-bubble" id="savedBubble">
+ <span>🤔</span>
+ <div class="saved-count" id="savedCount">0</div>
+ </div>
+
+ <!-- Saved Riddles Overlay -->
+ <div class="saved-overlay" id="savedOverlay">
+ <div class="saved-container">
+ <div class="saved-header">
+ <h2>Your Saved Riddles</h2>
+ <div class="saved-controls">
+ <button class="control-btn select-btn" id="selectBtn">Select</button>
+ <button class="control-btn select-all-btn" id="selectAllBtn">Select All</button>
+ <button class="control-btn clear-btn" id="clearBtn">Clear All</button>
+ <button class="control-btn close-btn" id="closeBtn">×</button>
+ </div>
+ </div>
+ <div class="saved-content">
+ <div class="saved-list" id="savedList">
+ <div class="empty-state" id="emptyState">
+ No saved riddles yet. Swipe right on riddles that stump you!
+ </div>
+ <!-- Saved riddles will be inserted here by JavaScript -->
+ </div>
+ <button class="share-multiple-btn" id="shareMultipleBtn">Share Selected Riddles</button>
+ </div>
+ </div>
+ </div>
+ 
+ <div class="attribution">
+ Challenge your friends but please credit ZenSeek when you can!
+ </div>
+ </div>
+
+ <footer>
+ <p>© <span id="y"></span> ZenSeek — Exercise your mind daily.</p>
+ <p><a href="/">Home</a> · <a href="/privacy">Privacy</a></p>
+ </footer>
+
+ <script>
+ // Handle hero and continuation background fade on scroll
+const hero = document.getElementById('hero');
+const backgroundContinuation = document.getElementById('backgroundContinuation');
+window.addEventListener('scroll', () => {
+ const scrollPosition = window.scrollY;
+ const heroHeight = hero.offsetHeight;
+ // Fade hero opacity: starts at 1, fades to 0 when scrolled halfway through hero
+ const heroOpacity = Math.max(0, 1 - scrollPosition / (heroHeight * 0.5));
+ hero.style.opacity = heroOpacity;
+ // Increase continuation opacity as hero fades
+ const continuationOpacity = Math.min(1, scrollPosition / (heroHeight * 0.5));
+ backgroundContinuation.style.opacity = continuationOpacity;
+});
+ // Year
+ document.getElementById('y').textContent = new Date().getFullYear();
+
+ // PREMIUM RIDDLES DATABASE - THOUGHT-PROVOKING BRAIN TEASERS
+ const riddles = [
+// CLASSIC RIDDLES — NEW
+{ text: "What can fill a room but takes up no space?", answer: "Light", author: "Classic", category: "classic", intended_feeling: "simple wonder", emoji: "💡" },
+{ text: "What gets bigger the more you take away?", answer: "A hole", author: "Classic", category: "classic", intended_feeling: "counterintuitive twist", emoji: "🕳️" },
+{ text: "What has many teeth but cannot bite?", answer: "A comb", author: "Classic", category: "classic", intended_feeling: "everyday surprise", emoji: "🪮" },
+{ text: "What has words but never speaks?", answer: "A book", author: "Classic", category: "classic", intended_feeling: "quiet wisdom", emoji: "📖" },
+{ text: "What has ears but cannot hear?", answer: "A cornfield", author: "Classic", category: "classic", intended_feeling: "double meaning", emoji: "🌽" },
+{ text: "What has one head, one foot, and four legs?", answer: "A bed", author: "Classic", category: "classic", intended_feeling: "household twist", emoji: "🛏️" },
+{ text: "What can you catch but not throw?", answer: "A cold", author: "Classic", category: "classic", intended_feeling: "everyday trick", emoji: "🤧" },
+{ text: "What goes through cities and fields but never moves?", answer: "A road", author: "Classic", category: "classic", intended_feeling: "map metaphor", emoji: "🛣️" },
+{ text: "What has a bottom at the top?", answer: "Your legs", author: "Classic", category: "classic", intended_feeling: "body humor", emoji: "🦵" },
+{ text: "What goes around the world but stays in a corner?", answer: "A postage stamp", author: "Classic", category: "classic", intended_feeling: "travel trick", emoji: "📮" },
+
+// LOGIC RIDDLES — NEW
+{ text: "Two fathers and two sons ate three fish, and each had a whole fish. How?", answer: "They were grandfather, father, and son—three people.", author: "Logic", category: "logic", intended_feeling: "family logic", emoji: "👨‍👦‍👦" },
+{ text: "A man pushes his car to a hotel and loses his fortune. What happened?", answer: "He’s playing Monopoly.", author: "Logic", category: "logic", intended_feeling: "game reveal", emoji: "🎲" },
+{ text: "A rooster lays an egg on a roof. Which side does it roll off?", answer: "Neither—roosters don’t lay eggs.", author: "Logic", category: "logic", intended_feeling: "assumption flip", emoji: "🐓" },
+{ text: "You enter a room with two doors and two guards: one always lies, one always tells the truth. One door leads to freedom. What single question guarantees you pick freedom?", answer: "Ask either guard: “Which door would the other guard say leads to freedom?” Then choose the opposite door.", author: "Logic", category: "logic", intended_feeling: "meta-reasoning", emoji: "🚪" },
+{ text: "A doctor and a boy are fishing. The boy is the doctor's son, but the doctor isn't the boy's father. How?", answer: "The doctor is his mother.", author: "Logic", category: "logic", intended_feeling: "bias check", emoji: "👩‍⚕️" },
+{ text: "You have a 5-liter jug and a 3-liter jug. How do you measure exactly 4 liters?", answer: "Fill 5L, pour into 3L (leaves 2L in 5L). Empty 3L. Pour 2L into 3L. Fill 5L and top off the 3L (takes 1L), leaving exactly 4L in the 5L.", author: "Logic", category: "logic", intended_feeling: "procedural aha", emoji: "🥤" },
+{ text: "A farmer needs to carry a fox, a chicken, and grain across a river with a boat that holds one item at a time. The fox eats the chicken; the chicken eats the grain. How?", answer: "Take chicken over; return alone. Take fox; bring chicken back. Take grain; return alone. Take chicken last.", author: "Logic", category: "logic", intended_feeling: "classic planning", emoji: "⛵" },
+
+// WORDPLAY RIDDLES — NEW
+{ text: "What begins with an E, ends with an E, and contains just one letter?", answer: "An envelope", author: "Wordplay", category: "wordplay", intended_feeling: "postal twist", emoji: "✉️" },
+{ text: "Which word is spelled incorrectly in every dictionary?", answer: "Incorrectly", author: "Wordplay", category: "wordplay", intended_feeling: "meta humor", emoji: "📚" },
+{ text: "Forward I am heavy; backward I am not. What am I?", answer: "Ton", author: "Wordplay", category: "wordplay", intended_feeling: "direction trick", emoji: "⚖️" },
+{ text: "What comes at the end of everything?", answer: "The letter ‘g’", author: "Wordplay", category: "wordplay", intended_feeling: "letterplay", emoji: "🔤" },
+{ text: "What five-letter word typed in all capitals can be read the same upside down?", answer: "SWIMS", author: "Wordplay", category: "wordplay", intended_feeling: "visual pun", emoji: "🏊" },
+{ text: "What word has only one letter in it?", answer: "Envelope", author: "Wordplay", category: "wordplay", intended_feeling: "double meaning", emoji: "📬" },
+{ text: "Add two letters to me and I become fewer. What am I?", answer: "Few (add ‘er’ → fewer)", author: "Wordplay", category: "wordplay", intended_feeling: "morphology surprise", emoji: "➕" },
+
+// LATERAL THINKING — NEW
+{ text: "A cowboy rode into town on Friday, stayed three days, and left on Friday. How?", answer: "His horse was named Friday.", author: "Lateral Thinking", category: "lateral", intended_feeling: "name reveal", emoji: "🐎" },
+{ text: "A man lives on the 20th floor. He takes the elevator down every morning, but only rides it up to the 10th floor and walks the rest—unless it’s raining. Why?", answer: "He’s short and can only reach the 10th-floor button; on rainy days he uses his umbrella to press 20.", author: "Lateral Thinking", category: "lateral", intended_feeling: "everyday constraint", emoji: "🛗" },
+{ text: "A truck gets stuck under a bridge that’s just a bit too low. How do they get it out?", answer: "Let air out of the tires to lower the truck.", author: "Lateral Thinking", category: "lateral", intended_feeling: "simple ingenuity", emoji: "🚚" },
+{ text: "How can you drop a raw egg onto a concrete floor without cracking it?", answer: "Concrete floors don’t crack easily; the egg might.", author: "Lateral Thinking", category: "lateral", intended_feeling: "assumption flip", emoji: "🥚" },
+{ text: "A woman gave birth to two sons who were born on the same hour of the same day of the same year, but they are not twins. How?", answer: "They are two of a set of triplets (or more).", author: "Lateral Thinking", category: "lateral", intended_feeling: "definition twist", emoji: "👶" },
+{ text: "You pass by a house with two doors labeled ‘Lions’ and ‘Crocodiles.’ One is safe, one is certain death. A note says: ‘The lions haven’t eaten in years.’ Which door is safe?", answer: "The lions’ door—lions that haven’t eaten in years are dead.", author: "Lateral Thinking", category: "lateral", intended_feeling: "logic inversion", emoji: "🦁" },
+
+// MATH RIDDLES — NEW
+{ text: "How many times can you subtract 5 from 25?", answer: "Once—after that, you’re subtracting from 20.", author: "Math", category: "math", intended_feeling: "definition twist", emoji: "➖" },
+{ text: "Two coins total 30 cents. One is not a nickel. What are the coins?", answer: "A quarter and a nickel (one is not a nickel; the other is).", author: "Math", category: "math", intended_feeling: "wording trap", emoji: "🪙" },
+{ text: "Divide 30 by 1/2 and add 10. What’s the result?", answer: "70 (30 ÷ 0.5 = 60; 60 + 10 = 70).", author: "Math", category: "math", intended_feeling: "operation trick", emoji: "➗" },
+{ text: "If 3 cats catch 3 mice in 3 minutes, how many cats are needed to catch 100 mice in 100 minutes?", answer: "Three cats (same rate).", author: "Math", category: "math", intended_feeling: "rate reasoning", emoji: "🐱" },
+{ text: "A bat and a ball cost $1.10. The bat costs $1 more than the ball. How much is the ball?", answer: "$0.05 (bat $1.05).", author: "Math", category: "math", intended_feeling: "cognitive mislead", emoji: "💰" },
+{ text: "I am a three-digit number. My tens digit is 5 more than my ones digit, and my hundreds digit is 8 less than my tens digit. What number am I?", answer: "194 (ones 4, tens 9, hundreds 1).", author: "Math", category: "math", intended_feeling: "constraint solving", emoji: "🔢" },
+
+// TRICKY RIDDLES — NEW
+{ text: "What has an end but no beginning, a home but no family, and a space without room?", answer: "The letter ‘e’, ‘homepage’, and ‘spacebar’—it’s the word ‘homepage space’ (trick mashup).", author: "Tricky", category: "tricky", intended_feeling: "playful misdirection", emoji: "🧩" },
+{ text: "What has lots of eyes but can’t see?", answer: "A potato (eyes).", author: "Tricky", category: "tricky", intended_feeling: "homonym humor", emoji: "🥔" },
+{ text: "What kind of coat is best put on wet?", answer: "A coat of paint.", author: "Tricky", category: "tricky", intended_feeling: "everyday lateral", emoji: "🎨" },
+{ text: "What can’t talk but will reply when spoken to?", answer: "An echo", author: "Tricky", category: "tricky", intended_feeling: "acoustic twist", emoji: "🗣️" },
+{ text: "Where does today come before yesterday?", answer: "In the dictionary.", author: "Tricky", category: "tricky", intended_feeling: "reference trick", emoji: "📖" },
+{ text: "What kind of room has no doors or windows?", answer: "A mushroom.", author: "Tricky", category: "tricky", intended_feeling: "punny reveal", emoji: "🍄" },
+
+// MYSTERY RIDDLES — NEW
+{ text: "I can travel all around the world while staying in one spot. What am I?", answer: "A stamp", author: "Mystery", category: "mystery", intended_feeling: "postal puzzle", emoji: "📬" },
+{ text: "I’m taken from a mine, shut up in a wooden case, and used by almost everyone. What am I?", answer: "Pencil lead (graphite)", author: "Mystery", category: "mystery", intended_feeling: "object origin", emoji: "✏️" },
+{ text: "I’m always in front of you but can’t be seen. What am I?", answer: "The future", author: "Mystery", category: "mystery", intended_feeling: "philosophical turn", emoji: "🔮" },
+{ text: "I’m bought by the yard but worn by the foot. What am I?", answer: "Carpet", author: "Mystery", category: "mystery", intended_feeling: "measurement trick", emoji: "🧶" },
+{ text: "I’m found in socks, scarves, and mittens; and often in the paws of playful kittens. What am I?", answer: "Yarn", author: "Mystery", category: "mystery", intended_feeling: "cozy imagery", emoji: "🧵" },
+
+// PARADOX & ABSTRACT — NEW
+{ text: "What disappears as soon as you say its name?", answer: "Silence", author: "Paradox", category: "paradox", intended_feeling: "meta hush", emoji: "🤫" },
+{ text: "What belongs to you but is used more by others?", answer: "Your name", author: "Paradox", category: "paradox", intended_feeling: "ownership twist", emoji: "🪪" },
+{ text: "The more there is of me, the less you see. What am I?", answer: "Fog (or darkness)", author: "Paradox", category: "paradox", intended_feeling: "visibility paradox", emoji: "🌫️" },
+{ text: "What can be cracked, made, told, and played?", answer: "A joke", author: "Paradox", category: "paradox", intended_feeling: "polysemy fun", emoji: "🤣" },
+{ text: "I’m measured in hours, serve you by being devoured, thin I am quick, fat I am slow. What am I?", answer: "A candle", author: "Paradox", category: "paradox", intended_feeling: "time metaphor", emoji: "🕯️" },
+
+// SCIENCE RIDDLES — NEW
+{ text: "I fly without wings, I cry without eyes. Wherever I go, darkness flies. What am I?", answer: "A cloud", author: "Science", category: "science", intended_feeling: "weather metaphor", emoji: "☁️" },
+{ text: "Feed me and I live; give me a drink and I die. What am I?", answer: "Fire", author: "Science", category: "science", intended_feeling: "elemental logic", emoji: "🔥" },
+{ text: "I move faster in heat and slower in cold; you can’t see me, but you can feel me. What am I?", answer: "Molecules (or ‘time’—accept both)", author: "Science", category: "science", intended_feeling: "conceptual stretch", emoji: "🧪" },
+{ text: "I can be cracked, made, told, and played, and my waves can travel through air. What am I?", answer: "A joke (sound waves)", author: "Science", category: "science", intended_feeling: "cross-category wink", emoji: "📻" },
+{ text: "I’m born when two people meet, I can travel faster than sound, and I often break the ice. What am I?", answer: "A smile", author: "Science", category: "science", intended_feeling: "social science twist", emoji: "😊" },
+
+// BRAIN TEASERS — NEW
+{ text: "Which weighs more: a pound of feathers or a pound of bricks?", answer: "Neither—both weigh a pound.", author: "Classic", category: "classic", intended_feeling: "weight trick", emoji: "⚖️" },
+{ text: "Which month has 28 days?", answer: "All of them have at least 28.", author: "Classic", category: "classic", intended_feeling: "calendar twist", emoji: "📅" },
+{ text: "How many letters are in the alphabet?", answer: "In ‘the alphabet’? 11 letters.", author: "Wordplay", category: "wordplay", intended_feeling: "question parsing", emoji: "🔠" },
+{ text: "If Mr. Smith’s peacock lays an egg in Mr. Jones’s yard, who owns the egg?", answer: "No one—peacocks (males) don’t lay eggs.", author: "Logic", category: "logic", intended_feeling: "assumption trap", emoji: "🦚" },
+{ text: "What runs but never walks and murmurs but never talks?", answer: "A stream", author: "Classic", category: "classic", intended_feeling: "nature poetry", emoji: "🏞️" },
+
+// QUICK HITS — NEW
+{ text: "What starts with P and ends with E and has thousands of letters?", answer: "The post office", author: "Wordplay", category: "wordplay", intended_feeling: "mail pun", emoji: "📫" },
+{ text: "What invention lets you see right through a wall?", answer: "A window", author: "Classic", category: "classic", intended_feeling: "literal twist", emoji: "🪟" },
+{ text: "What can’t be put in a saucepan?", answer: "Its lid (when the lid is on the pan)", author: "Tricky", category: "tricky", intended_feeling: "kitchen gotcha", emoji: "🍳" },
+{ text: "What has thirteen hearts but no other organs?", answer: "A deck of cards", author: "Classic", category: "classic", intended_feeling: "symbol switch", emoji: "🃏" },
+{ text: "What is so fragile that saying its name breaks it?", answer: "Silence", author: "Classic", category: "classic", intended_feeling: "whisper test", emoji: "🤐" },
+{ text: "Where can you find cities, towns, shops, and streets but no people?", answer: "A map", author: "Classic", category: "classic", intended_feeling: "representation reveal", emoji: "🗺️" },
+{ text: "What has four wheels and flies?", answer: "A garbage truck (full of flies)", author: "Tricky", category: "tricky", intended_feeling: "punny image", emoji: "🛻" },
+{ text: "What has a ring but no finger and wakes you up?", answer: "An alarm clock", author: "Tricky", category: "tricky", intended_feeling: "double meaning", emoji: "⏰" },
+{ text: "What has a bank but no money and a bed but never sleeps?", answer: "A river", author: "Classic", category: "classic", intended_feeling: "metaphor stack", emoji: "🌊" },
+{ text: "What can travel faster than anything without moving at all?", answer: "A rumor", author: "Mystery", category: "mystery", intended_feeling: "social twist", emoji: "🗣️" }
+]
+
+ // Initialize the app
+ let currentRiddleIndex = 0;
+ let savedRiddles = JSON.parse(localStorage.getItem('zenRiddles_saved')) || [];
+ let riddlesSeen = JSON.parse(localStorage.getItem('zenRiddles_seen')) || 0;
+ let riddleHistory = [];
+ let selectedRiddles = [];
+ let isSelectionMode = false;
+ let startX = 0;
+ let currentX = 0;
+ let isDragging = false;
+
+ // Track seen riddles to prevent duplicates
+ let seenRiddles = JSON.parse(localStorage.getItem('zenRiddles_seenList')) || [];
+ let availableRiddles = [...Array(riddles.length).keys()]; // All riddle indices
+
+ // DOM elements
+ const riddlesReel = document.getElementById('riddlesReel');
+ const savedList = document.getElementById('savedList');
+ const emptyState = document.getElementById('emptyState');
+ const savedBubble = document.getElementById('savedBubble');
+ const savedCount = document.getElementById('savedCount');
+ const savedOverlay = document.getElementById('savedOverlay');
+ const selectBtn = document.getElementById('selectBtn');
+ const selectAllBtn = document.getElementById('selectAllBtn');
+ const clearBtn = document.getElementById('clearBtn');
+ const closeBtn = document.getElementById('closeBtn');
+ const shareMultipleBtn = document.getElementById('shareMultipleBtn');
+ const swipeLeftIndicator = document.getElementById('swipeLeftIndicator');
+ const swipeRightIndicator = document.getElementById('swipeRightIndicator');
+ const riddlesSeenElement = document.getElementById('riddlesSeen');
+ const riddlesSavedElement = document.getElementById('riddlesSaved');
+
+ // Function to toggle answer visibility - FIXED VERSION
+ function toggleAnswer(button) {
+   const card = button.closest('.riddle-card');
+   const answer = card.querySelector('.riddle-answer');
+   
+   // Toggle the display directly
+   if (answer.style.display === 'block') {
+     answer.style.display = 'none';
+     button.textContent = 'Reveal Answer';
+   } else {
+     answer.style.display = 'block';
+     button.textContent = 'Hide Answer';
+   }
+ }
+
+ // Function to get a random riddle that hasn't been seen recently
+ function getNextRiddleIndex() {
+ // If we've seen all riddles, reset the seen list
+ if (availableRiddles.length === 0) {
+   availableRiddles = [...Array(riddles.length).keys()];
+   // Remove the oldest seen riddles to keep the list manageable
+   if (seenRiddles.length > riddles.length * 0.7) {
+     seenRiddles = seenRiddles.slice(-Math.floor(riddles.length * 0.3));
+   }
+   localStorage.setItem('zenRiddles_seenList', JSON.stringify(seenRiddles));
+ }
+ 
+ // Get a random index from available riddles
+ const randomIndex = Math.floor(Math.random() * availableRiddles.length);
+ const riddleIndex = availableRiddles[randomIndex];
+ 
+ // Remove this index from available riddles
+ availableRiddles.splice(randomIndex, 1);
+ 
+ // Add to seen riddles
+ if (!seenRiddles.includes(riddleIndex)) {
+   seenRiddles.push(riddleIndex);
+   localStorage.setItem('zenRiddles_seenList', JSON.stringify(seenRiddles));
+ }
+ 
+ return riddleIndex;
+}
+
+ // Update stats
+ function updateStats() {
+ riddlesSeenElement.textContent = riddlesSeen;
+ riddlesSavedElement.textContent = savedRiddles.length;
+ savedCount.textContent = savedRiddles.length;
+ }
+
+ // Create the initial riddle card
+ function createRiddleCard() {
+ // Get the next riddle index using our new function
+ currentRiddleIndex = getNextRiddleIndex();
+ 
+ const riddle = riddles[currentRiddleIndex];
+ const riddleCard = document.createElement('div');
+ riddleCard.className = `riddle-card ${riddle.category} slide-in`;
+ riddleCard.innerHTML = `
+ <button class="back-btn" id="backBtn" ${riddleHistory.length === 0 ? 'style="display: none;"' : ''}>↶</button>
+ <div class="riddle-emoji">${riddle.emoji}</div>
+ <div class="riddle-text">${riddle.text}</div>
+ <div class="riddle-answer">Answer: ${riddle.answer}</div>
+ ${riddle.author ? `<div class="riddle-source">— ${riddle.author}</div>` : ''}
+ ${riddle.intended_feeling ? `<div class="riddle-feeling">💭 ${riddle.intended_feeling}</div>` : ''}
+ <div class="category-tag ${riddle.category}">${riddle.category}</div>
+ <div class="riddle-actions">
+ <button class="action-btn dislike-btn">👎</button>
+ <button class="action-btn like-btn">👍</button>
+ </div>
+ <button class="reveal-btn">Reveal Answer</button>
+ `;
+
+ // Add event listeners for buttons
+ riddleCard.querySelector('.dislike-btn').addEventListener('click', () => dislikeRiddle(riddleCard));
+ riddleCard.querySelector('.like-btn').addEventListener('click', () => likeRiddle(riddleCard));
+ 
+ // FIXED: Add proper event listeners for reveal button (both click and touch)
+ const revealBtn = riddleCard.querySelector('.reveal-btn');
+ 
+ // Click event for desktop
+ revealBtn.addEventListener('click', function(e) {
+   e.preventDefault();
+   e.stopPropagation();
+   toggleAnswer(this);
+ });
+ 
+ // Touch event for mobile - prevent swipe when tapping reveal button
+ revealBtn.addEventListener('touchstart', function(e) {
+   e.stopPropagation(); // Prevent the touch from bubbling to the card
+ });
+ 
+ revealBtn.addEventListener('touchmove', function(e) {
+   e.stopPropagation(); // Prevent swipe when moving finger on button
+ });
+ 
+ revealBtn.addEventListener('touchend', function(e) {
+   e.preventDefault();
+   e.stopPropagation();
+   toggleAnswer(this);
+ });
+ 
+ // Add back button event listener
+ const backBtn = riddleCard.querySelector('#backBtn');
+ if (backBtn) {
+   backBtn.addEventListener('click', goBack);
+ }
+
+ // Add touch events for swiping - but prevent when interacting with buttons
+ riddleCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+ riddleCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+ riddleCard.addEventListener('touchend', handleTouchEnd);
+
+ // Add mouse events for desktop
+ riddleCard.addEventListener('mousedown', handleMouseDown);
+ document.addEventListener('mousemove', handleMouseMove);
+ document.addEventListener('mouseup', handleMouseUp);
+
+ riddlesReel.appendChild(riddleCard);
+ return riddleCard;
+ }
+
+ // Go back to previous riddle
+ function goBack() {
+ if (riddleHistory.length === 0) return;
+ 
+ const lastRiddle = riddleHistory.pop();
+ currentRiddleIndex = lastRiddle.index;
+ 
+ // Remove current card
+ const currentCard = document.querySelector('.riddle-card');
+ if (currentCard) {
+   currentCard.remove();
+ }
+ 
+ // Create card for the previous riddle
+ createRiddleCard();
+ }
+
+ // Touch event handlers
+ function handleTouchStart(e) {
+ startX = e.touches[0].clientX;
+ isDragging = true;
+ e.preventDefault();
+ }
+
+ function handleTouchMove(e) {
+ if (!isDragging) return;
+ currentX = e.touches[0].clientX;
+ const diff = currentX - startX;
+ e.currentTarget.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+ 
+ // Show/hide swipe indicators
+ if (diff > 50) {
+   swipeRightIndicator.classList.add('show-right');
+   swipeLeftIndicator.classList.remove('show-left');
+ } else if (diff < -50) {
+   swipeLeftIndicator.classList.add('show-left');
+   swipeRightIndicator.classList.remove('show-right');
+ } else {
+   swipeLeftIndicator.classList.remove('show-left');
+   swipeRightIndicator.classList.remove('show-right');
+ }
+ 
+ e.preventDefault();
+ }
+
+ function handleTouchEnd(e) {
+ if (!isDragging) return;
+ isDragging = false;
+ 
+ const diff = currentX - startX;
+ const card = e.currentTarget;
+ 
+ // Hide indicators
+ swipeLeftIndicator.classList.remove('show-left');
+ swipeRightIndicator.classList.remove('show-right');
+ 
+ if (Math.abs(diff) > 100) {
+   if (diff > 0) {
+     likeRiddle(card);
+   } else {
+     dislikeRiddle(card);
+   }
+ } else {
+   // Reset position if swipe wasn't far enough
+   card.style.transform = 'translateX(0) rotate(0)';
+ }
+ }
+
+ // Mouse event handlers for desktop
+ function handleMouseDown(e) {
+ if (e.button !== 0) return; // Only left mouse button
+ startX = e.clientX;
+ isDragging = true;
+ e.currentTarget.style.cursor = 'grabbing';
+ }
+
+ function handleMouseMove(e) {
+ if (!isDragging) return;
+ currentX = e.clientX;
+ const diff = currentX - startX;
+ 
+ // Find the active card
+ const cards = document.querySelectorAll('.riddle-card');
+ const activeCard = cards[cards.length - 1];
+ 
+ if (activeCard) {
+   activeCard.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+ 
+   // Show/hide swipe indicators
+   if (diff > 50) {
+     swipeRightIndicator.classList.add('show-right');
+     swipeLeftIndicator.classList.remove('show-left');
+   } else if (diff < -50) {
+     swipeLeftIndicator.classList.add('show-left');
+     swipeRightIndicator.classList.remove('show-right');
+   } else {
+     swipeLeftIndicator.classList.remove('show-left');
+     swipeRightIndicator.classList.remove('show-right');
+   }
+ }
+ }
+
+ function handleMouseUp(e) {
+ if (!isDragging) return;
+ isDragging = false;
+ 
+ const diff = currentX - startX;
+ const cards = document.querySelectorAll('.riddle-card');
+ const activeCard = cards[cards.length - 1];
+ 
+ // Hide indicators
+ swipeLeftIndicator.classList.remove('show-left');
+ swipeRightIndicator.classList.remove('show-right');
+ 
+ if (activeCard) {
+   activeCard.style.cursor = 'grab';
+ 
+   if (Math.abs(diff) > 100) {
+     if (diff > 0) {
+       likeRiddle(activeCard);
+     } else {
+       dislikeRiddle(activeCard);
+     }
+   } else {
+     // Reset position if swipe wasn't far enough
+     activeCard.style.transform = 'translateX(0) rotate(0)';
+   }
+ }
+ }
+
+ // Handle liking a riddle
+ function likeRiddle(card) {
+ // Save current riddle to history before moving
+ riddleHistory.push({ index: currentRiddleIndex });
+ 
+ card.classList.add('swipe-right');
+ 
+ // Save the riddle
+ const currentRiddle = riddles[currentRiddleIndex];
+ if (!savedRiddles.some(r => r.text === currentRiddle.text)) {
+   savedRiddles.push(currentRiddle);
+   localStorage.setItem('zenRiddles_saved', JSON.stringify(savedRiddles));
+   updateSavedList();
+ }
+ 
+ // Update stats
+ riddlesSeen++;
+ localStorage.setItem('zenRiddles_seen', JSON.stringify(riddlesSeen));
+ updateStats();
+ 
+ // Move to next riddle
+ setTimeout(() => {
+   card.remove();
+   createRiddleCard();
+ }, 300);
+ }
+
+ // Handle disliking a riddle
+ function dislikeRiddle(card) {
+ // Save current riddle to history before moving
+ riddleHistory.push({ index: currentRiddleIndex });
+ 
+ card.classList.add('swipe-left');
+ 
+ // Update stats
+ riddlesSeen++;
+ localStorage.setItem('zenRiddles_seen', JSON.stringify(riddlesSeen));
+ updateStats();
+ 
+ // Move to next riddle
+ setTimeout(() => {
+   card.remove();
+   createRiddleCard();
+ }, 300);
+ }
+
+ // Update the saved riddles list
+ function updateSavedList() {
+ // Clear the list
+ savedList.innerHTML = '';
+ 
+ if (savedRiddles.length === 0) {
+   savedList.appendChild(emptyState);
+   emptyState.style.display = 'block';
+   shareMultipleBtn.style.display = 'none';
+   return;
+ }
+ 
+ emptyState.style.display = 'none';
+ 
+ // Add each saved riddle
+ savedRiddles.forEach((riddle, index) => {
+   const savedItem = document.createElement('div');
+   savedItem.className = 'saved-item';
+   savedItem.dataset.index = index;
+   savedItem.innerHTML = `
+   <div class="saved-content-inner">
+     <div class="saved-text">${riddle.text}</div>
+     <div class="saved-answer">Answer: ${riddle.answer}</div>
+     ${riddle.author ? `<div class="saved-source">— ${riddle.author}</div>` : ''}
+     ${riddle.intended_feeling ? `<div class="saved-feeling">💭 ${riddle.intended_feeling}</div>` : ''}
+     <div class="category-tag ${riddle.category}">${riddle.category}</div>
+   </div>
+   <div class="saved-actions">
+     <button class="copy-btn" data-index="${index}">Copy</button>
+     <button class="share-btn" data-index="${index}">Share</button>
+     <button class="remove-btn" data-index="${index}">Remove</button>
+   </div>
+   `;
+ 
+   // Add click event for selection mode
+   savedItem.addEventListener('click', function(e) {
+     if (isSelectionMode && !e.target.closest('.saved-actions')) {
+       this.classList.toggle('selected');
+       const index = parseInt(this.dataset.index);
+ 
+       if (this.classList.contains('selected')) {
+         if (!selectedRiddles.includes(index)) {
+           selectedRiddles.push(index);
+         }
+       } else {
+         selectedRiddles = selectedRiddles.filter(i => i !== index);
+       }
+ 
+       // Update share button text
+       updateShareButtonText();
+     }
+   });
+ 
+   // Add reveal answer functionality
+   const answerElement = savedItem.querySelector('.saved-answer');
+   answerElement.style.display = 'none';
+   savedItem.querySelector('.saved-text').addEventListener('click', function() {
+     answerElement.style.display = answerElement.style.display === 'none' ? 'block' : 'none';
+   });
+ 
+   savedList.appendChild(savedItem);
+ });
+ 
+ // Add event listeners to the new buttons
+ document.querySelectorAll('.copy-btn').forEach(btn => {
+   btn.addEventListener('click', copyRiddle);
+ });
+ 
+ document.querySelectorAll('.share-btn').forEach(btn => {
+   btn.addEventListener('click', shareRiddle);
+ });
+ 
+ document.querySelectorAll('.remove-btn').forEach(btn => {
+   btn.addEventListener('click', removeRiddle);
+ });
+ 
+ updateStats();
+ }
+
+ // Update share button text
+ function updateShareButtonText() {
+ shareMultipleBtn.textContent = `Share ${selectedRiddles.length} Selected Riddle${selectedRiddles.length !== 1 ? 's' : ''}`;
+ }
+
+ // Select all riddles
+ function selectAllRiddles() {
+ if (!isSelectionMode) return;
+ 
+ selectedRiddles = [...Array(savedRiddles.length).keys()];
+ document.querySelectorAll('.saved-item').forEach((item, index) => {
+   item.classList.add('selected');
+ });
+ 
+ updateShareButtonText();
+ }
+
+ // Copy riddle to clipboard
+ function copyRiddle(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ const riddle = savedRiddles[index];
+ 
+ navigator.clipboard.writeText(`${riddle.text}\n\nAnswer: ${riddle.answer}\n\nChallenge your friends via ZenSeek`)
+ .then(() => {
+   // Show feedback
+   const originalText = e.target.textContent;
+   e.target.textContent = 'Copied!';
+   setTimeout(() => {
+     e.target.textContent = originalText;
+   }, 2000);
+ })
+ .catch(err => {
+   console.error('Failed to copy: ', err);
+ });
+ }
+
+ // Share riddle
+ function shareRiddle(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ const riddle = savedRiddles[index];
+ 
+ const shareText = `${riddle.text}\n\nThink you know the answer? Challenge your brain with more riddles at ZenSeek.org`;
+ 
+ if (navigator.share) {
+   navigator.share({
+     title: 'ZenSeek Brain Teaser',
+     text: shareText,
+     url: window.location.href,
+   })
+   .catch(err => {
+     console.error('Error sharing:', err);
+     // Fallback to copying
+     navigator.clipboard.writeText(shareText);
+     e.target.textContent = 'Copied!';
+     setTimeout(() => {
+       e.target.textContent = 'Share';
+     }, 2000);
+   });
+ } else {
+   // Fallback to copying
+   navigator.clipboard.writeText(shareText);
+   e.target.textContent = 'Copied!';
+   setTimeout(() => {
+     e.target.textContent = 'Share';
+   }, 2000);
+ }
+ }
+
+ // Remove riddle from saved list
+ function removeRiddle(e) {
+ e.stopPropagation();
+ const index = parseInt(e.target.getAttribute('data-index'));
+ savedRiddles.splice(index, 1);
+ localStorage.setItem('zenRiddles_saved', JSON.stringify(savedRiddles));
+ updateSavedList();
+ }
+
+ // Toggle selection mode
+ function toggleSelectionMode() {
+ isSelectionMode = !isSelectionMode;
+ savedList.classList.toggle('selection-mode', isSelectionMode);
+ selectBtn.textContent = isSelectionMode ? 'Cancel' : 'Select';
+ 
+ // Clear selection when exiting selection mode
+ if (!isSelectionMode) {
+   selectedRiddles = [];
+   document.querySelectorAll('.saved-item').forEach(item => {
+     item.classList.remove('selected');
+   });
+   shareMultipleBtn.style.display = 'none';
+ } else {
+   shareMultipleBtn.style.display = 'block';
+   updateShareButtonText();
+ }
+ }
+
+ // Share multiple riddles
+ function shareMultipleRiddles() {
+ if (selectedRiddles.length === 0) return;
+ 
+ // Sort selected riddles to maintain order
+ selectedRiddles.sort((a, b) => a - b);
+ 
+ let shareText = "My ZenSeek Brain Teaser Collection\n\n";
+ 
+ selectedRiddles.forEach((index, i) => {
+   const riddle = savedRiddles[index];
+   shareText += `${i+1}. ${riddle.text}\n\n`;
+ });
+ 
+ shareText += "\nReady to challenge your mind? Find more brain teasers at ZenSeek.org";
+ 
+ if (navigator.share) {
+   navigator.share({
+     title: 'My ZenSeek Brain Teasers',
+     text: shareText,
+     url: window.location.href,
+   })
+   .catch(err => {
+     console.error('Error sharing:', err);
+     // Fallback to copying
+     navigator.clipboard.writeText(shareText);
+     shareMultipleBtn.textContent = 'Copied!';
+     setTimeout(() => {
+       updateShareButtonText();
+     }, 2000);
+   });
+ } else {
+   // Fallback to copying
+   navigator.clipboard.writeText(shareText);
+   shareMultipleBtn.textContent = 'Copied!';
+   setTimeout(() => {
+     updateShareButtonText();
+   }, 2000);
+ }
+ }
+
+ // Clear all saved riddles
+ function clearAllRiddles() {
+ if (confirm("Are you sure you want to clear all your saved riddles?")) {
+   savedRiddles = [];
+   localStorage.setItem('zenRiddles_saved', JSON.stringify(savedRiddles));
+   updateSavedList();
+   toggleSelectionMode(); // Exit selection mode
+ }
+ }
+
+ // Initialize the app
+ function init() {
+ // Initialize available riddles (remove already seen riddles)
+ seenRiddles.forEach(seenIndex => {
+   const index = availableRiddles.indexOf(seenIndex);
+   if (index > -1) {
+     availableRiddles.splice(index, 1);
+   }
+ });
+ 
+ createRiddleCard();
+ updateSavedList();
+ updateStats();
+ 
+ // Event listeners for saved riddles overlay
+ savedBubble.addEventListener('click', () => {
+   savedOverlay.classList.add('active');
+ });
+ 
+ closeBtn.addEventListener('click', () => {
+   savedOverlay.classList.remove('active');
+   toggleSelectionMode(); // Exit selection mode if active
+ });
+ 
+ selectBtn.addEventListener('click', toggleSelectionMode);
+ selectAllBtn.addEventListener('click', selectAllRiddles);
+ clearBtn.addEventListener('click', clearAllRiddles);
+ shareMultipleBtn.addEventListener('click', shareMultipleRiddles);
+ }
+
+ // Start the app
+ init();
+ </script>
+</body>
+</html>

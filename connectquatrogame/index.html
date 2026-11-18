@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Animal Connect Four</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --zen-gold:#E7C55B; --shell:#1876f279; --text:#fff; --muted:#a9b8c9;
+  --bottom-bar-h:66px; --hud-offset:0px; --p:0;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:focus{ outline:none; } 
+:focus-visible{ outline:2px solid rgba(231,197,91,.8); outline-offset:3px; border-radius:10px; }
+html, body { height:100%; }
+body{
+  margin:0; color:var(--text);
+  background:
+    radial-gradient(1000px 700px at 85% -10%, rgba(255,216,225,.16), transparent 55%),
+    radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(217,249,231,.14), transparent 60%),
+    var(--shell);
+  font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+  overflow:hidden;
+}
+
+/* Top bar */
+.topbar{
+  position:fixed; inset:0 0 auto 0; height:48px; z-index:80;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:0 10px; backdrop-filter: blur(8px);
+  background: rgba(0,0,0,.34); border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.brand{ font-family:'Playfair Display', serif; color:var(--zen-gold); font-weight:700; letter-spacing:.2px; }
+.top-actions{ display:flex; gap:8px; align-items:center; }
+.home-link, .mode-link{
+  display:inline-flex; align-items:center; gap:6px; color:#e5e7eb; text-decoration:none;
+  border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.35);
+  padding:6px 10px; border-radius:10px; font-size:.82rem; font-weight:700;
+}
+
+/* Stage — allow scrolling (was overflow:hidden) */
+.stage{ 
+  position:fixed; inset:70px 0 0 0;
+  display:flex; flex-direction: column;
+  /* transform-style:preserve-3d;  // not needed here */
+  overflow:auto;                     /* ✅ allow scroll */
+  -webkit-overflow-scrolling: touch; /* ✅ momentum scroll on iOS */
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure the animal picker can fill and scroll nicely */
+.animal-selection{
+  min-height: calc(100dvh - 110px);                 /* room under the topbar/HUD */
+  padding-bottom: calc(var(--bottom-bar-h) + 16px);  /* room above the bottom bar */
+}
+
+/* Make the Start button “stick” above the bottom bar on small screens */
+.start-wrap{
+  position: sticky;
+  bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  display:flex; justify-content:center;
+  z-index: 2; /* above grid */
+}
+
+/* Game board */
+.game-board { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:10px; }
+.board {
+  --W: min(92vw, 560px);
+  width: var(--W); height: calc(var(--W) * 0.85714286); /* 6/7 */
+  display:grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr);
+  gap:8px; background: rgba(0,0,0,.3); border-radius:16px; padding:10px;
+  border:2px solid rgba(255,255,255,.1); position:relative; overflow:hidden;
+}
+.cell{
+  background: rgba(255,255,255,.08); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; aspect-ratio:1/1;
+  position:relative; overflow:hidden; transition:background-color .2s; touch-action:manipulation;
+}
+@media (pointer:fine){ .cell:hover{ background:rgba(255,255,255,.15); cursor:pointer; } }
+.cell.winner{ animation:pulse 1.5s infinite; }
+@keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(231,197,91,.7);} 70%{box-shadow:0 0 0 10px rgba(231,197,91,0);} 100%{box-shadow:0 0 0 0 rgba(231,197,91,0);} }
+
+.piece{ width:80%; height:80%; border-radius:50%; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,.5); transition:transform .3s; user-select:none; }
+.piece img{ width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-user-drag:none; }
+.piece.player1{ background: radial-gradient(circle at 30% 30%, #FF6B6B, #C44545); border:2px solid rgba(255,255,255,.3); }
+.piece.player2{ background: radial-gradient(circle at 30% 30%, #4ECDC4, #2A7E7A); border:2px solid rgba(255,255,255,.3); }
+.piece.computer{ background: radial-gradient(circle at 30% 30%, #FFD166, #E7B000); border:2px solid rgba(255,255,255,.3); }
+
+/* Mode + animal selection */
+.mode-selection, .animal-selection { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:16px; text-align:center; }
+.mode-selection h2, .animal-selection h2{ font-family:'Playfair Display', serif; color:var(--zen-gold); font-size:1.8rem; margin:6px 0; }
+.mode-buttons{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.mode-btn{
+  padding:12px 18px; border-radius:12px; background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.2); color:#fff; font-weight:700; cursor:pointer; transition:.2s; min-width:150px;
+}
+@media (pointer:fine){ .mode-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 16px rgba(0,0,0,.3); background:rgba(0,0,0,.7);} }
+
+.difficulty-selection{ display:flex; gap:8px; }
+.difficulty-btn{ padding:8px 14px; border-radius:10px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); color:#fff; cursor:pointer; }
+.difficulty-btn.selected{ border-color:var(--zen-gold); background:rgba(231,197,91,.2); }
+
+.selecting-as{ display:flex; gap:8px; }
+.select-tab{
+  padding:6px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.35); cursor:pointer; font-weight:800;
+}
+.select-tab.active{ background:rgba(231,197,91,.2); border-color:var(--zen-gold); color:var(--zen-gold); }
+
+.picks{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.pick-pill{
+  display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:9999px;
+  background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); font-weight:700;
+}
+.pick-pill img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
+
+.animal-options{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
+  gap:12px; width:100%; max-width:640px;
+}
+.animal-option{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:12px; border-radius:12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1);
+  cursor:pointer; transition:.2s; position:relative;
+}
+@media (pointer:fine){ .animal-option:hover{ transform:translateY(-3px); box-shadow:0 8px 16px rgba(0,0,0,.3); background:rgba(0,0,0,.5); } }
+.badge{
+  position:absolute; top:6px; right:6px; font-size:.72rem; font-weight:900; padding:3px 7px; border-radius:9999px;
+  background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18);
+}
+.badge.p1{ color:#ffb3b3; } .badge.p2{ color:#b6fff8; }
+
+.animal-preview{ width:84px; height:84px; border-radius:50%; overflow:hidden; border:2px solid rgba(255,255,255,.2); }
+.animal-preview img{ width:100%; height:100%; object-fit:cover; -webkit-user-drag:none; user-select:none; }
+
+/* Game info */
+.game-info{ display:flex; justify-content:space-between; align-items:center; width:100%; max-width:600px;
+  padding:12px; background:rgba(0,0,0,.3); border-radius:12px; margin-bottom:10px; border:1px solid rgba(255,255,255,.1); }
+.player-info{ display:flex; align-items:center; gap:10px; }
+.player-piece{ width:30px; height:30px; border-radius:50%; overflow:hidden; }
+.current-turn{ font-weight:800; color:var(--zen-gold); }
+
+/* HUD + confetti + celebration + bottom bar (unchanged from last version) */
+.hud{
+  position:fixed; left:50%; top:50px; transform:translateX(-50%); z-index:90;
+  background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:4px 6px;
+  backdrop-filter: blur(6px); display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;
+  max-width:min(96vw, 860px);
+}
+.hud .progress{ display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:.9rem; font-weight:700; }
+.btn{ border:1px solid rgba(255,255,255,.16); background:rgba(0,0,0,.5); padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; font-size:.9rem; line-height:1; transition:.2s; }
+@media (pointer:fine){ .btn:hover{ transform:translateY(-2px); box-shadow:0 4px 8px rgba(0,0,0,0.3); background:rgba(0,0,0,0.6);} }
+.btn:active{ transform:translateY(1px); }
+#confettiCanvas{ position:fixed; inset:0; width:100vw; height:100dvh; pointer-events:none; z-index:85; }
+.celebration{ position:fixed; inset:0; display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,.7); z-index:1000; opacity:0; pointer-events:none; transition:opacity .5s; }
+.celebration.show{ opacity:1; pointer-events:all; }
+.celebration-content{ background:rgba(255,255,255,.95); padding:1.6rem; border-radius:20px; text-align:center; max-width:90%; box-shadow:0 20px 40px rgba(0,0,0,.5); transform:scale(.86); transition:transform .5s; }
+.celebration.show .celebration-content{ transform:scale(1); }
+.bottom-bar{
+  position:fixed; left:0; right:0; bottom:0; height:calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+  gap:10px; align-items:center; z-index:9999; backdrop-filter:blur(12px); background:rgba(10,12,16,.55); border-top:1px solid rgba(255,255,255,.12);
+}
+.bottom-bar .bar-btn{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); color:#fff; font:600 14px/1 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif; text-shadow:0 1px 1px rgba(0,0,0,.35); transition:transform .08s, background .2s, border-color .2s; }
+.bottom-bar .bar-btn:active{ transform:scale(.98); }
+
+/* Mobile tweaks */
+@media (max-width:768px){
+  .board{ gap:5px; padding:8px; --W:min(94vw,520px); }
+  .animal-options{ grid-template-columns: repeat(auto-fit, minmax(100px,1fr)); }
+}
+@media (max-width:480px){
+  .mode-buttons{ flex-direction:column; width:100%; gap:10px; }
+  .mode-btn{ width:100%; }
+  .game-info{ flex-direction:column; gap:8px; }
+}
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand text-lg">Animal Connect Four</div>
+    <div class="top-actions">
+      <!-- Home link -->
+      <a href="/" class="home-link" id="homeLink" title="Go Home">🏠 Home</a>
+      <!-- Change mode (resets safely) -->
+      <button class="mode-link" id="changeModeBtn" title="Change Game Mode">🎮 Change Mode</button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud" id="hud">
+    <div class="progress">Status:&nbsp;<span id="gameStatus">Select Game Mode</span></div>
+    <button id="muteBtn" class="btn" type="button" aria-label="Mute/unmute" title="Mute/unmute">🔊</button>
+    <button id="resetBtn" class="btn" type="button" aria-label="Reset game" title="Reset game">↺</button>
+  </div>
+
+  <canvas id="confettiCanvas" width="1" height="1"></canvas>
+
+  <!-- Celebration -->
+  <div id="celebration" class="celebration" aria-hidden="true">
+    <div class="celebration-content">
+      <h2 id="celebrationTitle">Congratulations!</h2>
+      <p id="celebrationMessage">You've won the game!</p>
+      <button id="playAgainBtn" class="btn" style="background:#E7C55B;color:#000;padding:10px 20px;font-size:1.05rem;">Play Again!</button>
+    </div>
+  </div>
+
+  <!-- Main Stage -->
+  <section class="stage" id="stage">
+    <!-- Mode Selection -->
+    <div id="modeSelection" class="mode-selection">
+      <h2>Animal Connect Four</h2>
+      <p>Choose your game mode:</p>
+      <div class="mode-buttons">
+        <button id="twoPlayerBtn" class="mode-btn">Two Players</button>
+        <button id="vsComputerBtn" class="mode-btn">Play vs Computer</button>
+      </div>
+      <div id="difficultySelection" class="difficulty-selection" style="display:none;">
+        <button id="easyBtn" class="difficulty-btn">Easy</button>
+        <button id="hardBtn" class="difficulty-btn">Hard</button>
+      </div>
+    </div>
+
+    <!-- Animal Selection -->
+    <div id="animalSelection" class="animal-selection" style="display:none;">
+      <h2>Choose Your Animals</h2>
+      <div class="picks">
+        <span class="pick-pill" id="p1Pick">P1: <em>none</em></span>
+        <span class="pick-pill" id="p2Pick">P2: <em>none</em></span>
+      </div>
+      <div class="selecting-as">
+        <button id="selectP1" class="select-tab active" type="button">Selecting: Player 1</button>
+        <button id="selectP2" class="select-tab" type="button">Selecting: Player 2</button>
+      </div>
+      <div class="animal-options" id="animalOptions"></div>
+      <div class="start-wrap">
+    <button id="startGameBtn" class="btn" disabled>Start Game</button>
+    </div>
+      <small id="pickerHint" style="opacity:.85">Pick a different animal for each player.</small>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="game-board" style="display:none;">
+      <div class="game-info">
+        <div class="player-info">
+          <div class="player-piece player1" id="player1Piece"></div>
+          <span>Player 1</span>
+        </div>
+        <div class="current-turn" id="currentTurn">Player 1's Turn</div>
+        <div class="player-info">
+          <div class="player-piece player2" id="player2Piece"></div>
+          <span id="opponentLabel">Player 2</span>
+        </div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <!-- Bottom Bar -->
+  <nav id="bottom-bar" class="bottom-bar" role="toolbar" aria-label="Primary actions"></nav>
+
+<script>
+/* ---------- Data ---------- */
+const animalOptions = [
+  { name: "Lion", image: "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg" },
+  { name: "Elephant", image: "https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg" },
+  { name: "Giraffe", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG/640px-Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG" },
+  { name: "Panda", image: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Grosser_Panda.JPG" },
+  { name: "Koala", image: "https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_climbing_tree.jpg" },
+  { name: "Penguin", image: "https://upload.wikimedia.org/wikipedia/commons/0/07/Emperor_Penguin_Manchot_empereur.jpg" },
+  { name: "Dolphin", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bottlenose_dolphin_with_young.JPG/640px-Bottlenose_dolphin_with_young.JPG" },
+  { name: "Tiger", image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Royal_Bengal_Tiger_at_Kanha_National_Park.jpg" }
+];
+
+/* ---------- State ---------- */
+let gameState = {
+  mode:null, difficulty:null, board:[],
+  currentPlayer:1, player1Animal:null, player2Animal:null,
+  gameOver:false, muted:false
+};
+let selectingFor = 1;
+
+/* ---------- Els ---------- */
+const modeSelection = document.getElementById('modeSelection');
+const animalSelection = document.getElementById('animalSelection');
+const gameScreen = document.getElementById('gameScreen');
+const twoPlayerBtn = document.getElementById('twoPlayerBtn');
+const vsComputerBtn = document.getElementById('vsComputerBtn');
+const difficultySelection = document.getElementById('difficultySelection');
+const easyBtn = document.getElementById('easyBtn');
+const hardBtn = document.getElementById('hardBtn');
+const animalOptionsContainer = document.getElementById('animalOptions');
+const startGameBtn = document.getElementById('startGameBtn');
+const board = document.getElementById('board');
+const currentTurn = document.getElementById('currentTurn');
+const player1Piece = document.getElementById('player1Piece');
+const player2Piece = document.getElementById('player2Piece');
+const opponentLabel = document.getElementById('opponentLabel');
+const gameStatus = document.getElementById('gameStatus');
+const muteBtn = document.getElementById('muteBtn');
+const resetBtn = document.getElementById('resetBtn');
+const celebration = document.getElementById('celebration');
+const celebrationTitle = document.getElementById('celebrationTitle');
+const celebrationMessage = document.getElementById('celebrationMessage');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const confettiCanvas = document.getElementById('confettiCanvas');
+const celebrationContent = document.querySelector('.celebration-content');
+
+const selectP1 = document.getElementById('selectP1');
+const selectP2 = document.getElementById('selectP2');
+const p1Pick = document.getElementById('p1Pick');
+const p2Pick = document.getElementById('p2Pick');
+const changeModeBtn = document.getElementById('changeModeBtn');
+const homeLink = document.getElementById('homeLink');
+
+/* ---------- Audio ---------- */
+let ACtx=null, audioPrimed=false;
+function ensureAudioCtx(){ if(!ACtx) ACtx = new (window.AudioContext||window.webkitAudioContext)(); if(ACtx.state==='suspended') ACtx.resume?.(); }
+function primeAudioOnce(){ if(audioPrimed) return; ensureAudioCtx(); try{ const o=ACtx.createOscillator(), g=ACtx.createGain(); o.frequency.value=880; g.gain.value=0.02; o.connect(g).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),120);}catch{} audioPrimed=true; }
+function tone(f=880, ms=100, g=0.03){ if(gameState.muted) return; ensureAudioCtx(); const o=ACtx.createOscillator(), a=ACtx.createGain(); o.type='sine'; o.frequency.value=f; a.gain.value=g; o.connect(a).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),ms); }
+function updateMuteUI(){ muteBtn.textContent = gameState.muted ? '🔇' : '🔊'; }
+function toggleMute(){ ensureAudioCtx(); if(ACtx?.state==='suspended') ACtx.resume?.(); gameState.muted=!gameState.muted; localStorage.setItem('connect4_mute', gameState.muted?'1':'0'); if(!gameState.muted) tone(880,100,0.03); updateMuteUI(); }
+
+/* ---------- Confetti ---------- */
+let ctx, bursts=[];
+function sizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; ctx=confettiCanvas.getContext('2d'); }
+sizeCanvas(); addEventListener('resize', sizeCanvas); addEventListener('orientationchange', ()=>setTimeout(sizeCanvas,250));
+function burstConfettiAt(x,y,color){ const colors=color||['#E7C55B','#FFD166','#FF9E6D']; const N=80, parts=[]; for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2, s=2+Math.random()*4; parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,g:0.08+Math.random()*0.06,life:60+(Math.random()*20|0),color:colors[i%colors.length],size:2+Math.random()*3,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*0.2}); } bursts.push(parts); if(bursts.length===1) requestAnimationFrame(tick); }
+function tick(){ if(!ctx){ requestAnimationFrame(tick); return; } ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); bursts=bursts.filter(parts=>{ for(const p of parts){ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,p.life/80); ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); ctx.restore(); } return parts.some(p=>p.life>0); }); if(bursts.length) requestAnimationFrame(tick); }
+function showCelebration(title, msg){ celebrationTitle.textContent=title; celebrationMessage.textContent=msg; celebration.classList.add('show'); const r=celebrationContent.getBoundingClientRect(); burstConfettiAt(r.left+r.width/2, r.top+r.height/2); if(!gameState.muted){ tone(880,200,0.05); setTimeout(()=>tone(1100,200,0.05),200); setTimeout(()=>tone(1320,400,0.05),400); setTimeout(()=>tone(1760,600,0.05),600);} }
+
+/* ---------- Board Logic ---------- */
+function initializeBoard(){ gameState.board = Array.from({length:6}, ()=>Array(7).fill(0)); }
+function renderBoard(){
+  board.innerHTML='';
+  for(let r=0;r<6;r++){
+    for(let c=0;c<7;c++){
+      const cell=document.createElement('div');
+      cell.className='cell'; cell.dataset.row=r; cell.dataset.col=c;
+      cell.addEventListener('click', ()=>handleColumnClick(c), {passive:true});
+      const val=gameState.board[r][c];
+      if(val){
+        const piece=document.createElement('div'); piece.className='piece';
+        const img=document.createElement('img');
+        if(val===1){ piece.classList.add('player1'); img.src=gameState.player1Animal.image; img.alt=gameState.player1Animal.name; }
+        else{ piece.classList.add(gameState.mode==='vsComputer' ? 'computer':'player2'); img.src=gameState.player2Animal.image; img.alt=gameState.player2Animal.name; }
+        piece.appendChild(img); cell.appendChild(piece);
+      }
+      board.appendChild(cell);
+    }
+  }
+}
+function handleColumnClick(col){
+  if(gameState.gameOver) return;
+  if(gameState.mode==='vsComputer' && gameState.currentPlayer===2) return;
+  for(let r=5;r>=0;r--){
+    if(gameState.board[r][col]===0){
+      gameState.board[r][col]=gameState.currentPlayer; renderBoard();
+      if(checkWin(r,col)){ gameState.gameOver=true; const w = gameState.currentPlayer===1?'Player 1':(gameState.mode==='vsComputer'?'Computer':'Player 2'); showCelebration('Winner!', `${w} wins the game!`); highlightWinningCells(r,col); gameStatus.textContent=`${w} Wins!`; return; }
+      if(checkDraw()){ gameState.gameOver=true; showCelebration('Draw!', 'The game is a draw!'); gameStatus.textContent='Game Draw!'; return; }
+      gameState.currentPlayer = (gameState.currentPlayer===1?2:1); updateTurnDisplay();
+      if(gameState.mode==='vsComputer' && gameState.currentPlayer===2 && !gameState.gameOver){ setTimeout(makeComputerMove, 600); }
+      return;
+    }
+  }
+  if(!gameState.muted) tone(220,120,0.03);
+}
+function makeComputerMove(){
+  if(gameState.gameOver) return;
+  let col=getBestMove();
+  for(let r=5;r>=0;r--){
+    if(gameState.board[r][col]===0){
+      gameState.board[r][col]=2; renderBoard();
+      if(checkWin(r,col)){ gameState.gameOver=true; showCelebration('Winner!','Computer wins the game!'); highlightWinningCells(r,col); gameStatus.textContent='Computer Wins!'; return; }
+      if(checkDraw()){ gameState.gameOver=true; showCelebration('Draw!','The game is a draw!'); gameStatus.textContent='Game Draw!'; return; }
+      gameState.currentPlayer=1; updateTurnDisplay(); return;
+    }
+  }
+}
+function getBestMove(){
+  // win
+  for(let c=0;c<7;c++) if(gameState.board[0][c]===0){ const r=getLowestEmptyRow(c); gameState.board[r][c]=2; const w=checkWin(r,c); gameState.board[r][c]=0; if(w) return c; }
+  // block
+  for(let c=0;c<7;c++) if(gameState.board[0][c]===0){ const r=getLowestEmptyRow(c); gameState.board[r][c]=1; const w=checkWin(r,c); gameState.board[r][c]=0; if(w) return c; }
+  for(const c of [3,2,4,1,5,0,6]) if(gameState.board[0][c]===0) return c;
+  for(let c=0;c<7;c++) if(gameState.board[0][c]===0) return c;
+  return 0;
+}
+function getLowestEmptyRow(c){ for(let r=5;r>=0;r--) if(gameState.board[r][c]===0) return r; return -1; }
+function checkWin(r,c){
+  const p=gameState.board[r][c];
+  for(let x=0;x<=3;x++) if(gameState.board[r][x]===p&&gameState.board[r][x+1]===p&&gameState.board[r][x+2]===p&&gameState.board[r][x+3]===p) return true;
+  for(let y=0;y<=2;y++) if(gameState.board[y][c]===p&&gameState.board[y+1][c]===p&&gameState.board[y+2][c]===p&&gameState.board[y+3][c]===p) return true;
+  for(let y=0;y<=2;y++) for(let x=0;x<=3;x++) if(gameState.board[y][x]===p&&gameState.board[y+1][x+1]===p&&gameState.board[y+2][x+2]===p&&gameState.board[y+3][x+3]===p) return true;
+  for(let y=0;y<=2;y++) for(let x=3;x<7;x++) if(gameState.board[y][x]===p&&gameState.board[y+1][x-1]===p&&gameState.board[y+2][x-2]===p&&gameState.board[y+3][x-3]===p) return true;
+  return false;
+}
+function highlightWinningCells(r,c){
+  const p=gameState.board[r][c];
+  for(let x=0;x<=3;x++) if(gameState.board[r][x]===p&&gameState.board[r][x+1]===p&&gameState.board[r][x+2]===p&&gameState.board[r][x+3]===p){ for(let i=0;i<4;i++) document.querySelector(`.cell[data-row="${r}"][data-col="${x+i}"]`)?.classList.add('winner'); return; }
+  for(let y=0;y<=2;y++) if(gameState.board[y][c]===p&&gameState.board[y+1][c]===p&&gameState.board[y+2][c]===p&&gameState.board[y+3][c]===p){ for(let i=0;i<4;i++) document.querySelector(`.cell[data-row="${y+i}"][data-col="${c}"]`)?.classList.add('winner'); return; }
+  for(let y=0;y<=2;y++) for(let x=0;x<=3;x++) if(gameState.board[y][x]===p&&gameState.board[y+1][x+1]===p&&gameState.board[y+2][x+2]===p&&gameState.board[y+3][x+3]===p){ for(let i=0;i<4;i++) document.querySelector(`.cell[data-row="${y+i}"][data-col="${x+i}"]`)?.classList.add('winner'); return; }
+  for(let y=0;y<=2;y++) for(let x=3;x<7;x++) if(gameState.board[y][x]===p&&gameState.board[y+1][x-1]===p&&gameState.board[y+2][x-2]===p&&gameState.board[y+3][x-3]===p){ for(let i=0;i<4;i++) document.querySelector(`.cell[data-row="${y+i}"][data-col="${x-i}"]`)?.classList.add('winner'); return; }
+}
+function checkDraw(){ for(let y=0;y<6;y++) for(let x=0;x<7;x++) if(gameState.board[y][x]===0) return false; return true; }
+function updateTurnDisplay(){ currentTurn.textContent = (gameState.currentPlayer===1) ? "Player 1's Turn" : (gameState.mode==='vsComputer' ? "Computer's Turn" : "Player 2's Turn"); }
+function clearBoardWithAnimation(){
+  const cells=document.querySelectorAll('.cell .piece');
+  cells.forEach((piece,i)=>{ setTimeout(()=>{ piece.style.transform='translateY(100dvh)'; }, i*40); });
+  setTimeout(()=>{ initializeBoard(); renderBoard(); gameState.currentPlayer=1; gameState.gameOver=false; updateTurnDisplay(); gameStatus.textContent='Game in Progress'; }, cells.length*40+400);
+}
+
+/* ---------- Flows ---------- */
+function showModeSelection(){
+  modeSelection.style.display='flex'; animalSelection.style.display='none'; gameScreen.style.display='none';
+  gameStatus.textContent='Select Game Mode';
+  // reset picks ui
+  selectingFor=1; gameState.player1Animal=null; gameState.player2Animal=null;
+  p1Pick.innerHTML = 'P1: <em>none</em>'; p2Pick.innerHTML='P2: <em>none</em>';
+  document.getElementById('selectP1').classList.add('active'); document.getElementById('selectP2').classList.remove('active');
+}
+function showAnimalSelection(){
+  modeSelection.style.display='none'; animalSelection.style.display='flex'; gameScreen.style.display='none';
+  gameStatus.textContent='Choose Your Animals';
+  renderAnimalPicker();
+  validateStartButton();
+}
+function renderAnimalPicker(){
+  animalOptionsContainer.innerHTML='';
+  animalOptions.forEach(animal=>{
+    const option=document.createElement('div'); option.className='animal-option'; option.dataset.animal=animal.name;
+    const preview=document.createElement('div'); preview.className='animal-preview';
+    const img=document.createElement('img'); img.src=animal.image; img.alt=animal.name; img.draggable=false;
+    const name=document.createElement('span'); name.textContent=animal.name;
+    preview.appendChild(img); option.appendChild(preview); option.appendChild(name);
+
+    // badges for chosen animals
+    if(gameState.player1Animal?.name===animal.name){ const b=document.createElement('span'); b.className='badge p1'; b.textContent='P1'; option.appendChild(b); }
+    if(gameState.player2Animal?.name===animal.name){ const b=document.createElement('span'); b.className='badge p2'; b.textContent='P2'; option.appendChild(b); }
+
+    option.addEventListener('click', ()=>{
+      if(selectingFor===1){
+        // prevent duplicate
+        if(gameState.player2Animal && gameState.player2Animal.name===animal.name){ alert('Player 2 already chose that animal. Pick a different one.'); return; }
+        gameState.player1Animal = animal;
+        p1Pick.innerHTML = `P1: <img src="${animal.image}" alt="" /> ${animal.name}`;
+        // auto switch to P2 if two-player
+        if(gameState.mode==='twoPlayer'){ selectingFor=2; selectP1.classList.remove('active'); selectP2.classList.add('active'); }
+      }else{
+        if(gameState.player1Animal && gameState.player1Animal.name===animal.name){ alert('Player 1 already chose that animal. Pick a different one.'); return; }
+        gameState.player2Animal = animal;
+        p2Pick.innerHTML = `P2: <img src="${animal.image}" alt="" /> ${animal.name}`;
+      }
+      renderAnimalPicker();
+      validateStartButton();
+      if(!gameState.muted) tone(760,60,0.03);
+    }, {passive:true});
+    animalOptionsContainer.appendChild(option);
+  });
+}
+function validateStartButton(){
+  if(gameState.mode==='twoPlayer'){
+    startGameBtn.disabled = !(gameState.player1Animal && gameState.player2Animal);
+  }else{
+    // vsComputer: allow picking computer too; if user didn't, auto-assign on start
+    startGameBtn.scrollIntoView({block:'nearest', behavior:'smooth'});
+    startGameBtn.disabled = !gameState.player1Animal;
+  }
+}
+function startGame(){
+  if(gameState.mode==='twoPlayer'){
+    if(!(gameState.player1Animal && gameState.player2Animal)){ alert('Pick an animal for both players.'); return; }
+  }else{
+    if(!gameState.player1Animal){ alert('Please select your animal.'); return; }
+    if(!gameState.player2Animal){
+      const others=animalOptions.filter(a=>a.name!==gameState.player1Animal.name);
+      gameState.player2Animal = others[Math.floor(Math.random()*others.length)];
+    }
+  }
+  modeSelection.style.display='none'; animalSelection.style.display='none'; gameScreen.style.display='flex';
+  const p1=document.createElement('img'); p1.src=gameState.player1Animal.image; p1.alt=gameState.player1Animal.name; p1.draggable=false;
+  player1Piece.innerHTML=''; player1Piece.appendChild(p1);
+  const p2=document.createElement('img'); p2.src=gameState.player2Animal.image; p2.alt=gameState.player2Animal.name; p2.draggable=false;
+  player2Piece.innerHTML=''; player2Piece.appendChild(p2);
+  opponentLabel.textContent = (gameState.mode==='vsComputer') ? 'Computer' : 'Player 2';
+  initializeBoard(); renderBoard(); updateTurnDisplay(); gameStatus.textContent='Game in Progress';
+  primeAudioOnce();
+}
+function resetGame(){ celebration.classList.remove('show'); clearBoardWithAnimation(); if(!gameState.muted) tone(440,120,0.035); }
+function playAgain(){ celebration.classList.remove('show'); clearBoardWithAnimation(); }
+
+/* ---------- Events ---------- */
+twoPlayerBtn.addEventListener('click', ()=>{ gameState.mode='twoPlayer'; difficultySelection.style.display='none'; showAnimalSelection(); if(!gameState.muted) tone(660,80,0.03); }, {passive:true});
+vsComputerBtn.addEventListener('click', ()=>{ gameState.mode='vsComputer'; difficultySelection.style.display='flex'; if(!gameState.muted) tone(660,80,0.03); }, {passive:true});
+easyBtn.addEventListener('click', ()=>{ [easyBtn,hardBtn].forEach(b=>b.classList.remove('selected')); easyBtn.classList.add('selected'); gameState.difficulty='easy'; showAnimalSelection(); if(!gameState.muted) tone(760,60,0.03); }, {passive:true});
+hardBtn.addEventListener('click', ()=>{ [easyBtn,hardBtn].forEach(b=>b.classList.remove('selected')); hardBtn.classList.add('selected'); gameState.difficulty='hard'; showAnimalSelection(); if(!gameState.muted) tone(760,60,0.03); }, {passive:true});
+selectP1.addEventListener('click', ()=>{ selectingFor=1; selectP1.classList.add('active'); selectP2.classList.remove('active'); }, {passive:true});
+selectP2.addEventListener('click', ()=>{ selectingFor=2; selectP2.classList.add('active'); selectP1.classList.remove('active'); }, {passive:true});
+startGameBtn.addEventListener('click', startGame, {passive:true});
+muteBtn.addEventListener('click', toggleMute);
+resetBtn.addEventListener('click', resetGame);
+playAgainBtn.addEventListener('click', playAgain);
+changeModeBtn.addEventListener('click', ()=>{ // soft reset + go back to mode select
+  celebration.classList.remove('show');
+  gameState={ mode:null,difficulty:null,board:[],currentPlayer:1,player1Animal:null,player2Animal:null,gameOver:false,muted:gameState.muted };
+  updateMuteUI(); showModeSelection(); if(!gameState.muted) tone(520,90,0.03);
+});
+homeLink.addEventListener('click', (e)=>{ /* if running from a local file, use history */
+  if(location.protocol==='file:'){ e.preventDefault(); history.length>1 ? history.back() : alert('Home link: set your site root URL.'); }
+});
+
+/* ---------- Bottom bar ---------- */
+(function setupBottomBar(){
+  const bar=document.getElementById('bottom-bar');
+  ['muteBtn','resetBtn'].forEach(id=>{ const btn=document.getElementById(id); btn.classList.add('bar-btn'); bar.appendChild(btn); });
+})();
+
+/* ---------- Init ---------- */
+function init(){
+  gameState.muted = (localStorage.getItem('connect4_mute') ?? '0') === '1'; updateMuteUI();
+  showModeSelection();
+  const prime = ()=>{ primeAudioOnce(); window.removeEventListener('pointerdown', prime); window.removeEventListener('keydown', prime); };
+  window.addEventListener('pointerdown', prime, {passive:true}); window.addEventListener('keydown', prime);
+}
+init();
+</script>
+</body>
+</html>

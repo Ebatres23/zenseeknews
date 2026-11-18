@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZenSeek Survival Reel | Bright, Big-Emoji Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#9fb1bf;
+ --shell:#0a141a;
+ --success:#4CAF50; --danger:#F44336;
+ --water:#39d0c8; --fire:#ff6b6b; --nav:#a276ff; --wild:#ffa938;
+ --cold:#22c5f5; --vehicle:#b051e3; --firstaid:#4CAF50; --situ:#ffc533; --home:#7aa6c0;
+ --hud-h:46px; /* header */
+ --stats-h:28px; /* stats strip */
+ --legal-h:54px; /* credit/disclaimer bar */
+}
+
+/* Bright, game-like background */
+html,body{height:100%}
+body{
+ margin:0;
+ color:var(--text);
+ font-family:'Montserrat','Inter',sans-serif;
+ overflow:hidden; /* one screen */
+ background:
+ radial-gradient(1200px 800px at 80% 10%, rgba(255,255,255,.06), transparent 55%),
+ radial-gradient(900px 600px at 10% 80%, rgba(255,255,255,.05), transparent 55%),
+ linear-gradient(135deg, #0f2330 0%, #143a48 40%, #15536a 100%);
+}
+
+/* Header */
+header{
+ height:var(--hud-h); display:flex; align-items:center; justify-content:space-between;
+ padding:0 .8rem; border-bottom:1px solid rgba(255,255,255,.1);
+ background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
+ backdrop-filter:blur(8px);
+}
+.brand{color:var(--zen-gold); text-decoration:none; font-weight:700; font-size:1.2rem; font-family:'Playfair Display',serif;}
+.hint{font-size:.8rem; color:#d6e8f1}
+
+/* Screen layout: stats + reel + legal bar (no page scroll) */
+.screen{
+ height:calc(100dvh - var(--hud-h));
+ display:grid; grid-template-rows: var(--stats-h) 1fr var(--legal-h);
+ padding:.6rem; gap:.4rem;
+}
+
+/* Stats */
+.stats{height:var(--stats-h); display:flex; justify-content:space-between; align-items:center; color:#d6e8f1; font-size:.86rem; font-weight:600}
+
+/* Reel centers the card; card auto-sizes */
+.reel{
+ position:relative; height:100%;
+ display:flex; align-items:center; justify-content:center; padding:.25rem;
+}
+
+/* CARD: auto-size with max-height; brighter category tints */
+.card{
+ position:relative; width:min(540px, 62vw);
+ max-height:calc(100% - .8rem);
+ background:#fff; color:var(--ink); border-radius:16px;
+ border:2px solid rgba(212,175,55,.28);
+ box-shadow:0 14px 32px rgba(0,0,0,.38),0 8px 16px rgba(0,0,0,.24);
+ padding:.9rem 1rem .8rem;
+ overflow:auto;
+ transition:transform .45s ease, opacity .45s ease;
+ cursor:grab;
+}
+
+.card:active {
+ cursor:grabbing;
+}
+
+/* category gradients */
+.card.water{background:linear-gradient(135deg, rgba(57,208,200,.18), #fff)}
+.card.fire{background:linear-gradient(135deg, rgba(255,107,107,.18), #fff)}
+.card.navigation{background:linear-gradient(135deg, rgba(162,118,255,.18), #fff)}
+.card.wilderness{background:linear-gradient(135deg, rgba(255,169,56,.18), #fff)}
+.card.cold{background:linear-gradient(135deg, rgba(34,197,245,.18), #fff)}
+.card.vehicle{background:linear-gradient(135deg, rgba(176,81,227,.18), #fff)}
+.card.firstaid{background:linear-gradient(135deg, rgba(76,175,80,.18), #fff)}
+.card.situational{background:linear-gradient(135deg, rgba(255,197,51,.18), #fff)}
+.card.home{background:linear-gradient(135deg, rgba(122,166,192,.18), #fff)}
+
+.top{display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.25rem}
+.badge{
+ display:inline-flex; align-items:center; gap:.45rem;
+ background:#00000010; color:#1a1a1a; border-radius:999px; padding:.2rem .65rem; font-size:.82rem; font-weight:800;
+ border:1px solid rgba(0,0,0,.06);
+}
+.badge i{font-style:normal; font-size:1.35rem; line-height:1}
+
+.back{background:var(--zen-gold); color:#fff; width:32px; height:32px; border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .2s, background-color .2s;}
+.back:hover{transform:scale(1.05); background:#c19d2c;}
+.back:active{transform:scale(0.95);}
+
+/* BIG Emoji banner */
+.emoji-row{
+ font-size:2.1rem; line-height:1; margin:.15rem 0 .4rem; letter-spacing:.1rem;
+ filter:saturate(1.1);
+ text-align:center;
+}
+@media (min-width:420px){ .emoji-row{font-size:2.6rem} }
+@media (min-width:740px){ .emoji-row{font-size:3rem} }
+
+.title{font-family:'Playfair Display',serif; font-weight:800; font-size:1.15rem; line-height:1.25; color:#101418; margin:.1rem 0 .35rem}
+.quick{display:grid; gap:.18rem; font-size:.98rem}
+.quick b{font-weight:800}
+.quick .why{color:#745f19; font-style:italic; font-weight:800}
+
+.steps{margin-top:.25rem; display:grid; gap:.18rem; font-size:.95rem}
+.step{display:flex; gap:.45rem; align-items:flex-start}
+.step .n{min-width:1.3rem; height:1.3rem; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-size:.78rem; background:rgba(212,175,55,.22); border:1px solid rgba(212,175,55,.5); color:#4b3d08}
+.step .t{flex:1; line-height:1.28}
+
+/* Actions */
+.actions{display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-top:.5rem}
+.btn{
+ width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; font-size:1.28rem;
+ display:flex; align-items:center; justify-content:center; transition:transform .15s, box-shadow .15s;
+ box-shadow:0 3px 0 rgba(0,0,0,.2), 0 6px 10px rgba(0,0,0,.3);
+}
+.btn:hover{transform:scale(1.05);}
+.btn:active{transform:translateY(2px) scale(0.98); box-shadow:0 1px 0 rgba(0,0,0,.2), 0 2px 4px rgba(0,0,0,.3);}
+.dislike{background:var(--danger); color:#fff}
+.like{background:var(--success); color:#fff}
+
+/* swipe indicators */
+.ind{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; opacity:0; transition:.22s; box-shadow:0 4px 12px rgba(0,0,0,.3); color:#fff; pointer-events:none}
+.ind.left{left:-56px; background:var(--danger)}
+.ind.right{right:-56px; background:var(--success)}
+.show{opacity:1}
+
+/* saved bubble & overlay */
+.saved-bubble{
+ position:fixed; right:.7rem; bottom:calc(.7rem + var(--legal-h)); 
+ width:56px; height:56px; background:var(--zen-gold); border-radius:50%; 
+ display:flex; align-items:center; justify-content:center; cursor:pointer; 
+ box-shadow:0 4px 0 rgba(0,0,0,.2), 0 6px 12px rgba(0,0,0,.3);
+ transition:transform .2s, box-shadow .2s;
+ z-index:10;
+}
+.saved-bubble:hover{transform:scale(1.05);}
+.saved-bubble:active{transform:translateY(2px) scale(0.98); box-shadow:0 2px 0 rgba(0,0,0,.2), 0 3px 6px rgba(0,0,0,.3);}
+.saved-count{position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800}
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.68); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.25s; z-index:20}
+.overlay.active{opacity:1; pointer-events:auto}
+.panel{width:min(680px,96vw); height:min(82vh,560px); border-radius:14px; background:#fff; color:#0b1a22; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.45)}
+.panel .head{background:var(--zen-gold); color:#141006; padding:.6rem .75rem; display:flex; align-items:center; justify-content:space-between}
+.panel .list{padding:.6rem .75rem; overflow:auto; flex:1; display:grid; gap:.55rem}
+.item{border:1px solid rgba(212,175,55,.18); border-radius:10px; padding:.55rem .65rem; background:#ffffffee}
+.small{padding:.35rem .6rem; border:none; border-radius:999px; background:var(--zen-gold); color:#141006; font-weight:700; cursor:pointer; transition:transform .2s, background-color .2s;}
+.small:hover{transform:scale(1.03); background:#c19d2c;}
+.small:active{transform:scale(0.98);}
+.close{background:transparent; border:none; font-size:1.4rem; width:34px; height:34px; border-radius:50%; cursor:pointer; transition:background-color .2s;}
+.close:hover{background:rgba(0,0,0,.1);}
+
+/* Legal/Credit fixed bar (inside viewport, always visible) */
+.legal{
+ height:var(--legal-h);
+ display:flex; align-items:center; justify-content:center;
+ padding:0 .75rem; text-align:center; gap:.5rem;
+ color:#e9f6ff; font-size:.78rem; line-height:1.2;
+ background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.25));
+ border-top:1px solid rgba(255,255,255,.12);
+}
+.legal b{color:#ffe083}
+
+/* animations */
+.slide-in{animation:slide .22s ease-out}
+@keyframes slide{from{transform:translateY(10px); opacity:.0} to{transform:translateY(0); opacity:1}}
+.swipe-right{transform:translateX(130%) rotate(12deg); opacity:0}
+.swipe-left{transform:translateX(-130%) rotate(-12deg); opacity:0}
+
+/* Add haptic feedback for mobile */
+@supports (-webkit-touch-callout: none) {
+ .btn:active, .saved-bubble:active {
+ -webkit-tap-highlight-color: transparent;
+ }
+}
+
+/* Toast notification for save/share actions */
+.toast {
+ position: fixed;
+ bottom: 100px;
+ left: 50%;
+ transform: translateX(-50%) translateY(100px);
+ background: rgba(0, 0, 0, 0.8);
+ color: white;
+ padding: 12px 20px;
+ border-radius: 24px;
+ font-weight: 600;
+ z-index: 30;
+ opacity: 0;
+ transition: transform 0.3s, opacity 0.3s;
+ backdrop-filter: blur(10px);
+ box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.toast.show {
+ transform: translateX(-50%) translateY(0);
+ opacity: 1;
+}
+
+/* small screens */
+@media (max-width:480px){
+ .title{font-size:1.03rem}
+ .quick{font-size:.95rem}
+ .steps{font-size:.92rem}
+ .ind.left{left:-50px}.ind.right{right:-50px}
+ .card{width:min(540px, 85vw);}
+ .emoji-row{font-size:2.2rem;}
+}
+
+/* Medium screens */
+@media (max-width: 768px) and (min-width: 481px) {
+ .card{width:min(540px, 75vw);}
+}
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+<header>
+ <a href="/" class="brand">ZenSeek</a>
+ <div class="hint">Swipe save • skip</div>
+</header>
+
+<main class="screen">
+ <div class="stats">
+ <div>Tips seen: <span id="seen">0</span></div>
+ <div>Saved: <span id="saved">0</span></div>
+ </div>
+
+ <section class="reel" id="reel"></section>
+
+ <!-- Always-visible credit + safe-use disclaimer -->
+ <div class="legal">
+ <span> <b>Please credit "ZenSeek"</b> when sharing. For fun & education only — not medical, legal, or professional advice. Use judgment, follow local laws, and call local emergency services (911/112) for real emergencies.</span>
+ </div>
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- saved bubble -->
+<div class="saved-bubble" id="savedBubble"> <div class="saved-count" id="savedCount">0</div></div>
+
+<!-- saved overlay -->
+<div class="overlay" id="savedOverlay">
+ <div class="panel">
+ <div class="head">
+ <strong style="font-family:'Playfair Display',serif">Your Saved Tips</strong>
+ <div>
+ <button class="small" id="shareMany">Share All</button>
+ <button class="small" id="clearAll">Clear</button>
+ <button class="close" id="closeOverlay">×</button>
+ </div>
+ </div>
+ <div class="list" id="savedList"></div>
+ </div>
+</div>
+
+<script>
+/* Helper: per-category emoji "banner" to add more, bigger emojis */
+const EMOJI_PACK = {
+ water:' ', fire:' ', navigation:' ',
+ wilderness:' ', cold:' ', vehicle:' ',
+ firstaid:' ', situational:' ', home:' '
+};
+
+/* Tips (same strong content, now with a separate icon + emoji banner) */
+const TIPS = [
+  {cat:'water',icon:' ',title:'Pulled by a rip current',when:'You\'re getting dragged away from shore by strong water.',first:'Stay calm. Float and face the shore—don\'t fight the pull.',next:'Swim SIDEWAYS (parallel to the beach) until pull feels weak, then angle in.',why:'Rips act like a treadmill out; swimming sideways exits the current fast.'},
+  {cat:'water',icon:' ',title:'Fall into deep water with clothes on',when:'You crash off a dock/boat or slip in a pool.',first:'Roll onto your back. Spread arms/legs. Breathe slow—float.',next:'Kick gently toward the edge or a floating object you can hold.',why:'Floating stops panic and saves energy.'},
+  {cat:'water',icon:' ',title:'Swept down a river',when:'Fast current takes you downstream.',first:'Feet up, toes forward; keep your head back.',next:'Steer with arms to calmer water or shore; stand only in slow, shallow water.',why:'Feet forward protect your head and avoid foot entrapment.'},
+  {cat:'water',icon:' ',title:'No safe water to drink',when:'You only have river/lake water.',first:'Boil it 1 minute (3 minutes at high mountains).',next:'Let it cool covered; pour into a clean container.',why:'Boiling kills germs that make you sick.'},
+
+  {cat:'fire',icon:' ',title:'Smoke fills the room',when:'Fire or heavy smoke in a building.',first:'Get low—crawl to the exit.',next:'Close doors behind you; meet family at the outside meeting spot.',why:'Cleaner air is near the floor; closed doors slow fire and smoke.'},
+  {cat:'fire',icon:' ',title:'Clothes catch fire',when:'Sleeve or shirt starts burning.',first:'STOP moving.',next:'DROP to the ground and ROLL; cover face with hands.',why:'Rolling smothers flames and protects your lungs/face.'},
+  {cat:'fire',icon:' ',title:'Pan fire on the stove',when:'Oil/grease ignites.',first:'Slide a lid or baking sheet on top—don\'t pour water.',next:'Turn off heat. Keep the lid on until pan is cool.',why:'Lid removes oxygen. Water explodes hot oil and spreads fire.'},
+  {cat:'fire',icon:' ',title:'Heat stroke warning',when:'Person is confused, hot, and not sweating much.',first:'Call emergency help.',next:'Move to shade; cool with water on skin, fan air; sip water if awake.',why:'Heat stroke is life-threatening; rapid cooling saves the brain.'},
+
+  {cat:'navigation',icon:' ',title:'You\'re lost outdoors',when:'Trail disappears or you\'re unsure where you are.',first:'STOP. Sit. Breathe. Stay put.',next:'Signal in 3s (whistle/flash/call), wear/wave bright gear, make a visible spot.',why:'Conserves energy; rescuers search where you were last known.'},
+  {cat:'navigation',icon:' ',title:'Need long-distance signal',when:'You spot a boat/plane or distant hikers.',first:'Use a mirror/phone screen to reflect sunlight at them.',next:'Aim by making a "V" with two fingers and flashing the target through it.',why:'Reflections travel miles; three flashes is a distress code.'},
+  {cat:'navigation',icon:' ',title:'Must self-rescue without a map',when:'No service, no compass, alone.',first:'Follow water downhill (streams → bigger streams → roads/homes).',next:'Mark your path (ribbons/rocks) so you don\'t circle; avoid ridgelines in storms.',why:'Water courses often lead to people; markers prevent re-walking.'},
+
+  {cat:'wilderness',icon:' ',title:'Bear encounter',when:'A bear notices you.',first:'If brown/grizzly: be calm, lie face down, hands over neck—play dead.',next:'If black bear: stand tall, wave, shout; back away slowly—do not run.',why:'Species react differently; running can trigger a chase.'},
+  {cat:'wilderness',icon:' ',title:'Snake bite',when:'You\'re bitten on hand/leg.',first:'Stay calm; sit; keep the bite BELOW heart level.',next:'Remove rings/watches; call help; no cutting/sucking/ice.',why:'Slows venom spread and avoids extra tissue damage.'},
+  {cat:'wilderness',icon:' ',title:'Attacked by bees/wasps',when:'Multiple stings or swarm.',first:'Run in a straight line to a building/car; get inside.',next:'Brush stingers off sideways; cool compress; watch for trouble breathing.',why:'Shelter ends the attack; scraping removes stingers without squeezing more venom.'},
+
+  {cat:'cold',icon:' ',title:'Cold and wet in wind',when:'Soaked clothes, shivering.',first:'Change out of wet layers; avoid cotton; put on dry inner layer.',next:'Insulate from ground (pad/leaves); block wind; sip warm, sweet drink.',why:'Dry + wind-block + warm core stops hypothermia spiral.'},
+  {cat:'cold',icon:' ',title:'Buried/disoriented in snow',when:'Avalanche or snow cave collapses.',first:'Spit—gravity shows down.',next:'Dig the other way; create an air pocket near mouth; call or tap 3 times.',why:'Prevents digging deeper; signals rescuers and preserves air.'},
+  {cat:'cold',icon:' ',title:'Blinding glare on snow',when:'Eyes burning/tearing in bright snow.',first:'Wear sunglasses/visor; improvise slits in tape, cloth, or cardboard.',next:'Face away from glare when possible; rest eyes in shade.',why:'Narrow slits reduce UV—prevents snow blindness.'},
+
+  {cat:'vehicle',icon:' ',title:'Car sinks in water',when:'Vehicle splashes into river/pond.',first:'Seatbelt OFF, then window DOWN immediately.',next:'If window won\'t open, break it (headrest metal tip/corner punch). Exit fast.',why:'Water pressure rises quickly; windows are your way out.'},
+  {cat:'vehicle',icon:' ',title:'Tire blowout at speed',when:'Loud bang, car pulls, rim thumping.',first:'Firm hands on wheel; ease off gas—no hard brakes.',next:'Let speed drop; signal and pull off straight; change tire safely.',why:'Hard braking spins cars; gentle slowdown keeps control.'},
+  {cat:'vehicle',icon:' ',title:'Lightning while driving',when:'Thunderstorm overhead.',first:'Stay inside the car; windows up.',next:'Avoid touching metal; wait 30 minutes after last thunder to exit.',why:'Car body routes electricity around you (Faraday effect).'},
+
+  {cat:'firstaid',icon:' ',title:'Heavy bleeding',when:'Blood soaks cloths or spurts.',first:'Press HARD directly on the wound with gauze/cloth.',next:'If still bleeding, apply a tourniquet 2–3 inches above; note time; call help.',why:'Stopping bleeding quickly is the #1 lifesaver.'},
+  {cat:'firstaid',icon:' ',title:'Nosebleed',when:'Blood from nose after bump/dry air.',first:'Sit up, lean forward.',next:'Pinch the soft nose 10–15 minutes without peeking; spit blood into a cup.',why:'Leaning forward prevents swallowing; pressure seals vessels.'},
+  {cat:'firstaid',icon:' ',title:'Burn (not electrical/chemical)',when:'Touch hot pan, steam, or sunburn.',first:'Cool with clean, cool water for 10–20 minutes.',next:'Cover loosely with clean non-fluffy dressing; seek help if large/deep.',why:'Cooling limits skin damage; clean cover prevents infection.'},
+  {cat:'firstaid',icon:' ',title:'Tick removal',when:'Tick attached to skin.',first:'Grab close to skin with tweezers.',next:'Pull straight out; clean the spot; note date; watch for rash/fever.',why:'Reduces disease risk; straight pull avoids squeezing contents in.'},
+  {cat:'firstaid',icon:' ',title:'No normal breathing',when:'Person unresponsive, not breathing normally.',first:'Call emergency help; put phone on speaker.',next:'Start chest compressions: center of chest, hard and fast (100–120/min).',why:'CPR keeps blood moving to brain/heart until help arrives.'},
+
+  {cat:'situational',icon:' ',title:'Find exits fast',when:'Enter any building, theater, or venue.',first:'Look for two exits immediately.',next:'Sit/stand with a clear path; keep essentials on you.',why:'Seconds matter when everyone heads for one door.'},
+  {cat:'situational',icon:' ',title:'Someone grabs you',when:'Street or crowd situation.',first:'Yell "HELP! FIRE!" and run toward people or lit stores.',next:'Break grip by pulling toward the thumb; keep moving to a safe place.',why:'The word "fire" gets faster attention; crowds deter attackers.'},
+  {cat:'situational',icon:' ',title:'Phone dying, still lost',when:'Battery low and no signal.',first:'Text your exact location (coords/landmarks) and plan; keep unsent.',next:'Keep phone warm/powered off; turn on periodically to send.',why:'Texts queue and send when brief signal returns.'},
+
+  {cat:'home',icon:' ',title:'Smell gas at home',when:'Rotten-egg odor near stove/water heater.',first:'Do NOT use switches/phones; get everyone outside now.',next:'From a safe spot, call the gas company or emergency services.',why:'Any spark can ignite gas; fresh air and distance protect you.'},
+  {cat:'home',icon:' ',title:'Earthquake right now',when:'Shaking starts.',first:'DROP to the ground, COVER your head/neck under sturdy furniture, HOLD ON.',next:'Stay until shaking stops; then get outside, shoes on, watch for hazards.',why:'Most injuries are falling objects, not building collapse.'},
+  {cat:'home',icon:' ',title:'Tornado warning',when:'Sirens or alert in your area.',first:'Go to lowest level, small interior room/bathroom; avoid windows.',next:'Cover head/neck with mattress/helmets; keep pets with you.',why:'Interior lowest rooms protect from debris and glass.'},
+
+  /* ---------------- New additions below (same structure) ---------------- */
+
+  {cat:'water',icon:'🌊💧',title:'Caught in a whirlpool/eddy',when:'Circular current spins you.',first:'Float on your back, don\'t fight the spin.',next:'Swim with the current diagonally outward when the pull eases.',why:'Conserves energy; escaping at the edge is easier.'},
+  {cat:'water',icon:'🌊🏊',title:'Thin ice warning',when:'Ice cracks/creaks beneath you.',first:'Spread out—lie flat to spread weight.',next:'Crawl back the way you came; once off, roll away from the weak area.',why:'Spreading weight reduces pressure; the path you came from supported you.'},
+  {cat:'water',icon:'💧🫗',title:'DIY water disinfection (no boil)',when:'No fire/fuel to boil.',first:'Filter through cloth to remove debris.',next:'Use unscented household bleach: 2 drops per liter (8 drops/gal), wait 30 min; water should smell faintly of chlorine.',why:'Proper bleach dose kills most germs when boiling isn\'t possible.'},
+
+  {cat:'fire',icon:'🔥🚪',title:'Door feels hot in a fire',when:'You need to exit a room.',first:'Use back of hand to test door/handle.',next:'If hot/smoke under door: don\'t open. Seal cracks with wet cloth; signal at window.',why:'Opening feeds oxygen and flashover risk; sealing buys time.'},
+  {cat:'fire',icon:'🔥⚡',title:'Electrical fire starts',when:'Burning smell/sparks from outlet/appliance.',first:'Unplug or cut power at breaker if safe.',next:'Use a Class C/ABC extinguisher; never water.',why:'Water conducts electricity; proper extinguisher breaks the reaction.'},
+
+  {cat:'navigation',icon:'🧭🌞',title:'Find direction without a compass',when:'Lost on a clear day.',first:'Use the sun\'s path: rises roughly east, sets roughly west.',next:'In N. Hemisphere, point left arm to sunrise, right to sunset; you face south (approx).',why:'Gives rough bearings to avoid walking in circles.'},
+  {cat:'navigation',icon:'🧭⭐',title:'Night navigation with Polaris',when:'Clear sky in N. Hemisphere.',first:'Find the Big Dipper; follow the "bowl" pointer stars up.',next:'The next bright star is Polaris—roughly due north.',why:'Polaris sits near Earth’s rotational axis, a stable north marker.'},
+  {cat:'navigation',icon:'🆘🔺',title:'Ground-to-air signals',when:'Expect search aircraft.',first:'Stomp large symbols (V=need assistance, X=need medical) in open ground.',next:'Use contrasting material and three equally spaced markers nearby.',why:'Standard signals are legible from the air and understood by rescuers.'},
+
+  {cat:'wilderness',icon:'🌲🦝',title:'Food storage vs wildlife',when:'Camping/hiking with food.',first:'Use bear canister or hang food 12 ft up, 6 ft from trunk.',next:'Cook/eat 200 ft from tent; pack out all trash.',why:'Smells draw animals; proper storage prevents visits and conflicts.'},
+  {cat:'wilderness',icon:'🌲🔥',title:'Campfire control',when:'You build a small fire.',first:'Clear 10 ft of combustibles; keep it small.',next:'Fully out = cold to the touch: drown, stir, feel, repeat.',why:'Most wildfires start small; cold-out is the only safe out.'},
+  {cat:'wilderness',icon:'🌲🦮',title:'Dog encounter on trail',when:'Unleashed/aggressive dog approaches.',first:'Stand side-on, still; avoid eye contact.',next:'Use a firm "No/Back!" and place backpack/stick between you and dog; back away slowly.',why:'Calm posture and barrier reduce chase/attack behavior.'},
+
+  {cat:'cold',icon:'❄️🔥',title:'Rewarm cold hands fast',when:'Dexterity fading; numb fingers.',first:'Place hands on bare warm skin (armpits/abdomen).',next:'Do gentle movement; change into dry gloves/socks.',why:'Skin-to-skin heat is fastest and safe for mild cold injury.'},
+  {cat:'cold',icon:'❄️🥶',title:'Frostbite signs',when:'Pale, waxy, numb skin.',first:'Get out of cold/wind; remove wet/tight items.',next:'Rewarm in body-warm water (37–39°C/99–102°F) 20–30 min; don\'t rub or refreeze.',why:'Rubbing damages tissue; refreezing after thaw is devastating.'},
+
+  {cat:'vehicle',icon:'🚗🧯',title:'Engine fire in car',when:'Smoke/flames from hood.',first:'Signal, stop, shut off engine; everyone out and away (100+ ft).',next:'Call emergency services; use extinguisher only from safe distance aiming low.',why:'Hoods can flash; keeping distance prevents injury.'},
+  {cat:'vehicle',icon:'🚗🌪️',title:'Driving into floodwater',when:'Road covered by moving water.',first:'Turn around—don\'t enter.',next:'If water rises around car, abandon and move to higher ground if safe.',why:'6–12 inches can float a car; most flood deaths happen in vehicles.'},
+  {cat:'vehicle',icon:'🏍️🪖',title:'Motorcycle slide',when:'Lose traction on gravel/wet paint.',first:'Look where you want to go; ease off throttle—no sudden brakes.',next:'After, inspect tire pressure and controls before continuing.',why:'Smooth inputs regain traction; panic braking causes lowsides.'},
+
+  {cat:'firstaid',icon:'🫁⛑️',title:'Choking adult/child',when:'Can’t speak, cough, or breathe.',first:'Ask "Are you choking?" If yes and unable to cough, start abdominal thrusts.',next:'If they collapse, call help and begin CPR; check mouth for object between cycles.',why:'Thrusts/CPR create pressure to expel the blockage.'},
+  {cat:'firstaid',icon:'👶🫁',title:'Choking infant',when:'Blue, weak cry, can’t breathe.',first:'Support head/neck; 5 back slaps between shoulder blades.',next:'Flip to face-up; 5 chest thrusts with 2 fingers; repeat; call help.',why:'Gentle, targeted force fits infant anatomy.'},
+  {cat:'firstaid',icon:'⚡❤️',title:'Use an AED',when:'Person is unresponsive, not breathing normally.',first:'Turn on AED; follow voice prompts; expose chest; attach pads as shown.',next:'Clear everyone; press shock if advised; resume CPR immediately.',why:'Early defibrillation + CPR drastically improves survival.'},
+  {cat:'firstaid',icon:'🩺🪬',title:'Anaphylaxis',when:'Hives, swelling, trouble breathing after sting/food/drug.',first:'Use epinephrine auto-injector in outer thigh immediately.',next:'Call emergency help; second dose in 5–10 min if symptoms persist.',why:'Epinephrine buys time by reversing airway swelling.'},
+  {cat:'firstaid',icon:'🧠⏱️',title:'Stroke check (FAST)',when:'Face droop, Arm weakness, Speech trouble.',first:'Call emergency help NOW.',next:'Note time symptoms began; keep person comfortable and NPO (nothing by mouth).',why:'Clot-busting treatment is time-critical—minutes matter.'},
+  {cat:'firstaid',icon:'🩸🧊',title:'Sprain vs break',when:'Ankle/wrist twisted or hit.',first:'RICE: Rest, Ice (20 on/20 off), Compression, Elevation.',next:'If deformity, severe pain, or can’t bear weight → splint as found and seek care.',why:'RICE limits swelling; splinting prevents further damage.'},
+  {cat:'firstaid',icon:'🌡️🥤',title:'Dehydration',when:'Dizzy, dark urine, dry mouth.',first:'Sip water or oral rehydration (1 L water + 6 tsp sugar + ½ tsp salt).',next:'Rest in shade; cool skin; avoid alcohol/caffeine.',why:'Balanced fluids + rest restore volume and electrolytes.'},
+
+  {cat:'situational',icon:'⚠️🔑',title:'Trapped in a room',when:'Door jammed by debris/pressure.',first:'Use belt/shirt to tie handle to anchor; wedge bottom gap with cloth.',next:'Signal with light/sound; write HELP on window; stay low for air.',why:'Sealing slows smoke; signaling directs rescuers.'},
+  {cat:'situational',icon:'🧯🚪',title:'Crowd crush cues',when:'Density > 4 people/m²; movement stops.',first:'Protect space: arms up like a "box" around chest.',next:'Move diagonally with waves of people; avoid the center; don\'t pick up dropped items.',why:'Chest space prevents asphyxia; diagonal movement finds pockets.'},
+  {cat:'situational',icon:'📱🔋',title:'Phone SOS setup',when:'Before a trip/event.',first:'Enable built-in Emergency SOS and Medical ID on your phone.',next:'Add emergency contacts; download offline maps for the area.',why:'One-button help + location works even with limited service.'},
+
+  {cat:'home',icon:'🏠🪟',title:'Window escape plan',when:'Bedroom on upper floor.',first:'Keep an escape ladder under the bed; practice attaching it.',next:'Close doors as you go; crawl low if smoky; go to meeting point.',why:'Practice removes hesitation; closed doors buy time.'},
+  {cat:'home',icon:'🧼🥩',title:'Food poisoning prevention',when:'Cooking for a crowd.',first:'Keep raw meats separate; wash hands/boards.',next:'Cook to safe temps (e.g., poultry 165°F/74°C); refrigerate leftovers within 2 hours.',why:'Heat kills germs; cold slows growth.'},
+  {cat:'home',icon:'🧯🔌',title:'Overloaded outlet',when:'Many high-draw devices on one strip.',first:'Unplug non-essentials; use one heat appliance per outlet.',next:'Feel for warmth; warm strip/outlet = hazard → reduce load/replace.',why:'Heat = resistance and fire risk; spreading load prevents overheating.'},
+  {cat:'home',icon:'🌫️🚨',title:'Carbon monoxide alarm',when:'Detector beeps CO alert.',first:'Get everyone outside to fresh air immediately.',next:'Call emergency services; don’t re-enter until cleared.',why:'CO is invisible/odorless and deadly; fresh air + pro check saves lives.'}
+];
+
+
+/* STATE */
+let seen = +localStorage.getItem('zenSeen') || 0;
+let saved = JSON.parse(localStorage.getItem('zenSavedTips')||'[]');
+let seenList = JSON.parse(localStorage.getItem('zenSeenList')||'[]');
+let available = [...Array(TIPS.length).keys()].filter(i=>!seenList.includes(i));
+const reel = document.getElementById('reel');
+const seenEl = document.getElementById('seen');
+const savedEl = document.getElementById('saved');
+const savedBubble = document.getElementById('savedBubble');
+const savedCount = document.getElementById('savedCount');
+const overlay = document.getElementById('savedOverlay');
+const savedListEl = document.getElementById('savedList');
+const closeOverlay = document.getElementById('closeOverlay');
+const shareMany = document.getElementById('shareMany');
+const clearAll = document.getElementById('clearAll');
+const toast = document.getElementById('toast');
+
+function emojiRowFor(cat){ return EMOJI_PACK[cat] || ' '; }
+
+function pickNext(){
+ if(available.length===0){
+ available = [...Array(TIPS.length).keys()];
+ if(seenList.length > TIPS.length*0.7){ seenList = seenList.slice(-Math.floor(TIPS.length*0.3)); }
+ localStorage.setItem('zenSeenList', JSON.stringify(seenList));
+ }
+ const r = Math.floor(Math.random()*available.length);
+ const idx = available[r];
+ available.splice(r,1);
+ if(!seenList.includes(idx)){ seenList.push(idx); localStorage.setItem('zenSeenList', JSON.stringify(seenList)); }
+ return idx;
+}
+
+function updateHUD(){
+ seenEl.textContent = seen;
+ savedEl.textContent = saved.length;
+ savedCount.textContent = saved.length;
+ // Show/hide saved bubble based on count
+ savedBubble.style.display = saved.length > 0 ? 'flex' : 'none';
+}
+
+function renderCard(i){
+ const t = TIPS[i];
+ const card = document.createElement('article');
+ card.className = `card ${t.cat} slide-in`;
+ card.innerHTML = `
+ <div class="top">
+ <span class="badge"><i>${t.icon}</i> ${t.cat}</span>
+ <button class="back" id="backBtn" title="Back" ${history.length === 0 ? 'style="visibility:hidden"' : ''}>↶</button>
+ </div>
+ <div class="emoji-row">${emojiRowFor(t.cat)}</div>
+ <div class="title">${t.title}</div>
+ <div class="quick">
+ <div><b>When:</b> ${t.when}</div>
+ <div><b>Do first:</b> ${t.first}</div>
+ <div class="why"><b>Why:</b> ${t.why}</div>
+ </div>
+ <div class="steps">
+ <div class="step"><div class="n">1</div><div class="t">${t.first}</div></div>
+ <div class="step"><div class="n">2</div><div class="t">${t.next}</div></div>
+ </div>
+ <div class="actions">
+ <div style="font-size:.82rem;color:#708896;">Swipe or use buttons</div>
+ <div>
+ <button class="btn dislike" title="Skip"> </button>
+ <button class="btn like" title="Save"> </button>
+ </div>
+ </div>
+ <div class="ind left">←</div>
+ <div class="ind right">→</div>
+ `;
+
+ const dislike = card.querySelector('.dislike');
+ const like = card.querySelector('.like');
+ const back = card.querySelector('#backBtn');
+ const leftInd = card.querySelector('.ind.left');
+ const rightInd = card.querySelector('.ind.right');
+
+ dislike.addEventListener('click', ()=> swipe(card, 'left'));
+ like.addEventListener('click', ()=> swipe(card, 'right'));
+ back.addEventListener('click', goBack);
+
+ // swipe gestures
+ let startX=0, curX=0, dragging=false;
+ const start = x=>{ dragging=true; startX=x; };
+ const move = x=>{
+ if(!dragging) return;
+ curX=x; const d=curX-startX;
+ card.style.transform = `translateX(${d}px) rotate(${d*0.06}deg)`;
+ if(d>40){ rightInd.classList.add('show'); leftInd.classList.remove('show'); }
+ else if(d<-40){ leftInd.classList.add('show'); rightInd.classList.remove('show'); }
+ else{ leftInd.classList.remove('show'); rightInd.classList.remove('show'); }
+ };
+ const end = ()=>{
+ if(!dragging) return; dragging=false;
+ const d=curX-startX; leftInd.classList.remove('show'); rightInd.classList.remove('show');
+ if(Math.abs(d)>110){ swipe(card, d>0?'right':'left'); } else { card.style.transform='translateX(0) rotate(0)'; }
+ };
+
+ card.addEventListener('touchstart', e=>start(e.touches[0].clientX), {passive:true});
+ card.addEventListener('touchmove', e=>move(e.touches[0].clientX), {passive:true});
+ card.addEventListener('touchend', end);
+ card.addEventListener('mousedown', e=>{ if(e.button!==0) return; start(e.clientX); card.style.cursor='grabbing'; });
+ document.addEventListener('mousemove', e=>move(e.clientX));
+ document.addEventListener('mouseup', ()=>{ end(); card.style.cursor='grab'; });
+
+ reel.innerHTML = '';
+ reel.appendChild(card);
+ return card;
+}
+
+let history = [];
+let currentIndex = pickNext();
+
+function goBack(){
+ if(history.length===0) return;
+ currentIndex = history.pop();
+ renderCard(currentIndex);
+ updateHUD();
+}
+
+function swipe(card, dir){
+ history.push(currentIndex);
+ card.classList.add(dir==='right'?'swipe-right':'swipe-left');
+ if(dir==='right'){
+ const t = TIPS[currentIndex];
+ if(!saved.find(s=>s.title===t.title && s.cat===t.cat)){
+ saved.push(t);
+ localStorage.setItem('zenSavedTips', JSON.stringify(saved));
+ showToast('Tip saved! ');
+ }
+ }
+ seen++; localStorage.setItem('zenSeen', seen);
+ updateHUD();
+ setTimeout(()=>{
+ currentIndex = pickNext();
+ renderCard(currentIndex);
+ }, 230);
+}
+
+// Toast notification function
+function showToast(message) {
+ toast.textContent = message;
+ toast.classList.add('show');
+ setTimeout(() => {
+ toast.classList.remove('show');
+ }, 2000);
+}
+
+/* Saved overlay */
+function openOverlay(){
+ savedListEl.innerHTML = saved.length
+ ? saved.map((t,i)=>`
+ <div class="item">
+ <div class="t">${EMOJI_PACK[t.cat] || t.icon} — <strong>${t.title}</strong> <span style="text-transform:uppercase; font-weight:700; color:#6a5a1b">(${t.cat})</span></div>
+ <div style="font-size:.92rem;"><b>When:</b> ${t.when}</div>
+ <div style="font-size:.92rem;"><b>Do first:</b> ${t.first}</div>
+ <div style="font-size:.92rem;"><b>Next:</b> ${t.next}</div>
+ <div style="font-size:.9rem; color:#7a6a2a; font-style:italic"><b>Why:</b> ${t.why}</div>
+ <div style="display:flex; gap:.4rem; margin-top:.35rem">
+ <button class="small" data-i="${i}" data-act="copy">Copy</button>
+ <button class="small" data-i="${i}" data-act="share">Share</button>
+ <button class="small" data-i="${i}" data-act="remove" style="background:#F44336;color:#fff">Remove</button>
+ </div>
+ </div>`).join('')
+ : `<div style="color:#6b7a8a; font-style:italic">No saved tips yet. Swipe to keep a tip.</div>`;
+ overlay.classList.add('active');
+}
+
+savedBubble.addEventListener('click', openOverlay);
+closeOverlay.addEventListener('click', ()=> overlay.classList.remove('active'));
+clearAll.addEventListener('click', ()=>{
+ if(!confirm('Clear all saved tips?')) return;
+ saved = [];
+ localStorage.setItem('zenSavedTips', JSON.stringify(saved));
+ updateHUD(); 
+ openOverlay();
+ showToast('All tips cleared ');
+});
+shareMany.addEventListener('click', ()=>{
+ if(saved.length===0) return;
+ let text = 'My ZenSeek Survival Pack\n\n';
+ saved.forEach((t,k)=>{ text += `${k+1}. ${t.title} ${EMOJI_PACK[t.cat] || t.icon}\n When: ${t.when}\n Do first: ${t.first}\n Next: ${t.next}\n Why: ${t.why}\n\n`; });
+ if(navigator.share){ 
+ navigator.share({title:'ZenSeek Survival Pack', text}).catch(()=>{
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }); 
+ } else { 
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }
+});
+savedListEl.addEventListener('click', (e)=>{
+ const btn = e.target.closest('button'); if(!btn) return;
+ const i = +btn.dataset.i; const act = btn.dataset.act; const t = saved[i];
+ if(act==='remove'){ 
+ saved.splice(i,1); 
+ localStorage.setItem('zenSavedTips', JSON.stringify(saved)); 
+ updateHUD(); 
+ openOverlay();
+ showToast('Tip removed ');
+ }
+ if(act==='copy'){ 
+ const text = `${t.title} ${EMOJI_PACK[t.cat]||t.icon}\nWhen: ${t.when}\nDo first: ${t.first}\nNext: ${t.next}\nWhy: ${t.why}`; 
+ navigator.clipboard.writeText(text); 
+ showToast('Copied to clipboard! ');
+ }
+ if(act==='share'){
+ const text = `${t.title} ${EMOJI_PACK[t.cat]||t.icon}\nWhen: ${t.when}\nDo first: ${t.first}\nNext: ${t.next}\nWhy: ${t.why}`;
+ if(navigator.share){ 
+ navigator.share({title:'ZenSeek Survival Tip', text}).catch(()=>{
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }); 
+ } else { 
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }
+ }
+});
+
+// Close overlay when clicking outside
+overlay.addEventListener('click', (e) => {
+ if (e.target === overlay) {
+ overlay.classList.remove('active');
+ }
+});
+
+/* boot */
+updateHUD();
+renderCard(currentIndex);
+</script>
+</body>
+</html>

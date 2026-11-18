@@ -1,0 +1,88 @@
+:root {
+  color-scheme: light;
+  --zen-gold: #2f6d4e;
+  --zen-shell: #f6f7f4;
+  --zen-text: #202b25;
+  --zen-muted: #78827a;
+  --shell: #f6f7f4;
+  --ink: #202b25;
+  --text: #202b25;
+  --muted: #6e7c70;
+}
+body.theme-page, body.theme-game { background: #f6f7f4; color: #202b25; }
+body.theme-page { font-family: Arial, Helvetica, sans-serif; }
+body.theme-page header, body.theme-game header, body.theme-game .topbar {
+  background: rgba(246,247,244,.96);
+  border-color: #dfe5dd;
+  color: #202b25;
+}
+body.theme-page header .brand, body.theme-game .brand {
+  color: #2f6d4e;
+  text-shadow: none;
+}
+body.theme-page header nav a, body.theme-game .topbar a {
+  color: #46564a;
+  text-shadow: none;
+}
+body.theme-page header nav a:hover, body.theme-game .topbar a:hover { color: #2f6d4e; }
+body.theme-page h1, body.theme-page h2, body.theme-page h3 { font-family: Georgia, "Times New Roman", serif; }
+body.theme-page .hero h1, body.theme-page .hero p, body.theme-page .hero .meta {
+  color: #fff;
+}
+body.theme-page .hero .badges li { color: #fff; border-color: #dfe5dd; }
+body.theme-page .btn.primary, body.theme-page .tool button:not(.ghost) { color: #fff; }
+body.theme-page .page, body.theme-page .scene {
+  background: #e9f0e7;
+  border-color: #dfe5dd;
+  color: #202b25;
+}
+body.theme-page .toc { background: #e5eee3; border-color: #dfe5dd; }
+body.theme-page .toc nav a, body.theme-page .caption { color: #46564a; }
+body.theme-page .toc nav a:hover { background: #dcebe0; color: #2f6d4e; }
+body.theme-page .card, body.theme-page .step, body.theme-page .tool, body.theme-page .contact-info {
+  background: #fff;
+  color: #202b25;
+  border-color: #dfe5dd;
+  box-shadow: 0 8px 24px rgba(39,68,46,.08);
+}
+body.theme-page footer { background: #e9f0e7; color: #6f8071; border-color: #d5e0d4; }
+body.theme-page footer a { color: #2f6d4e; }
+body.theme-game .hud {
+  background: #e5eee3;
+  border-color: #ccd8cd;
+  color: #202b25;
+}
+body.theme-game .hud .progress, body.theme-game .stats, body.theme-game .hint,
+body.theme-game .subtle, body.theme-game .label span, body.theme-game .streak-counter,
+body.theme-game .fact-counter {
+  color: #46564a;
+  text-shadow: none;
+}
+body.theme-game .legal { background: #e9f0e7; color: #46564a; border-color: #d5e0d4; }
+body.theme-game .legal b { color: #2f6d4e; }
+body.theme-game .facts strong { color: #b7daba; }
+body.theme-game .hero { background: #e5eee3; }
+body.theme-game .hero::after { background: radial-gradient(circle, #dcebe0, transparent 70%); }
+body.theme-game .background-continuation { background: #f6f7f4; }
+body.theme-game .hero h1, body.theme-game .hero p, body.theme-game .instruction {
+  color: #202b25;
+  text-shadow: none;
+}
+body.theme-game .start-screen { background: rgba(246,247,244,.97); }
+body.theme-game .start-screen h2 { color: #2f6d4e; }
+body.theme-game .start-screen p { color: #46564a; }
+body.theme-game .difficulty-btn { background: #fff; color: #2f6d4e; }
+body.theme-game .difficulty-btn.active, body.theme-game .start-btn { color: #fff; }
+body.theme-game .hud button, body.theme-game .topbar button {
+  background: #2f6d4e;
+  color: #fff;
+  border-color: #2f6d4e;
+}
+body.theme-game .card .back, body.theme-game .instructions,
+body.theme-game .toast {
+  color: #fff;
+}
+body.theme-game :focus-visible, body.theme-page :focus-visible {
+  outline: 3px solid #68a77e;
+  outline-offset: 4px;
+}

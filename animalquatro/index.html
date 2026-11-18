@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>ZenSeek — Animal Matching Game 🦁🐍🐸</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+ :root{
+  --zen-gold:#E7C55B; --shell:#1876f279; --text:#fff; --muted:#a9b8c9;
+  --bottom-bar-h:66px; --hud-offset:0px; --p:0;
+ }
+ *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+ :focus{ outline:none; }
+ :focus-visible{ outline:2px solid rgba(231,197,91,.8); outline-offset:3px; border-radius:10px; }
+ html, body { height:100%; }
+ body{
+  margin:0; color:var(--text);
+  background:
+    radial-gradient(1000px 700px at 85% -10%, rgba(255,216,225,.16), transparent 55%),
+    radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(217,249,231,.14), transparent 60%),
+    var(--shell);
+  font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  perspective:1000px; perspective-origin:50% 30%;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom,0px));
+  user-select:none; overflow:auto; overscroll-behavior-y:none;
+ }
+ .topbar{
+  position:fixed; inset:0 0 auto 0; height:48px; z-index:80;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:0 10px; backdrop-filter: blur(8px);
+  background: rgba(0,0,0,.34); border-bottom: 1px solid rgba(255,255,255,.08);
+ }
+ .brand{ font-family:'Playfair Display', serif; color:var(--zen-gold); font-weight:700; letter-spacing:.2px; text-decoration:none; border-radius:8px; padding:2px 4px; }
+ .home-link{ display:flex; align-items:center; gap:8px; color:#e5e7eb; text-decoration:none; border-radius:8px; padding:4px 6px; font-size:.82rem; }
+
+ .stage{ position:fixed; inset:70px 0 0 0; display:grid; grid-template-rows:auto minmax(0,1fr);
+  transform-style:preserve-3d; overflow:auto; padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom,0px)); z-index:1; }
+
+ .grid{ position:relative; z-index:3; display:grid; grid-template-columns:repeat(4,1fr);
+  gap:clamp(8px,3cqi,16px);
+  padding: calc(var(--hud-offset) + clamp(20px,5cqi,40px)) clamp(10px,2cqi,20px) clamp(20px,5cqi,40px);
+  justify-items:center; }
+
+ .card{
+  --size: clamp(80px, 18cqi, 120px);
+  width:var(--size); height:var(--size); border-radius:12px; position:relative; cursor:pointer; transition: transform .2s ease;
+  background: rgba(0,0,0,.8); border:2px solid rgba(231,197,91,.6); box-shadow: 0 8px 16px rgba(0,0,0,.3);
+  display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:600; text-align:center;
+  transform-style:preserve-3d; perspective:1000px;
+ }
+ .card:active{ transform: scale(.98); }
+ .card.flipped{ transform: rotateY(180deg); }
+ .card.matched{ opacity:0.7; border-color: rgba(231,197,91,1); box-shadow: 0 0 20px rgba(231,197,91,.8); pointer-events:none; }
+ .card .face{ position:absolute; width:100%; height:100%; border-radius:10px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px; }
+ .card .front{ background: rgba(0,0,0,.9); color:var(--muted); transform:rotateY(0deg); }
+ .card .front::before{ content:"?"; font-size:2em; opacity:.8; }
+ .card .back{ background:#111; transform:rotateY(180deg); }
+ .card .back img{ width:60%; height:60%; object-fit:cover; border-radius:8px; margin-bottom:2px; }
+ .card .back .name{ font-size:.6rem; text-shadow:0 1px 2px rgba(0,0,0,.8); }
+ .card.selected{ border-color: var(--zen-gold); box-shadow: 0 0 20px rgba(231,197,91,.5); transform: scale(1.05) rotateY(180deg); }
+ .card.mismatch{ animation: shake .5s ease; border-color: rgba(255,120,120,.9); }
+ @keyframes shake{ 0%,100%{ transform: translateX(0) rotateY(var(--rot,0deg)); } 25%{ transform: translateX(-5px) rotateY(var(--rot,0deg)); } 75%{ transform: translateX(5px) rotateY(var(--rot,0deg)); } }
+ @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+ @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+ .hud{
+  position:fixed; left:50%; top:50px; transform:translateX(-50%); z-index:90;
+  background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:4px 6px;
+  backdrop-filter: blur(6px); display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;
+  max-width:min(96vw, 980px);
+ }
+ .hud .progress{ display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:.88rem; }
+ .btn{ border:1px solid rgba(255,255,255,.16); background:rgba(0,0,0,.5); padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; font-size:.9rem; line-height:1; transition:.2s; }
+ .btn:hover{ transform:translateY(-2px); box-shadow:0 4px 8px rgba(0,0,0,.3); background:rgba(0,0,0,.6); }
+ .btn:active{ transform:translateY(1px); }
+ .btn.icon{ font-size:1rem; padding:8px 12px; }
+ .bar{ flex:1 1 200px; min-width:140px; max-width: clamp(200px, 44vw, 520px); height:10px; border-radius:9999px; background:#0f1c24; overflow:hidden; margin:0 2px; }
+ .bar > span{ display:block; height:100%; background:var(--zen-gold); width:0%; transform: scaleX(var(--p)); transform-origin:left center; transition: transform .3s ease, width .3s ease; }
+ .timer{ font-size:.88rem; font-weight:600; color:var(--zen-gold); }
+ .mode-tag{ font-size:.8rem; opacity:.9; padding:2px 6px; border:1px solid rgba(255,255,255,.15); border-radius:8px; }
+ .streak-counter{ font-size:.88rem; font-weight:600; color:#FFD700; display:flex; align-items:center; gap:4px; }
+ .streak-counter.hot{ animation: pulse 1s infinite; }
+
+ .celebration { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
+  display:flex; justify-content:center; align-items:center; z-index:1000; opacity:0; pointer-events:none; transition:opacity .5s; }
+ .celebration.show{ opacity:1; pointer-events:all; }
+ .celebration-content{ background:rgba(255,255,255,0.95); padding:2rem; border-radius:20px; text-align:center; max-width:90%;
+  box-shadow:0 20px 40px rgba(0,0,0,0.5); transform:scale(.8); transition:transform .5s; }
+ .celebration.show .celebration-content{ transform:scale(1); }
+ .celebration h2{ color:#E7C55B; font-family:'Playfair Display',serif; font-size:2rem; margin-bottom:1rem; }
+ .celebration p{ color:#333; font-size:1.2rem; margin-bottom:1.5rem; }
+ .celebration-stats{ display:flex; justify-content:center; gap:2rem; margin-bottom:1.5rem; }
+ .stat{ text-align:center; } .stat-value{ font-size:2rem; font-weight:bold; color:#E7C55B; } .stat-label{ font-size:.9rem; color:#666; }
+
+ .bottom-bar{
+  position:fixed; left:0; right:0; bottom:0;
+  height: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom,0px));
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+  display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+  gap:10px; align-items:center; backdrop-filter: blur(12px);
+  background:rgba(10,12,16,0.55); border-top:1px solid rgba(255,255,255,0.12); z-index:9999;
+ }
+ .bottom-bar .bar-btn{
+  display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border-radius:14px;
+  border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.10); color:#fff;
+  font:600 14px/1 system-ui,-apple-system, Segoe UI, Roboto, Inter, sans-serif; text-shadow:0 1px 1px rgba(0,0,0,0.35);
+  transition:transform .08s ease, background .2s ease, border-color .2s ease;
+ }
+ .bottom-bar .bar-btn:active{ transform: scale(0.98); }
+
+ .instructions{ position:fixed; left:50%; top:58px; transform:translateX(-50%); z-index:95; background:rgba(0,0,0,.62);
+  border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:12px 14px 10px; backdrop-filter: blur(8px);
+  font-size:.9rem; max-width:min(90vw, 400px); box-shadow: 0 12px 24px rgba(0,0,0,.4); }
+ .instructions .close{ position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:6px;
+  background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.15); font-weight:700; cursor:pointer; }
+
+ .bonus-item{ position:absolute; width:40px; height:40px; z-index:10; animation: float 3s ease-in-out infinite; }
+ .bonus-item.coin{ background:radial-gradient(circle at 30% 30%, #FFD700, #FFA500); border-radius:50%; box-shadow:0 0 10px #FFD700; }
+ .bonus-item.star{ background:radial-gradient(circle at 30% 30%, #FFFFFF, #E0E0E0); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+ .start-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  gap: 20px;
+  padding: 20px;
+ }
+
+ .start-screen h2 {
+  color: var(--zen-gold);
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 10px;
+ }
+
+ .start-screen p {
+  color: #fff;
+  text-align: center;
+  max-width: 500px;
+  margin-bottom: 30px;
+ }
+
+ .difficulty-selector {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+ }
+
+ .difficulty-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 2px solid var(--zen-gold);
+  background: rgba(0,0,0,0.7);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+ }
+
+ .difficulty-btn.active {
+  background: var(--zen-gold);
+  color: #000;
+ }
+
+ .difficulty-btn:hover:not(.active) {
+  background: rgba(231,197,91,0.3);
+ }
+
+ .start-btn {
+  padding: 15px 40px;
+  border-radius: 12px;
+  border: none;
+  background: var(--zen-gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 20px;
+ }
+
+ .start-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+ }
+
+ @media (max-width:768px){
+  .hud{ gap:4px; padding:4px 6px; }
+  .bar{ min-width:120px; }
+  .grid{ gap: clamp(6px, 2.5cqi, 14px); padding: calc(var(--hud-offset) + clamp(10px,3cqi,20px)) clamp(6px,1.5cqi,12px) clamp(10px,3cqi,20px); }
+  .hud .progress{ font-size:.84rem; }
+  .difficulty-selector { flex-direction: column; }
+  .start-screen h2 { font-size: 2rem; }
+ }
+ @media (max-width:480px){
+  .hud{ flex-direction:column; align-items:stretch; width:min(96vw,980px); top:48px; padding:3px 5px; }
+  .hud .progress{ width:100%; justify-content:center; text-align:center; font-size:.8rem; }
+  .btn{ font-size:.86rem; padding:6px 10px; } .btn.icon{ font-size:1rem; }
+  .bar{ width:100%; min-width:0; max-width:none; height:12px; flex:0 0 auto; }
+  .grid{ grid-template-columns:repeat(3,1fr); gap:clamp(4px,2cqi,10px);
+    padding: calc(var(--hud-offset) + clamp(10px,2cqi,20px)) clamp(4px,1.5cqi,10px) clamp(10px,2cqi,20px); }
+  .card{ --size: clamp(70px, 16cqi, 100px); }
+ }
+ @media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+ #confettiCanvas{ position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:85; }
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+<div class="topbar">
+  <a class="brand text-lg" href="/" aria-label="Home">ZenSeek</a>
+  <a class="home-link" href="/" aria-label="Go to Home"><span class="text-gray-300">Animal Matching Game 🦁🐍🐸</span></a>
+</div>
+
+<div class="hud" id="hud">
+  <div class="progress font-semibold">Pairs: <span id="score">0</span>/<span id="setsTotal">6</span></div>
+  <div class="timer" id="timer">Time: 0s</div>
+  <div class="streak-counter" id="streakCounter">🔥 <span id="streak">0</span></div>
+  <div class="bar"><span id="barFill"></span></div>
+  <button id="helpBtn" class="btn icon" type="button" aria-label="Show help" title="Show help">❓</button>
+</div>
+
+<div id="instructions" class="instructions" role="dialog" aria-modal="true">
+  <button id="closeInstr" class="close" aria-label="Close help">×</button>
+  <div class="font-semibold" style="color:#E7C55B; font-family:'Fredoka One', sans-serif;">How to Play 🎮</div>
+  <div class="text-sm text-gray-300 mb-2" id="howToText">Tap cards to flip and reveal animals. Find matching pairs to clear them!</div>
+  <div class="text-xs text-gray-400">💡 Tip: Build streaks for bonus points! Time starts on first tap!</div>
+</div>
+
+<div id="startScreen" class="start-screen">
+  <h2>Animal Memory Match</h2>
+  <p>Test your memory by finding matching pairs of animals. Choose your difficulty level below!</p>
+  
+  <div class="difficulty-selector">
+    <button class="difficulty-btn active" data-difficulty="easy">Easy (12 cards)</button>
+    <button class="difficulty-btn" data-difficulty="hard">Hard (18 cards)</button>
+  </div>
+  
+  <p id="difficultyDescription">Cards will be shown face-up for 5 seconds to help you memorize their positions before the game begins.</p>
+  
+  <button class="start-btn" id="startGameBtn">Start Game</button>
+</div>
+
+<canvas id="confettiCanvas" width="1" height="1"></canvas>
+<div id="celebration" class="celebration" aria-live="polite">
+  <div class="celebration-content">
+   <h2>🎉 You Matched Them All! 🎉</h2>
+   <p>Great job clearing the board!</p>
+   <div class="celebration-stats">
+    <div class="stat"><div class="stat-value" id="finalScore">0</div><div class="stat-label">Pairs</div></div>
+    <div class="stat"><div class="stat-value" id="completionTime">0s</div><div class="stat-label">Time</div></div>
+    <div class="stat"><div class="stat-value" id="finalStreak">0</div><div class="stat-label">Max Streak</div></div>
+   </div>
+   <button id="playAgainBtn" class="btn" style="background:#E7C55B;color:#000;padding:10px 20px;font-size:1.1rem;">Play Again!</button>
+  </div>
+</div>
+
+<section class="stage" id="stage">
+  <div class="grid" id="grid"></div>
+</section>
+
+<nav id="bottom-bar" class="bottom-bar" role="toolbar" aria-label="Primary actions"></nav>
+
+<script>
+/* ---------- Assets ---------- */
+const imageCandidates={}; Object.assign(imageCandidates,{
+ Lion:["https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg","https://upload.wikimedia.org/wikipedia/commons/1/15/2010-kfw-lion-2.jpg"],
+ Dog:["https://upload.wikimedia.org/wikipedia/commons/6/6e/Golde33443.jpg","https://upload.wikimedia.org/wikipedia/commons/3/32/Border_Collie_blue_meri.JPG"],
+ Cat:["https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg","https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png"],
+ Cow:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Cow_on_Pupers.jpg/640px-Cow_on_Pupers.jpg","https://upload.wikimedia.org/wikipedia/commons/d/d8/Swiss_Braunvieh_cattle.jpg"],
+ Elephant:["https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg","https://upload.wikimedia.org/wikipedia/commons/5/5d/African_Elephant_%28Loxodonta_africana%29%2C_Addo_Elephant_National_Park%2C_South_Africa_%2821462668375%29.jpg"],
+ Dolphin:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bottlenose_dolphin_with_young.JPG/640px-Bottlenose_dolphin_with_young.JPG","https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Girl_Petting_Secret_Garden_Dolphin.jpg/640px-Girl_Petting_Secret_Garden_Dolphin.jpg"],
+ Bear:["https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Kamchatka_Brown_Bear_near_Dvuhyurtochnoe_on_2015-07-23.jpg/640px-Kamchatka_Brown_Bear_near_Dvuhyurtochnoe_on_2015-07-23.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2010-kodiak-bear-1.jpg/640px-2010-kodiak-bear-1.jpg"],
+ Giraffe:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG/640px-Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG","https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Giraffa_camelopardalis_angolensis.jpg/640px-Giraffa_camelopardalis_angolensis.jpg"],
+ Kangaroo:["https://upload.wikimedia.org/wikipedia/commons/0/0c/Kangaroo_Australia_01_11_2008_-_retouch.JPG","https://upload.wikimedia.org/wikipedia/commons/0/0f/Red_kangaroo_-_melbourne_zoo.jpg"],
+ Panda:["https://upload.wikimedia.org/wikipedia/commons/0/0f/Grosser_Panda.JPG","https://upload.wikimedia.org/wikipedia/commons/0/0f/Panda_Cub_from_Wolong%2C_Sichuan%2C_China.JPG"],
+ Koala:["https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_climbing_tree.jpg","https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_with_claw.jpg"],
+ Monkey:["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Monkey_eating.jpg/640px-Monkey_eating.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Monkey_2025.jpg/640px-Monkey_2025.jpg"],
+ Chimpanzee:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Schimpanse_Zoo_Leipzig.jpg/640px-Schimpanse_Zoo_Leipzig.jpg"],
+ Gorilla:["https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Male_Gorilla_gorilla_gorilla_Apenheul_2023_02.jpg/640px-Male_Gorilla_gorilla_gorilla_Apenheul_2023_02.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/G._g._gorilla%2C_Krefeld_%28DE%29_--_2023_--_0465.jpg/640px-G._g._gorilla_%28DE%29.jpg"],
+ Snake:["https://upload.wikimedia.org/wikipedia/commons/1/15/Green_Tree_Python.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Ahaetulla_prasina%2C_oriental_whipsnake_-_Kaeng_Krachan_National_Park.jpg/640px-Ahaetulla_prasina.jpg"],
+ Lizard:["https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Three-eyed_lizard_%28Chalarodon_madagascariensis%29_male_Toliara.jpg/640px-Three-eyed_lizard.jpg","https://upload.wikimedia.org/wikipedia/commons/8/8e/Anolis_carolinensis_2.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red-headed_rock_agama_%28Agama_lionotus%29_male.jpg/640px-Red-headed_rock_agama.jpg"],
+ Turtle:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Turtle_on_sidewalk.jpg/640px-Turtle_on_sidewalk.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/African_helmeted_turtle_%28Pelomedusa_subrufa%29.jpg/640px-African_helmeted_turtle.jpg"],
+ Crocodile:["https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Nile_crocodile_head.jpg/640px-Nile_crocodile_head.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Crocodile_Crocodylus-porosus_amk.jpg/640px-Crocodile_Crocodylus-porosus.jpg"],
+ Chameleon:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Panther_chameleon_%28Furcifer_pardalis%29_male_Montagne_d%E2%80%99Ambre_3.jpg/640px-Panther_chameleon.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Chameleon_Wroclaw_ZOO.jpg/640px-Chameleon_Wroclaw_ZOO.jpg","https://upload.wikimedia.org/wikipedia/commons/6/6b/Chamaeleo_calyptratus_02.JPG"],
+ Komodo_Dragon:["https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Komodo_dragon%2C_Varanus_komodoensis%2C_Komodo_Island%2C_Indonesia%2C_20250822_1319_2752.jpg/640px-Komodo_dragon.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Komodo_dragon_%28Varanus_komodoensis%29.jpg/640px-Varanus_komodoensis.jpg"],
+ Gecko:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Tokay.jpg/640px-Tokay.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Deccan_Banded_Gecko_Geckoella_deccanensis_by_Dr._Raju_Kasambe_DSCN0954_%281%29.jpg/640px-Gecko.jpg"],
+ Frog:["https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Frog_1.jpg/640px-Frog_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Edible_frog_%28Pelophylax_esculentus%29.jpg/640px-Edible_frog.jpg"],
+ Toad:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Bufo_bufo_03-clean.jpg/640px-Bufo_bufo_03-clean.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Bufo_americanus_PJC1.jpg/640px-Bufo_americanus.jpg"],
+ Salamander:["https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Salamandra_salamandra_MHNT_1.jpg/640px-Salamandra_salamandra_MHNT_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Sequoyah_slimy_salamander_%28Plethodon_sequoyah%29.jpg/640px-Sequoyah_slimy_salamander.jpg"],
+ Newt:["https://upload.wikimedia.org/wikipedia/commons/8/82/Triturus_marmoratus.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Triturus_cristatus_%28white_background%29.jpg/640px-Triturus_cristatus.jpg"],
+ Axolotl:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ambystoma_mexicanum_1.jpg/640px-Ambystoma_mexicanum_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Axolotl-2193331_1280.webp/640px-Axolotl-2193331.webp.png"],
+ Poison_Dart_Frog:["https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/ManuPoisonFrog.jpg/640px-ManuPoisonFrog.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Poison_dart_frog_panama.jpg/640px-Poison_dart_frog_panama.jpg"],
+ Penguin:["https://upload.wikimedia.org/wikipedia/commons/0/07/Emperor_Penguin_Manchot_empereur.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Pygoscelis_antarcticus_1.jpg/640px-Pygoscelis_antarcticus_1.jpg"],
+ Zebra:["https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Zebra_in_South_Africa.jpg/640px-Zebra_in_South_Africa.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Burchell%27s_Zebra_%28Equus_quagga_burchellii%29_..._%2850101630537%29.jpg/640px-Burchell%27s_Zebra.jpg"]
+});
+const animalSounds={
+ Lion:"https://upload.wikimedia.org/wikipedia/commons/8/88/Lion_Mad.ogg",
+ Dog:"https://upload.wikimedia.org/wikipedia/commons/1/15/Dog_bark.ogg",
+ Cat:"https://upload.wikimedia.org/wikipedia/commons/6/69/Housecat_Meowing_2.ogg",
+ Cow:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Cowbell_Moo.ogg",
+ Elephant:"https://upload.wikimedia.org/wikipedia/commons/4/40/Elephant_voice_-_trumpeting.ogg",
+ Dolphin:"https://upload.wikimedia.org/wikipedia/commons/5/5a/161691_felixblume_dolphin-screaming-underwater-in-caribbean-sea-mexico.wav",
+ Bear:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Bear_growl.ogg",
+ Monkey:"https://upload.wikimedia.org/wikipedia/commons/1/16/Brown_woolly_monkey_alarm_call.wav",
+ Chimpanzee:"https://upload.wikimedia.org/wikipedia/commons/5/56/Pant-hoot_call_made_by_a_male_chimpanzee.ogg",
+ Gorilla:"https://upload.wikimedia.org/wikipedia/commons/3/34/En-us-gorilla.ogg",
+ Frog:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Single_Frog_Croak.oga",
+ Crocodile:"https://upload.wikimedia.org/wikipedia/commons/9/99/Size-does-matter-crocodile-mothers-react-more-to-the-voice-of-smaller-offspring-srep15547-s2.oga",
+ Penguin:"https://upload.wikimedia.org/wikipedia/commons/6/6c/Penguin_sound.ogg",
+ Zebra:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Zebra_neigh.ogg"
+};
+
+/* ---------- Elements ---------- */
+const grid = document.getElementById('grid');
+const scoreEl = document.getElementById('score');
+const setsTotalEl = document.getElementById('setsTotal');
+const timerEl = document.getElementById('timer');
+const barFill = document.getElementById('barFill');
+const helpBtn = document.getElementById('helpBtn');
+const instr = document.getElementById('instructions');
+const closeInstr = document.getElementById('closeInstr');
+const confettiCanvas = document.getElementById('confettiCanvas');
+const celebration = document.getElementById('celebration');
+const finalScore = document.getElementById('finalScore');
+const completionTime = document.getElementById('completionTime');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const bottomBar = document.getElementById('bottom-bar');
+const hud = document.getElementById('hud');
+const streakCounter = document.getElementById('streakCounter');
+const streakEl = document.getElementById('streak');
+const finalStreak = document.getElementById('finalStreak');
+const startScreen = document.getElementById('startScreen');
+const startGameBtn = document.getElementById('startGameBtn');
+const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+const difficultyDescription = document.getElementById('difficultyDescription');
+
+/* ---------- Modes ---------- */
+const MODES = {
+  Easy: { 
+    matchSize: 2, 
+    totalSets: 6, 
+    reshuffleOnMismatch: false, 
+    peekMs: 5000, 
+    label: 'Easy',
+    initialReveal: true
+  },
+  Hard: { 
+    matchSize: 2, 
+    totalSets: 9, 
+    reshuffleOnMismatch: false, 
+    peekMs: 1800, 
+    label: 'Hard',
+    initialReveal: false
+  }
+};
+let mode = MODES.Easy;
+let currentDifficulty = 'easy';
+
+/* ---------- State ---------- */
+let cards = [], selected = [], matches = 0, startTime = 0, elapsedTime = 0, timerInterval = null;
+let ACtx = null, muted = (localStorage.getItem('zen_mute')??'1')==='1', audioPrimed = false;
+const palettes = { Mammals: ['#E7C55B','#FFE8A3','#F7DB77'], Reptiles: ['#56E1A3','#B7F6D8','#42C987'], Amphibians: ['#78BEFF','#BFE2FF','#3A8DEC'] };
+let ctx, bursts = [];
+let currentAnimalAudio = null;
+let currentStreak = 0, maxStreak = 0, bonusItems = [];
+let gameStarted = false;
+
+/* ---------- Utils ---------- */
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function ensureAudioCtx(){ if(!ACtx) ACtx=new(window.AudioContext||window.webkitAudioContext)(); if(ACtx.state==='suspended') ACtx.resume?.(); }
+function primeAudioOnce(){ if(audioPrimed) return; ensureAudioCtx(); try{ const o=ACtx.createOscillator(), g=ACtx.createGain(); o.frequency.value=880; g.gain.value=0.02; o.connect(g).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),120);}catch{} audioPrimed=true; }
+function tone(f=880,ms=100,g=0.03){ if(muted) return; ensureAudioCtx(); const o=ACtx.createOscillator(), a=ACtx.createGain(); o.type='sine'; o.frequency.value=f; a.gain.value=g; o.connect(a).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),ms); }
+function stopAnimalSound(){ if(currentAnimalAudio){ currentAnimalAudio.pause(); currentAnimalAudio.currentTime=0; currentAnimalAudio=null; } }
+function playAnimalSound(name){ stopAnimalSound(); if(muted) return; primeAudioOnce(); const url=animalSounds[name]; if(url){ const a=new Audio(url); a.crossOrigin="anonymous"; a.volume=.85; currentAnimalAudio=a; a.onended=()=>{ if(currentAnimalAudio===a) currentAnimalAudio=null; }; a.play().catch(()=>{ if(currentAnimalAudio===a) currentAnimalAudio=null; tone(660,120,0.03); }); } else { tone(660,80,0.03); setTimeout(()=>tone(990,80,0.02),90); } }
+function updateMuteUI(){ const btn=document.getElementById('muteBtn'); if(btn) btn.textContent = muted ? '🔇 Sound' : '🔊 Sound'; }
+function sizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; ctx=confettiCanvas.getContext('2d'); }
+sizeCanvas(); addEventListener('resize', sizeCanvas);
+
+/* Confetti */
+function burstConfettiAt(x,y,category){ const colors=palettes[category]||['#fff','#ccc','#aaa']; const N=100, parts=[]; for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2, s=2+Math.random()*4; parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,g:0.08+Math.random()*0.06,life:60+(Math.random()*20|0),color:colors[i%colors.length],size:2+Math.random()*3,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*0.2}); } bursts.push(parts); if(bursts.length===1) requestAnimationFrame(tick); }
+function tick(){ if(!ctx){ requestAnimationFrame(tick); return; } ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); bursts=bursts.filter(parts=>{ for(const p of parts){ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,p.life/80); ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); ctx.restore(); } return parts.some(p=>p.life>0); }); if(bursts.length) requestAnimationFrame(tick); }
+function burstConfettiAtCard(el){ const r=el.getBoundingClientRect(); burstConfettiAt(r.left + r.width / 2, r.top + r.height / 2, 'Mammals'); }
+function megaConfetti(){ for(let i=0;i<6;i++){ setTimeout(()=>burstConfettiAt(innerWidth*Math.random(), innerHeight*0.25 + Math.random()*innerHeight*0.5, i%2?'Reptiles':'Amphibians'), i*120); }}
+
+/* Images */
+function setBestImage(imgEl, urls){ imgEl.setAttribute('draggable','false'); let i=0; function next(){ if(i<urls.length){ imgEl.onerror=()=>{ i++; next(); }; imgEl.src=urls[i]; } else { const name=(imgEl.alt||'').replaceAll('_',' '); const svg=encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#263238'/><stop offset='100%' stop-color='#0b1a22'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='54%' text-anchor='middle' font-family='Montserrat, Arial' font-size='24' fill='#fff'>${name}</text></svg>`); imgEl.onerror=null; imgEl.src=`data:image/svg+xml;charset=UTF-8,${svg}`; } } next(); }
+
+/* Animals */
+const gameItems = [
+  {name:"Lion"},{name:"Dog"},{name:"Cat"},{name:"Cow"},
+  {name:"Elephant"},{name:"Dolphin"},{name:"Bear"},
+  {name:"Giraffe"},{name:"Kangaroo"},{name:"Panda"},{name:"Koala"},
+  {name:"Monkey"},{name:"Chimpanzee"},{name:"Gorilla"},
+  {name:"Snake"},{name:"Lizard"},{name:"Turtle"},{name:"Crocodile"},
+  {name:"Chameleon"},{name:"Komodo_Dragon"},{name:"Gecko"},
+  {name:"Frog"},{name:"Toad"},{name:"Salamander"},{name:"Newt"},
+  {name:"Axolotl"},{name:"Poison_Dart_Frog"},
+  {name:"Penguin"},{name:"Zebra"}
+];
+
+/* ---------- Game Logic ---------- */
+let totalSets = mode.totalSets;
+
+function buildCards() {
+  totalSets = mode.totalSets;
+  setsTotalEl.textContent = totalSets;
+
+  const allAnimals = shuffle([...gameItems.map(it => it.name)]);
+  const selectedAnimals = allAnimals.slice(0, totalSets);
+  let cardData = [];
+  selectedAnimals.forEach(animal => { for(let i = 0; i < mode.matchSize; i++) cardData.push({animal}); });
+  shuffle(cardData);
+
+  grid.innerHTML = '';
+  cards = cardData.map((data, index) => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.index = index;
+    el.dataset.animal = data.animal;
+
+    el.addEventListener('pointerup', handleCardTap, {passive:true});
+
+    const front = document.createElement('div'); front.className = 'face front';
+    const back = document.createElement('div');  back.className  = 'face back';
+
+    const img = document.createElement('img'); img.alt = data.animal; img.loading = 'lazy';
+    setBestImage(img, imageCandidates[data.animal] || []);
+    const name = document.createElement('div'); name.className = 'name';
+    name.textContent = data.animal.replaceAll('_',' ');
+
+    back.appendChild(img); back.appendChild(name);
+    el.appendChild(front); el.appendChild(back);
+    grid.appendChild(el);
+
+    return {el, animal: data.animal, flipped: false, matched: false};
+  });
+
+  updateProgress();
+  updateStreak();
+  
+  // Show cards initially for memorization
+  if (mode.initialReveal) {
+    revealAllCards();
+    setTimeout(() => {
+      if (gameStarted) hideAllCards();
+    }, mode.peekMs);
+  } else {
+    if (mode.peekMs > 0) peekAll(mode.peekMs);
+  }
+}
+
+function revealAllCards() {
+  cards.forEach(card => {
+    if (!card.matched && !card.flipped) {
+      flipCard(card);
+    }
+  });
+}
+
+function hideAllCards() {
+  cards.forEach(card => {
+    if (!card.matched && card.flipped) {
+      flipCard(card);
+    }
+  });
+}
+
+function handleCardTap(e) {
+  if (!gameStarted) return;
+  
+  const el = e.currentTarget;
+  const index = el.dataset.index;
+  const card = cards[index];
+  if(card.flipped || card.matched || selected.length >= mode.matchSize) return;
+
+  if(!startTime) startTimer();
+  flipCard(card);
+  selected.push(card);
+  card.el.classList.add('selected');
+  card.el.style.setProperty('--rot','180deg');
+
+  if(selected.length === mode.matchSize) {
+    checkMatch();
+  } else {
+    tone(740,60,0.02);
+    vibrate(10);
+  }
+}
+
+function flipCard(card) { 
+  card.el.classList.toggle('flipped'); 
+  card.flipped = !card.flipped; 
+}
+
+function checkMatch() {
+  const animals = selected.map(c=>c.animal);
+  const allSame = animals.every(a=>a===animals[0]);
+  if(allSame) {
+    matches++;
+    selected.forEach(c => { c.matched = true; c.el.classList.remove('selected'); c.el.classList.add('matched'); burstConfettiAtCard(c.el); });
+    playAnimalSound(animals[0]); vibrate(30); updateProgress();
+    
+    // Streak system
+    currentStreak++;
+    if (currentStreak > maxStreak) maxStreak = currentStreak;
+    updateStreak();
+    
+    // Bonus item chance
+    if (currentStreak >= 3 && Math.random() < 0.4) {
+      createBonusItem();
+    }
+    
+    if(matches === totalSets) finish();
+    selected = [];
+  } else {
+    currentStreak = 0;
+    updateStreak();
+    selected.forEach(c => c.el.classList.add('mismatch'));
+    setTimeout(() => {
+      selected.forEach(c => { if(c.flipped) flipCard(c); c.el.classList.remove('selected','mismatch'); c.el.style.removeProperty('--rot'); });
+      tone(220,120,0.03); vibrate([10,20,10]);
+      selected = [];
+    }, 800);
+  }
+}
+
+function updateProgress() {
+  scoreEl.textContent = matches;
+  const frac = matches / totalSets;
+  document.documentElement.style.setProperty('--p', frac);
+  barFill.style.width = (frac * 100) + '%';
+}
+
+function updateStreak() {
+  streakEl.textContent = currentStreak;
+  if (currentStreak >= 3) {
+    streakCounter.classList.add('hot');
+  } else {
+    streakCounter.classList.remove('hot');
+  }
+}
+
+function startTimer() {
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    elapsedTime = Math.round((Date.now() - startTime) / 1000);
+    timerEl.textContent = `Time: ${elapsedTime}s`;
+  }, 1000);
+}
+function stopTimer(){ clearInterval(timerInterval); }
+
+function finish() {
+  stopTimer();
+  setTimeout(() => {
+    finalScore.textContent = totalSets;
+    completionTime.textContent = `${elapsedTime}s`;
+    finalStreak.textContent = maxStreak;
+    celebration.classList.add('show');
+    megaConfetti();
+  }, 350);
+}
+
+/* Peek at start (for hard mode) */
+function peekAll(ms){
+  const pool = cards.filter(c => !c.matched && !c.flipped);
+  pool.forEach(c => { c.el.classList.add('flipped'); c.flipped = true; });
+  setTimeout(()=>{ pool.forEach(c => { c.el.classList.remove('flipped'); c.flipped = false; }); }, ms);
+}
+
+/* Bonus items */
+function createBonusItem() {
+  const bonus = document.createElement('div');
+  bonus.className = 'bonus-item';
+  bonus.classList.add(Math.random() > 0.5 ? 'coin' : 'star');
+  
+  // Position randomly on screen
+  const x = Math.random() * (window.innerWidth - 40);
+  const y = Math.random() * (window.innerHeight - 40);
+  bonus.style.left = `${x}px`;
+  bonus.style.top = `${y}px`;
+  
+  document.body.appendChild(bonus);
+  bonusItems.push(bonus);
+  
+  // Remove after a while
+  setTimeout(() => {
+    if (bonus.parentNode) {
+      bonus.parentNode.removeChild(bonus);
+      bonusItems = bonusItems.filter(b => b !== bonus);
+    }
+  }, 5000);
+}
+
+/* ---------- Controls ---------- */
+function toggleMute(){
+  muted=!muted; localStorage.setItem('zen_mute', muted?'1':'0');
+  updateMuteUI(); if(muted) stopAnimalSound(); else tone(880,100,0.03);
+}
+
+function resetGame(){
+  stopTimer(); startTime=0; elapsedTime=0; timerEl.textContent = 'Time: 0s';
+  matches=0; currentStreak=0; maxStreak=0; updateProgress(); updateStreak(); 
+  celebration.classList.remove('show'); bursts.length=0; selected=[];
+  
+  // Clear bonus items
+  bonusItems.forEach(b => { if(b.parentNode) b.parentNode.removeChild(b); });
+  bonusItems = [];
+  
+  buildCards();
+}
+
+function startGame() {
+  gameStarted = true;
+  startScreen.style.display = 'none';
+  
+  if (mode.initialReveal) {
+    // For easy mode, show cards for memorization, then hide them
+    revealAllCards();
+    setTimeout(() => {
+      hideAllCards();
+      startTimer();
+    }, mode.peekMs);
+  } else {
+    // For hard mode, start immediately with a quick peek
+    startTimer();
+  }
+}
+
+function setDifficulty(difficulty) {
+  currentDifficulty = difficulty;
+  mode = difficulty === 'easy' ? MODES.Easy : MODES.Hard;
+  
+  // Update UI
+  difficultyBtns.forEach(btn => {
+    if (btn.dataset.difficulty === difficulty) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // Update description
+  if (difficulty === 'easy') {
+    difficultyDescription.textContent = "Cards will be shown face-up for 5 seconds to help you memorize their positions before the game begins.";
+  } else {
+    difficultyDescription.textContent = "Cards will be briefly shown for 1.8 seconds before flipping back. Test your memory skills!";
+  }
+}
+
+/* Bottom bar */
+function buildBottomBar(){
+  bottomBar.innerHTML = '';
+  const buttons = [
+    {id:'muteBtn', label: muted ? '🔇 Sound' : '🔊 Sound', onClick: toggleMute},
+    {id:'modeBtn', label: '🎯 Difficulty', onClick: () => { 
+      startScreen.style.display = 'flex'; 
+      gameStarted = false;
+      stopTimer();
+    }},
+    {id:'resetBtn', label:'↺ Reset', onClick: resetGame},
+    {id:'helpBottom', label:'❓ Help', onClick: ()=> { instr.style.display='block'; setTimeout(setHudOffset,0);} }
+  ];
+  buttons.forEach(b=>{
+    const btn = document.createElement('button');
+    btn.id=b.id; btn.className='bar-btn'; btn.type='button'; btn.textContent=b.label;
+    btn.addEventListener('click', b.onClick, {passive:true});
+    bottomBar.appendChild(btn);
+  });
+}
+
+/* Layout: keep grid below HUD */
+function setHudOffset(){ const h = Math.ceil(hud.getBoundingClientRect().height) + 8; document.documentElement.style.setProperty('--hud-offset', h + 'px'); }
+
+/* Boot */
+function boot(){
+  // Help dialog
+  helpBtn.addEventListener('click', () => { instr.style.display='block'; setTimeout(setHudOffset,0); }, {passive:true});
+  closeInstr.addEventListener('click', () => { instr.style.display='none'; setTimeout(setHudOffset,0); }, {passive:true});
+  window.addEventListener('pointerdown', (e)=>{ if (instr.style.display==='block' && !instr.contains(e.target) && e.target!==helpBtn) { instr.style.display='none'; setHudOffset(); }},{passive:true});
+
+  // iOS audio prime
+  window.addEventListener('pointerdown', primeAudioOnce, {once:true, passive:true});
+
+  // Difficulty selection
+  difficultyBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setDifficulty(btn.dataset.difficulty);
+    });
+  });
+
+  // Start game button
+  startGameBtn.addEventListener('click', startGame);
+
+  // Play again button
+  playAgainBtn.addEventListener('click', () => {
+    celebration.classList.remove('show');
+    resetGame();
+  });
+
+  buildBottomBar(); 
+  updateMuteUI(); 
+  buildCards();
+
+  addEventListener('resize', setHudOffset);
+  addEventListener('orientationchange', setHudOffset);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(setHudOffset); }
+  setHudOffset();
+
+  addEventListener('resize', sizeCanvas);
+  const ro = new ResizeObserver(sizeCanvas); ro.observe(document.body);
+}
+boot();
+
+/* Haptics */
+function vibrate(v){ if(navigator.vibrate) try{ navigator.vibrate(v); }catch{} }
+</script>
+</body>
+</html>

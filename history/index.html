@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZenSeek | World & U.S. History</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#9fb1bf;
+ --shell:#0a141a;
+ --success:#4CAF50; --danger:#F44336;
+ --hud-h:46px; /* header */
+ --stats-h:28px; /* stats strip */
+ --legal-h:54px; /* credit/disclaimer bar */
+}
+
+/* Historical, parchment-like background */
+html,body{height:100%}
+body{
+ margin:0;
+ color:var(--text);
+ font-family:'Montserrat','Inter',sans-serif;
+ overflow:hidden; /* one screen */
+ background:
+ radial-gradient(1200px 800px at 80% 10%, rgba(139,69,19,.08), transparent 55%),
+ radial-gradient(900px 600px at 10% 80%, rgba(160,82,45,.08), transparent 55%),
+ linear-gradient(135deg, #2c1810 0%, #3a2418 40%, #4a3424 100%);
+}
+
+/* Header */
+header{
+ height:var(--hud-h); display:flex; align-items:center; justify-content:space-between;
+ padding:0 .8rem; border-bottom:1px solid rgba(255,255,255,.1);
+ background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
+ backdrop-filter:blur(8px);
+}
+.brand{color:var(--zen-gold); text-decoration:none; font-weight:700; font-size:1.2rem; font-family:'Playfair Display',serif;}
+.hint{font-size:.8rem; color:#d6e8f1}
+
+/* Screen layout: stats + reel + legal bar (no page scroll) */
+.screen{
+ height:calc(100dvh - var(--hud-h));
+ display:grid; grid-template-rows: var(--stats-h) 1fr var(--legal-h);
+ padding:.6rem; gap:.4rem;
+}
+
+/* Stats */
+.stats{height:var(--stats-h); display:flex; justify-content:space-between; align-items:center; color:#d6e8f1; font-size:.86rem; font-weight:600}
+
+/* Reel centers the card; card auto-sizes */
+.reel{
+ position:relative; height:100%;
+ display:flex; align-items:center; justify-content:center; padding:.25rem;
+}
+
+/* CARD: auto-size with max-height; brighter category tints */
+.card{
+ position:relative; width:min(540px, 62vw);
+ max-height:calc(100% - .8rem);
+ background:#fff; color:var(--ink); border-radius:16px;
+ border:2px solid rgba(212,175,55,.28);
+ box-shadow:0 14px 32px rgba(0,0,0,.38),0 8px 16px rgba(0,0,0,.24);
+ padding:.9rem 1rem .8rem;
+ display: flex;
+ flex-direction: column;
+ transition:transform .45s ease, opacity .45s ease;
+ cursor:grab;
+ overflow-y: auto; /* Added to handle content overflow */
+}
+
+.card:active {
+ cursor:grabbing;
+}
+
+/* category gradients */
+.card.ancient{background:linear-gradient(135deg, rgba(205,127,50,.15), #fff)}
+.card.medieval{background:linear-gradient(135deg, rgba(139,69,19,.15), #fff)}
+.card.modern{background:linear-gradient(135deg, rgba(165,42,42,.15), #fff)}
+.card.ushistory{background:linear-gradient(135deg, rgba(30,144,255,.15), #fff)}
+.card.revolution{background:linear-gradient(135deg, rgba(220,20,60,.15), #fff)}
+
+.top{display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.25rem}
+.badge{
+ display:inline-flex; align-items:center; gap:.45rem;
+ background:#00000010; color:#1a1a1a; border-radius:999px; padding:.2rem .65rem; font-size:.82rem; font-weight:800;
+ border:1px solid rgba(0,0,0,.06);
+}
+.badge i{font-style:normal; font-size:1.35rem; line-height:1}
+
+.back{background:var(--zen-gold); color:#fff; width:32px; height:32px; border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .2s, background-color .2s;}
+.back:hover{transform:scale(1.05); background:#c19d2c;}
+.back:active{transform:scale(0.95);}
+
+/* BIG Emoji banner */
+.emoji-row{
+ font-size:2.1rem; line-height:1; margin:.15rem 0 .4rem; letter-spacing:.1rem;
+ filter:saturate(1.1);
+ text-align:center;
+}
+@media (min-width:420px){ .emoji-row{font-size:2.6rem} }
+@media (min-width:740px){ .emoji-row{font-size:3rem} }
+
+.concept{font-family:'Playfair Display',serif; font-weight:800; font-size:1.8rem; line-height:1.25; color:#101418; margin:.1rem 0 .35rem; text-align:center;}
+
+.date{
+ text-align:center;
+ font-weight:700;
+ color:#8B4513;
+ margin-bottom:.5rem;
+ font-size:1.1rem;
+}
+
+.definition{font-size:1.05rem; line-height:1.4; margin-bottom:.8rem;}
+
+.example{font-size:.98rem; line-height:1.4; margin-bottom:1rem; padding:.6rem; background:rgba(212,175,55,.08); border-radius:8px; border-left:3px solid var(--zen-gold);}
+
+.details{margin-top:.5rem; display:grid; gap:.25rem; font-size:.95rem}
+.detail{display:flex; gap:.45rem; align-items:flex-start}
+.detail .label{min-width:5rem; height:1.3rem; display:inline-flex; align-items:center; justify-content:flex-start; font-weight:700; font-size:.78rem; color:#4b3d08}
+.detail .content{flex:1; line-height:1.28}
+
+.significance{font-size:.9rem; color:#666; font-style:italic; margin-top:.5rem; padding-top:.5rem; border-top:1px dashed #ddd;}
+
+/* Actions */
+.actions{display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-top:.5rem}
+.btn{
+ width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; font-size:1.28rem;
+ display:flex; align-items:center; justify-content:center; transition:transform .15s, box-shadow .15s;
+ box-shadow:0 3px 0 rgba(0,0,0,.2), 0 6px 10px rgba(0,0,0,.3);
+}
+.btn:hover{transform:scale(1.05);}
+.btn:active{transform:translateY(2px) scale(0.98); box-shadow:0 1px 0 rgba(0,0,0,.2), 0 2px 4px rgba(0,0,0,.3);}
+.dislike{background:var(--danger); color:#fff}
+.like{background:var(--success); color:#fff}
+
+/* swipe indicators */
+.ind{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; opacity:0; transition:.22s; box-shadow:0 4px 12px rgba(0,0,0,.3); color:#fff; pointer-events:none}
+.ind.left{left:-56px; background:var(--danger)}
+.ind.right{right:-56px; background:var(--success)}
+.show{opacity:1}
+
+/* saved bubble & overlay */
+.saved-bubble{
+ position:fixed; right:.7rem; bottom:calc(.7rem + var(--legal-h)); 
+ width:56px; height:56px; background:var(--zen-gold); border-radius:50%; 
+ display:flex; align-items:center; justify-content:center; cursor:pointer; 
+ box-shadow:0 4px 0 rgba(0,0,0,.2), 0 6px 12px rgba(0,0,0,.3);
+ transition:transform .2s, box-shadow .2s;
+ z-index:10;
+}
+.saved-bubble:hover{transform:scale(1.05);}
+.saved-bubble:active{transform:translateY(2px) scale(0.98); box-shadow:0 2px 0 rgba(0,0,0,.2), 0 3px 6px rgba(0,0,0,.3);}
+.saved-count{position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800}
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.68); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.25s; z-index:20}
+.overlay.active{opacity:1; pointer-events:auto}
+.panel{width:min(680px,96vw); height:min(82vh,560px); border-radius:14px; background:#fff; color:#0b1a22; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.45)}
+.panel .head{background:var(--zen-gold); color:#141006; padding:.6rem .75rem; display:flex; align-items:center; justify-content:space-between}
+.panel .list{padding:.6rem .75rem; overflow:auto; flex:1; display:grid; gap:.55rem}
+.item{border:1px solid rgba(212,175,55,.18); border-radius:10px; padding:.55rem .65rem; background:#ffffffee}
+.small{padding:.35rem .6rem; border:none; border-radius:999px; background:var(--zen-gold); color:#141006; font-weight:700; cursor:pointer; transition:transform .2s, background-color .2s;}
+.small:hover{transform:scale(1.03); background:#c19d2c;}
+.small:active{transform:scale(0.98);}
+.close{background:transparent; border:none; font-size:1.4rem; width:34px; height:34px; border-radius:50%; cursor:pointer; transition:background-color .2s;}
+.close:hover{background:rgba(0,0,0,.1);}
+
+/* Legal/Credit fixed bar (inside viewport, always visible) */
+.legal{
+ height:var(--legal-h);
+ display:flex; align-items:center; justify-content:center;
+ padding:0 .75rem; text-align:center; gap:.5rem;
+ color:#e9f6ff; font-size:.78rem; line-height:1.2;
+ background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.25));
+ border-top:1px solid rgba(255,255,255,.12);
+}
+.legal b{color:#ffe083}
+
+/* animations */
+.slide-in{animation:slide .22s ease-out}
+@keyframes slide{from{transform:translateY(10px); opacity:.0} to{transform:translateY(0); opacity:1}}
+.swipe-right{transform:translateX(130%) rotate(12deg); opacity:0}
+.swipe-left{transform:translateX(-130%) rotate(-12deg); opacity:0}
+
+/* Add haptic feedback for mobile */
+@supports (-webkit-touch-callout: none) {
+ .btn:active, .saved-bubble:active {
+ -webkit-tap-highlight-color: transparent;
+ }
+}
+
+/* Toast notification for save/share actions */
+.toast {
+ position: fixed;
+ bottom: 100px;
+ left: 50%;
+ transform: translateX(-50%) translateY(100px);
+ background: rgba(0, 0, 0, 0.8);
+ color: white;
+ padding: 12px 20px;
+ border-radius: 24px;
+ font-weight: 600;
+ z-index: 30;
+ opacity: 0;
+ transition: transform 0.3s, opacity 0.3s;
+ backdrop-filter: blur(10px);
+ box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.toast.show {
+ transform: translateX(-50%) translateY(0);
+ opacity: 1;
+}
+
+/* small screens */
+@media (max-width:480px){
+ .concept{font-size:1.5rem}
+ .definition{font-size:1rem}
+ .details{font-size:.92rem}
+ .ind.left{left:-50px}.ind.right{right:-50px}
+ .card{width:min(540px, 85vw);}
+ .emoji-row{font-size:2.2rem;}
+ .detail .label{min-width:4.5rem;}
+}
+
+/* Medium screens */
+@media (max-width: 768px) and (min-width: 481px) {
+ .card{width:min(540px, 75vw);}
+}
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+<header>
+ <a href="/" class="brand">ZenSeek</a>
+ <div class="hint">Swipe save • skip</div>
+</header>
+
+<main class="screen">
+ <div class="stats">
+ <div>Events seen: <span id="seen">0</span></div>
+ <div>Saved: <span id="saved">0</span></div>
+ </div>
+
+ <section class="reel" id="reel"></section>
+
+ <!-- Always-visible credit + safe-use disclaimer -->
+ <div class="legal">
+ <span> <b>ZenSeek.org</b> — Understanding our past to navigate our future. For educational purposes.</span>
+ </div>
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- saved bubble -->
+<div class="saved-bubble" id="savedBubble"> <div class="saved-count" id="savedCount">0</div></div>
+
+<!-- saved overlay -->
+<div class="overlay" id="savedOverlay">
+ <div class="panel">
+ <div class="head">
+ <strong style="font-family:'Playfair Display',serif">Your Saved History</strong>
+ <div>
+ <button class="small" id="shareMany">Share All</button>
+ <button class="small" id="clearAll">Clear</button>
+ <button class="close" id="closeOverlay">×</button>
+ </div>
+ </div>
+ <div class="list" id="savedList"></div>
+ </div>
+</div>
+
+<script>
+/* Helper: per-category emoji "banner" */
+const EMOJI_PACK = {
+ ancient:'🏛️📜🕰️', 
+ medieval:'⚔️🏰👑', 
+ modern:'🚀💻🌍',
+ ushistory:'🇺🇸🗽🦅', 
+ revolution:'🔥⚖️🗽'
+};
+
+/* History concepts and events */
+const EVENTS = [
+   {
+    category: "ancient",
+    emojis: "🏛️📜",
+    concept: "The Roman Republic",
+    date: "509 BCE - 27 BCE",
+    definition: "The period of ancient Roman civilization characterized by a republican form of government.",
+    example: "Establishment of the Senate, Punic Wars, reforms of the Gracchi brothers",
+    keyFigures: ["Cincinnatus", "Julius Caesar", "Cicero", "Scipio Africanus"],
+    importance: "Foundation of Western political systems and law",
+    significance: "The Roman Republic established concepts of civic duty, separation of powers, and representative government that would influence Western political thought for millennia."
+  },
+  {
+    category: "ancient",
+    emojis: "🌾🏠",
+    concept: "Neolithic Revolution",
+    date: "c. 10,000–3000 BCE",
+    definition: "Transition from hunter-gatherer bands to agriculture and permanent settlements.",
+    example: "Fertile Crescent farming, Çatalhöyük and Jericho urban sites",
+    keyFigures: ["Early farmers", "Neolithic communities", "Toolmakers", "Weavers"],
+    importance: "Foundational",
+    significance: "Agriculture enabled population growth, social hierarchy, specialization, and the emergence of complex civilizations."
+  },
+  {
+    category: "ancient",
+    emojis: "🌊🧱",
+    concept: "Mesopotamia & Hammurabi’s Code",
+    date: "c. 1754 BCE",
+    definition: "Early urban civilization and one of the earliest surviving law codes.",
+    example: "City-states like Uruk and Babylon; stele inscribed with legal provisions",
+    keyFigures: ["Hammurabi", "Sumerian scribes", "Babylonian judges", "Priest-kings"],
+    importance: "Legal milestone",
+    significance: "The code formalized justice and governance, shaping legal traditions and state authority in later cultures."
+  },
+  {
+    category: "ancient",
+    emojis: "🏺📐",
+    concept: "Ancient Egypt",
+    date: "c. 3100–332 BCE",
+    definition: "One of the longest-lasting civilizations, centered along the Nile with monumental architecture and complex religion.",
+    example: "Construction of the Pyramids of Giza, hieroglyphic writing, Book of the Dead",
+    keyFigures: ["Khufu", "Hatshepsut", "Ramses II", "Cleopatra VII"],
+    importance: "Foundational civilization",
+    significance: "Egypt pioneered state administration, monumental building, and mathematics, influencing Mediterranean and Near Eastern cultures."
+  },
+  {
+    category: "ancient",
+    emojis: "🏛️🗳️",
+    concept: "Classical Athens & Democracy",
+    date: "c. 508–322 BCE",
+    definition: "Athenian experiment in direct citizen rule alongside a flourishing of arts and philosophy.",
+    example: "Assembly voting, Periclean building projects, Socratic debates",
+    keyFigures: ["Pericles", "Socrates", "Plato", "Aristotle"],
+    importance: "Philosophical foundation",
+    significance: "Athenian civic practices and intellectual life shaped Western ideas about citizenship, ethics, and inquiry."
+  },
+  {
+    category: "ancient",
+    emojis: "🦁🛤️",
+    concept: "Achaemenid Persian Empire",
+    date: "550–330 BCE",
+    definition: "A vast multiethnic empire known for efficient administration and infrastructure.",
+    example: "Satrapies (provinces), Royal Road, Cyrus Cylinder tolerance policy",
+    keyFigures: ["Cyrus the Great", "Darius I", "Xerxes I", "Artaxerxes I"],
+    importance: "Empire model",
+    significance: "Persian governance and logistics influenced imperial rule from Rome to the Islamic caliphates."
+  },
+  {
+    category: "ancient",
+    emojis: "⚔️🌍",
+    concept: "Hellenistic Era",
+    date: "323–31 BCE",
+    definition: "Spread and blending of Greek culture with Egypt, Persia, and Central Asia after Alexander’s conquests.",
+    example: "Library of Alexandria, Koine Greek lingua franca, syncretic art",
+    keyFigures: ["Alexander the Great", "Ptolemy I", "Seleucus I", "Antigonus I"],
+    importance: "Cultural synthesis",
+    significance: "Created a shared intellectual world that advanced science and philosophy while linking distant regions."
+  },
+  {
+    category: "ancient",
+    emojis: "🐘🗿",
+    concept: "Maurya & Gupta India",
+    date: "322–185 BCE; 320–550 CE",
+    definition: "Indian empires marked by political unity and cultural flourishing.",
+    example: "Ashoka’s Buddhist edicts; Gupta advances in mathematics and astronomy",
+    keyFigures: ["Chandragupta Maurya", "Ashoka", "Chandragupta II", "Aryabhata"],
+    importance: "Cultural flowering",
+    significance: "These empires spread Buddhism, standardized governance, and produced scientific achievements that traveled across Asia."
+  },
+  {
+    category: "ancient",
+    emojis: "🐉📜",
+    concept: "Qin & Han China",
+    date: "221 BCE – 220 CE",
+    definition: "Unification of China followed by consolidation and expansion under the Han dynasty.",
+    example: "Standardized script and weights; Silk Road trade; civil service beginnings",
+    keyFigures: ["Qin Shi Huang", "Han Wudi", "Sima Qian", "Ban Zhao"],
+    importance: "Foundational",
+    significance: "Established administrative systems and cultural norms that anchored Chinese statecraft for two millennia."
+  },
+  {
+    category: "medieval",
+    emojis: "🧭🪙",
+    concept: "Silk Road Networks",
+    date: "2nd c. BCE – 14th c. CE",
+    definition: "Overland and maritime trade routes linking Eurasia and Africa.",
+    example: "Caravans carrying silk, spices, paper, and Buddhism across continents",
+    keyFigures: ["Merchants", "Caravan leaders", "Kushan rulers", "Zheng He"],
+    importance: "Global connection",
+    significance: "Moved goods, religions, and technologies, creating early globalization and cultural exchange."
+  },
+  {
+    category: "medieval",
+    emojis: "📜⚖️",
+    concept: "Magna Carta",
+    date: "1215",
+    definition: "A charter limiting royal power and affirming legal rights in England.",
+    example: "Barons compel King John at Runnymede; later reissues and interpretations",
+    keyFigures: ["King John", "English barons", "Stephen Langton", "Henry III"],
+    importance: "Legal milestone",
+    significance: "Became a symbol of rule of law and constitutional limits on authority."
+  },
+  {
+    category: "medieval",
+    emojis: "⛪⚔️",
+    concept: "The Crusades",
+    date: "1096–1291",
+    definition: "A series of religiously framed conflicts between European and Middle Eastern powers.",
+    example: "Capture of Jerusalem (1099), Saladin’s recapture (1187), later crusades",
+    keyFigures: ["Pope Urban II", "Saladin", "Richard I", "Baldwin IV"],
+    importance: "Religious conflict",
+    significance: "Deepened interregional contact and rivalry, influencing trade, technology transfer, and memory."
+  },
+  {
+    category: "medieval",
+    emojis: "🦠🕯️",
+    concept: "Black Death",
+    date: "1347–1351",
+    definition: "A bubonic plague pandemic that decimated populations across Eurasia.",
+    example: "Mass mortality, labor shortages, religious movements, social upheaval",
+    keyFigures: ["Healers", "Clergy", "Survivor communities", "Local leaders"],
+    importance: "Demographic catastrophe",
+    significance: "Transformed economies and social relations, undermining feudal structures and accelerating change."
+  },
+  {
+    category: "medieval",
+    emojis: "🖨️📚",
+    concept: "Printing Press",
+    date: "c. 1450",
+    definition: "Movable-type printing enabled mass production of texts.",
+    example: "Gutenberg Bible, rapid spread of pamphlets and scientific works",
+    keyFigures: ["Johannes Gutenberg", "Early printers", "Humanist scholars", "Reformers"],
+    importance: "Information revolution",
+    significance: "Democratized knowledge, boosted literacy, and fueled religious and scientific movements."
+  },
+  {
+    category: "medieval",
+    emojis: "🎨👨‍🔬",
+    concept: "Renaissance",
+    date: "14th–17th centuries",
+    definition: "A cultural and intellectual revival in Europe bridging medieval and modern eras.",
+    example: "Art of Leonardo and Michelangelo; humanist scholarship; new realism",
+    keyFigures: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Petrarch"],
+    importance: "Cultural rebirth",
+    significance: "Recentered human potential and classical learning, paving the way for scientific inquiry and exploration."
+  },
+  {
+    category: "medieval",
+    emojis: "⛵🌎",
+    concept: "Age of Exploration",
+    date: "15th–17th centuries",
+    definition: "European maritime expansion seeking trade routes, wealth, and knowledge.",
+    example: "Columbus’s voyages, da Gama to India, Magellan’s circumnavigation",
+    keyFigures: ["Christopher Columbus", "Vasco da Gama", "Ferdinand Magellan", "Zheng He"],
+    importance: "Global connection",
+    significance: "Linked hemispheres, enabling exchange and empire while devastating many Indigenous societies."
+  },
+  {
+    category: "medieval",
+    emojis: "✝️📜",
+    concept: "Protestant Reformation",
+    date: "1517–1648",
+    definition: "Religious reform movement challenging Catholic authority in Europe.",
+    example: "Luther’s 95 Theses, Calvinism, Wars of Religion, Peace of Westphalia",
+    keyFigures: ["Martin Luther", "John Calvin", "Henry VIII", "Charles V"],
+    importance: "Religious upheaval",
+    significance: "Redrew Europe’s confessional map and advanced ideas of conscience, literacy, and governance."
+  },
+  {
+    category: "modern",
+    emojis: "🔭🍎",
+    concept: "Scientific Revolution",
+    date: "16th–17th centuries",
+    definition: "A transformation in understanding nature through observation and mathematics.",
+    example: "Heliocentrism, Galileo’s experiments, Newton’s Principia",
+    keyFigures: ["Copernicus", "Galileo Galilei", "Isaac Newton", "Johannes Kepler"],
+    importance: "Scientific breakthrough",
+    significance: "Established methods that powered modern science, technology, and industry."
+  },
+  {
+    category: "modern",
+    emojis: "🌽🧲",
+    concept: "Columbian Exchange",
+    date: "1492–c. 1700",
+    definition: "Transatlantic movement of plants, animals, people, and diseases after 1492.",
+    example: "Potatoes and maize to Europe; horses to the Americas; smallpox epidemics",
+    keyFigures: ["Indigenous leaders", "European colonizers", "Enslaved Africans", "Navigators"],
+    importance: "Globalization catalyst",
+    significance: "Reshaped diets, ecologies, and populations on a planetary scale."
+  },
+  {
+    category: "revolution",
+    emojis: "📜🗽",
+    concept: "American Revolution",
+    date: "1775–1783",
+    definition: "War of independence by the thirteen colonies against British rule.",
+    example: "Declaration of Independence (1776), Saratoga (1777), Yorktown (1781)",
+    keyFigures: ["George Washington", "Thomas Jefferson", "Benjamin Franklin", "King George III"],
+    importance: "Foundational",
+    significance: "Created a democratic republic and inspired constitutional movements worldwide."
+  },
+  {
+    category: "revolution",
+    emojis: "⚔️🎌",
+    concept: "French Revolution",
+    date: "1789–1799",
+    definition: "Radical social and political upheaval in France ending absolute monarchy.",
+    example: "Storming of the Bastille, Reign of Terror, rise of Napoleon",
+    keyFigures: ["Maximilien Robespierre", "Napoleon Bonaparte", "Louis XVI", "Olympe de Gouges"],
+    importance: "Revolutionary model",
+    significance: "Spread Enlightenment ideals and nationalism, reshaping European politics."
+  },
+  {
+    category: "revolution",
+    emojis: "🗡️🇭🇹",
+    concept: "Haitian Revolution",
+    date: "1791–1804",
+    definition: "Successful enslaved-led revolution that founded the first Black republic.",
+    example: "Defeat of French forces; abolition of slavery; independence of Haiti",
+    keyFigures: ["Toussaint Louverture", "Jean-Jacques Dessalines", "Henri Christophe", "Charles Leclerc"],
+    importance: "Revolutionary milestone",
+    significance: "Challenged slavery and colonialism, influencing abolitionist movements across the Atlantic."
+  },
+  {
+    category: "modern",
+    emojis: "🏭🚂",
+    concept: "Industrial Revolution",
+    date: "c. 1760–1840",
+    definition: "Shift from hand production to mechanized manufacturing, beginning in Britain.",
+    example: "Steam engines, spinning jenny, railways, factory system",
+    keyFigures: ["James Watt", "Richard Arkwright", "George Stephenson", "Isambard K. Brunel"],
+    importance: "Economic transformation",
+    significance: "Reorganized labor and economies, accelerated urbanization, and altered the environment."
+  },
+  {
+    category: "modern",
+    emojis: "🧩🇮🇹",
+    concept: "Unification of Italy",
+    date: "1861–1870",
+    definition: "Consolidation of Italian states into a single kingdom.",
+    example: "Garibaldi’s Red Shirts, Cavour’s diplomacy, annexation of Rome",
+    keyFigures: ["Giuseppe Garibaldi", "Count Cavour", "Victor Emmanuel II", "Giuseppe Mazzini"],
+    importance: "State formation",
+    significance: "Shifted European power balances and fueled nationalist movements."
+  },
+  {
+    category: "modern",
+    emojis: "🛡️🦅",
+    concept: "Unification of Germany",
+    date: "1871",
+    definition: "Prussian-led creation of the German Empire after wars with Denmark, Austria, and France.",
+    example: "Proclamation at Versailles after the Franco-Prussian War",
+    keyFigures: ["Otto von Bismarck", "Wilhelm I", "Helmuth von Moltke", "Napoleon III"],
+    importance: "State formation",
+    significance: "Produced a continental power central to European diplomacy and future conflicts."
+  },
+  {
+    category: "modern",
+    emojis: "🗾⚙️",
+    concept: "Meiji Restoration",
+    date: "1868–1912",
+    definition: "Rapid modernization and centralization of Japan under imperial rule.",
+    example: "Abolition of samurai privileges, railways, compulsory education",
+    keyFigures: ["Emperor Meiji", "Ito Hirobumi", "Okubo Toshimichi", "Saigō Takamori"],
+    importance: "Modernization",
+    significance: "Transformed Japan into an industrial, military, and educational power."
+  },
+  {
+    category: "modern",
+    emojis: "🌍📏",
+    concept: "Scramble for Africa",
+    date: "1881–1914",
+    definition: "Rapid European colonization and partition of African territories.",
+    example: "Berlin Conference (1884–85), artificial borders, concessionary rule",
+    keyFigures: ["Leopold II", "Cecil Rhodes", "African leaders", "European diplomats"],
+    importance: "Colonial expansion",
+    significance: "Reshaped Africa’s political map with enduring economic and social consequences."
+  },
+  {
+    category: "modern",
+    emojis: "💣🌐",
+    concept: "World War I",
+    date: "1914–1918",
+    definition: "Global conflict fueled by alliances, nationalism, and imperial rivalry.",
+    example: "Trench warfare, tanks and gas, Treaty of Versailles",
+    keyFigures: ["Woodrow Wilson", "Kaiser Wilhelm II", "Georges Clemenceau", "David Lloyd George"],
+    importance: "Transformative",
+    significance: "Redrew borders and created conditions that led to World War II."
+  },
+  {
+    category: "revolution",
+    emojis: "☭📕",
+    concept: "Russian Revolution",
+    date: "1917",
+    definition: "Overthrow of the Tsarist regime and Bolshevik seizure of power.",
+    example: "February protests, October coup, ensuing civil war",
+    keyFigures: ["Vladimir Lenin", "Leon Trotsky", "Nicholas II", "Alexander Kerensky"],
+    importance: "Political upheaval",
+    significance: "Established the first communist state and reshaped global ideology and geopolitics."
+  },
+  {
+    category: "ushistory",
+    emojis: "📉🥣",
+    concept: "Great Depression",
+    date: "1929–1939",
+    definition: "Severe worldwide economic downturn following the U.S. stock market crash.",
+    example: "Bank failures, Dust Bowl, New Deal programs, mass unemployment",
+    keyFigures: ["Franklin D. Roosevelt", "Herbert Hoover", "John Maynard Keynes", "Eleanor Roosevelt"],
+    importance: "Economic crisis",
+    significance: "Expanded government roles and reformed financial systems, influencing policy for decades."
+  },
+  {
+    category: "modern",
+    emojis: "🌏⚔️",
+    concept: "World War II",
+    date: "1939–1945",
+    definition: "The deadliest conflict in human history between the Axis and Allied powers.",
+    example: "Holocaust, D-Day invasion, Hiroshima and Nagasaki bombings",
+    keyFigures: ["Winston Churchill", "Franklin D. Roosevelt", "Adolf Hitler", "Joseph Stalin"],
+    importance: "Transformative",
+    significance: "Led to the United Nations, decolonization, and the Cold War while accelerating technology."
+  },
+  {
+    category: "modern",
+    emojis: "❄️🚀",
+    concept: "Cold War",
+    date: "1947–1991",
+    definition: "Geopolitical tension between the U.S. and the USSR characterized by proxy wars and nuclear rivalry.",
+    example: "Berlin Blockade, Cuban Missile Crisis, Space Race, Vietnam War",
+    keyFigures: ["Harry Truman", "Joseph Stalin", "John F. Kennedy", "Mikhail Gorbachev"],
+    importance: "Global defining",
+    significance: "Structured international relations for decades and spurred advances in science and technology."
+  },
+  {
+    category: "ushistory",
+    emojis: "🚌🗳️",
+    concept: "Civil Rights Movement (U.S.)",
+    date: "1954–1968",
+    definition: "Struggle to end legalized racial discrimination and secure equal rights for African Americans.",
+    example: "Montgomery Bus Boycott, March on Washington, Selma to Montgomery marches",
+    keyFigures: ["Martin Luther King Jr.", "Rosa Parks", "Malcolm X", "John Lewis"],
+    importance: "Social transformation",
+    significance: "Produced landmark laws like the Civil Rights Act and Voting Rights Act and inspired other rights movements."
+  },
+  {
+    category: "modern",
+    emojis: "🧱🎉",
+    concept: "Fall of the Berlin Wall",
+    date: "1989",
+    definition: "Opening of the barrier separating East and West Berlin.",
+    example: "Mass demonstrations, border crossings, German reunification (1990)",
+    keyFigures: ["East German citizens", "Mikhail Gorbachev", "Helmut Kohl", "Günter Schabowski"],
+    importance: "World-changing",
+    significance: "Symbolized the end of the Cold War and the division of Europe."
+  },
+  {
+    category: "modern",
+    emojis: "🌍🤝",
+    concept: "European Union Formation",
+    date: "1957–1992",
+    definition: "Progressive economic and political integration among European states.",
+    example: "Treaty of Rome (1957), Maastricht Treaty (1992), single market",
+    keyFigures: ["Jean Monnet", "Robert Schuman", "Konrad Adenauer", "Jacques Delors"],
+    importance: "Regional integration",
+    significance: "Promoted peace, mobility, and economic cooperation across Europe."
+  },
+  {
+    category: "modern",
+    emojis: "🌍🦠",
+    concept: "COVID-19 Pandemic",
+    date: "2019–2023",
+    definition: "Global outbreak of a novel coronavirus causing widespread illness and disruption.",
+    example: "Lockdowns, rapid vaccine development, remote work and schooling",
+    keyFigures: ["Healthcare workers", "Public health leaders", "Researchers", "Community organizers"],
+    importance: "Global defining",
+    significance: "Exposed global interdependence and accelerated biomedical and digital transformations."
+  }
+ 
+];
+
+/* STATE */
+let seen = +localStorage.getItem('historySeen') || 0;
+let saved = JSON.parse(localStorage.getItem('historySavedEvents')||'[]');
+let seenList = JSON.parse(localStorage.getItem('historySeenList')||'[]');
+let available = [...Array(EVENTS.length).keys()].filter(i=>!seenList.includes(i));
+const reel = document.getElementById('reel');
+const seenEl = document.getElementById('seen');
+const savedEl = document.getElementById('saved');
+const savedBubble = document.getElementById('savedBubble');
+const savedCount = document.getElementById('savedCount');
+const overlay = document.getElementById('savedOverlay');
+const savedListEl = document.getElementById('savedList');
+const closeOverlay = document.getElementById('closeOverlay');
+const shareMany = document.getElementById('shareMany');
+const clearAll = document.getElementById('clearAll');
+const toast = document.getElementById('toast');
+
+function emojiRowFor(cat){ return EMOJI_PACK[cat] || ' '; }
+
+function pickNext(){
+ if(available.length===0){
+ available = [...Array(EVENTS.length).keys()];
+ if(seenList.length > EVENTS.length*0.7){ seenList = seenList.slice(-Math.floor(EVENTS.length*0.3)); }
+ localStorage.setItem('historySeenList', JSON.stringify(seenList));
+ }
+ const r = Math.floor(Math.random()*available.length);
+ const idx = available[r];
+ available.splice(r,1);
+ if(!seenList.includes(idx)){ seenList.push(idx); localStorage.setItem('historySeenList', JSON.stringify(seenList)); }
+ return idx;
+}
+
+function updateHUD(){
+ seenEl.textContent = seen;
+ savedEl.textContent = saved.length;
+ savedCount.textContent = saved.length;
+ // Show/hide saved bubble based on count
+ savedBubble.style.display = saved.length > 0 ? 'flex' : 'none';
+}
+
+function renderCard(i){
+ const e = EVENTS[i];
+ const card = document.createElement('article');
+ card.className = `card ${e.category} slide-in`;
+ card.innerHTML = `
+ <div class="top">
+ <span class="badge"><i>${e.category === 'ancient' ? '🏛️' : e.category === 'medieval' ? '⚔️' : e.category === 'modern' ? '🚀' : e.category === 'ushistory' ? '🇺🇸' : '⚖️'}</i> ${e.category}</span>
+ <button class="back" id="backBtn" title="Back" ${history.length === 0 ? 'style="visibility:hidden"' : ''}>↶</button>
+ </div>
+ <div class="emoji-row">${e.emojis}</div>
+ <div class="concept">${e.concept}</div>
+ <div class="date">${e.date}</div>
+ <div class="definition"><strong>Definition:</strong> ${e.definition}</div>
+ <div class="example"><strong>Key Events:</strong> ${e.example}</div>
+ <div class="details">
+ <div class="detail">
+ <div class="label">Key Figures:</div>
+ <div class="content">${e.keyFigures.join(', ')}</div>
+ </div>
+ <div class="detail">
+ <div class="label">Importance:</div>
+ <div class="content">${e.importance}</div>
+ </div>
+ </div>
+ <div class="significance"><strong>Historical Significance:</strong> ${e.significance}</div>
+ <div class="actions">
+ <div style="font-size:.82rem;color:#708896;">Swipe or use buttons</div>
+ <div>
+ <button class="btn dislike" title="Skip">✕</button>
+ <button class="btn like" title="Save">✓</button>
+ </div>
+ </div>
+ <div class="ind left">←</div>
+ <div class="ind right">→</div>
+ `;
+
+ const dislike = card.querySelector('.dislike');
+ const like = card.querySelector('.like');
+ const back = card.querySelector('#backBtn');
+ const leftInd = card.querySelector('.ind.left');
+ const rightInd = card.querySelector('.ind.right');
+
+ dislike.addEventListener('click', ()=> swipe(card, 'left'));
+ like.addEventListener('click', ()=> swipe(card, 'right'));
+ back.addEventListener('click', goBack);
+
+ // swipe gestures
+ let startX=0, curX=0, dragging=false;
+ const start = x=>{ dragging=true; startX=x; };
+ const move = x=>{
+ if(!dragging) return;
+ curX=x; const d=curX-startX;
+ card.style.transform = `translateX(${d}px) rotate(${d*0.06}deg)`;
+ if(d>40){ rightInd.classList.add('show'); leftInd.classList.remove('show'); }
+ else if(d<-40){ leftInd.classList.add('show'); rightInd.classList.remove('show'); }
+ else{ leftInd.classList.remove('show'); rightInd.classList.remove('show'); }
+ };
+ const end = ()=>{
+ if(!dragging) return; dragging=false;
+ const d=curX-startX; leftInd.classList.remove('show'); rightInd.classList.remove('show');
+ if(Math.abs(d)>110){ swipe(card, d>0?'right':'left'); } else { card.style.transform='translateX(0) rotate(0)'; }
+ };
+
+ card.addEventListener('touchstart', e=>start(e.touches[0].clientX), {passive:true});
+ card.addEventListener('touchmove', e=>move(e.touches[0].clientX), {passive:true});
+ card.addEventListener('touchend', end);
+ card.addEventListener('mousedown', e=>{ if(e.button!==0) return; start(e.clientX); card.style.cursor='grabbing'; });
+ document.addEventListener('mousemove', e=>move(e.clientX));
+ document.addEventListener('mouseup', ()=>{ end(); card.style.cursor='grab'; });
+
+ reel.innerHTML = '';
+ reel.appendChild(card);
+ return card;
+}
+
+let history = [];
+let currentIndex = pickNext();
+
+function goBack(){
+ if(history.length===0) return;
+ currentIndex = history.pop();
+ renderCard(currentIndex);
+ updateHUD();
+}
+
+function swipe(card, dir){
+ history.push(currentIndex);
+ card.classList.add(dir==='right'?'swipe-right':'swipe-left');
+ if(dir==='right'){
+ const e = EVENTS[currentIndex];
+ if(!saved.find(s=>s.concept===e.concept)){
+ saved.push(e);
+ localStorage.setItem('historySavedEvents', JSON.stringify(saved));
+ showToast('Event saved! ');
+ }
+ }
+ seen++; localStorage.setItem('historySeen', seen);
+ updateHUD();
+ setTimeout(()=>{
+ currentIndex = pickNext();
+ renderCard(currentIndex);
+ }, 230);
+}
+
+// Toast notification function
+function showToast(message) {
+ toast.textContent = message;
+ toast.classList.add('show');
+ setTimeout(() => {
+ toast.classList.remove('show');
+ }, 2000);
+}
+
+/* Saved overlay */
+function openOverlay(){
+ savedListEl.innerHTML = saved.length
+ ? saved.map((event, i)=>`
+ <div class="item">
+ <div class="t">${event.emojis} — <strong>${event.concept}</strong> <span style="text-transform:uppercase; font-weight:700; color:#6a5a1b">(${event.category})</span></div>
+ <div style="font-size:.92rem;"><b>Date:</b> ${event.date}</div>
+ <div style="font-size:.92rem;"><b>Definition:</b> ${event.definition}</div>
+ <div style="font-size:.92rem;"><b>Key Events:</b> ${event.example}</div>
+ <div style="font-size:.9rem;"><b>Historical Significance:</b> ${event.significance}</div>
+ <div style="display:flex; gap:.4rem; margin-top:.35rem">
+ <button class="small" data-i="${i}" data-act="copy">Copy</button>
+ <button class="small" data-i="${i}" data-act="share">Share</button>
+ <button class="small" data-i="${i}" data-act="remove" style="background:#F44336;color:#fff">Remove</button>
+ </div>
+ </div>`).join('')
+ : `<div style="color:#6b7a8a; font-style:italic">No saved events yet. Swipe to save an event.</div>`;
+ overlay.classList.add('active');
+}
+
+savedBubble.addEventListener('click', openOverlay);
+closeOverlay.addEventListener('click', ()=> overlay.classList.remove('active'));
+clearAll.addEventListener('click', ()=>{
+ if(!confirm('Clear all saved events?')) return;
+ saved = [];
+ localStorage.setItem('historySavedEvents', JSON.stringify(saved));
+ updateHUD(); 
+ openOverlay();
+ showToast('All events cleared ');
+});
+shareMany.addEventListener('click', ()=>{
+ if(saved.length===0) return;
+ let text = 'My ZenSeek History Collection\n\n';
+ saved.forEach((event, k)=>{ 
+ text += `${k+1}. ${event.concept} ${event.emojis}\n Date: ${event.date}\n Definition: ${event.definition}\n Key Events: ${event.example}\n Significance: ${event.significance}\n\n`; 
+ });
+ if(navigator.share){ 
+ navigator.share({title:'My ZenSeek Events', text}).catch(()=>{
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }); 
+ } else { 
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }
+});
+savedListEl.addEventListener('click', (e)=>{
+ const btn = e.target.closest('button'); if(!btn) return;
+ const i = +btn.dataset.i; const act = btn.dataset.act; const event = saved[i];
+ if(act==='remove'){ 
+ saved.splice(i,1); 
+ localStorage.setItem('historySavedEvents', JSON.stringify(saved)); 
+ updateHUD(); 
+ openOverlay();
+ showToast('Event removed ');
+ }
+ if(act==='copy'){ 
+ const text = `${event.concept} ${event.emojis}\nDate: ${event.date}\nDefinition: ${event.definition}\nKey Events: ${event.example}\nSignificance: ${event.significance}`; 
+ navigator.clipboard.writeText(text); 
+ showToast('Copied to clipboard! ');
+ }
+ if(act==='share'){
+ const text = `${event.concept} ${event.emojis}\nDate: ${event.date}\nDefinition: ${event.definition}\nKey Events: ${event.example}\nSignificance: ${event.significance}`;
+ if(navigator.share){ 
+ navigator.share({title:'ZenSeek Event', text}).catch(()=>{
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }); 
+ } else { 
+ navigator.clipboard.writeText(text);
+ showToast('Copied to clipboard! ');
+ }
+ }
+});
+
+// Close overlay when clicking outside
+overlay.addEventListener('click', (e) => {
+ if (e.target === overlay) {
+ overlay.classList.remove('active');
+ }
+});
+
+/* boot */
+updateHUD();
+renderCard(currentIndex);
+</script>
+</body>
+</html>

@@ -659,22 +659,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
   <title>{html.escape(content.get("headline", escaped_topic))} | ZenSeek Daily Briefing</title>
   <meta name="description" content="A useful, source-aware overview of {escaped_topic}.">
   <link rel="canonical" href="/story/daily-{date}-{slugify(topic)}">
-  <style>
-    :root{{color-scheme:dark light;font-family:system-ui,sans-serif}}
-    body{{margin:0;background:#101820;color:#eef6f9}}main{{max-width:980px;margin:auto;padding:32px 20px}}
-    a{{color:#e7c55b}}.eyebrow{{letter-spacing:.12em;text-transform:uppercase;color:#e7c55b}}
-    h1{{font-size:clamp(2.2rem,6vw,4.5rem);line-height:1.03;margin:.25em 0}}
-    .subheadline{{font-size:clamp(1.15rem,2.4vw,1.45rem);line-height:1.45;color:#dce8ed;max-width:820px}}
-    .lede{{font-size:1.2rem;line-height:1.65;border-left:4px solid #e7c55b;padding-left:16px}}
-    .card{{background:#172733;border:1px solid #35505f;border-radius:16px;padding:22px;margin:18px 0}}
-    .card h2{{margin-top:0}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}}
-    .story p{{font-size:1.08rem;line-height:1.72;margin:.9em 0}}
-    .source{{display:block;color:#aebfc8;font-size:.85rem;margin-top:4px}}
-    li{{margin:.55em 0}}.source-list{{padding-left:20px}}
-    .leaning{{display:inline-block;padding:4px 9px;border-radius:999px;background:#253d48;font-size:.82rem}}
-    .bottom{{border:2px solid #e7c55b}}.meta{{color:#b9c9d4}}
-    .disclaimer{{font-size:.9rem;color:#b9c9d4}}
-  </style>
+  <link rel="stylesheet" href="/article.css">
 </head>
 <body><main>
   <a href="/">ZenSeek</a><p class="eyebrow">Daily briefing #{rank} · {html.escape(category)} · U.S. economic impact</p>

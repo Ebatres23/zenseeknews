@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>ZenSeek — Mammal, Reptile or Amphibian🐂🦎🐸?</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+ :root{
+  --zen-gold:#E7C55B;
+  --shell:#1876f279;
+  --text:#fff;
+  --muted:#a9b8c9;
+  --bottom-bar-h: 66px;
+  --hud-offset:0px;
+  --p:0;
+ }
+ *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+ :focus{ outline:none; } 
+ :focus-visible{ outline:2px solid rgba(231,197,91,.8); outline-offset:3px; border-radius:10px; }
+ html, body { height:100%; overflow:hidden; }
+ body{
+  margin:0; color:var(--text);
+  background:
+    radial-gradient(1000px 700px at 85% -10%, rgba(255,216,225,.16), transparent 55%),
+    radial-gradient(900px 900px at -15% 115%, rgba(215,236,255,.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(217,249,231,.14), transparent 60%),
+    var(--shell);
+  font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  perspective:1000px; perspective-origin:50% 30%;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+ }
+
+ /* Header */
+ .topbar{
+  position:fixed; inset:0 0 auto 0; height:48px; z-index:80;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:0 10px; backdrop-filter: blur(8px);
+  background: rgba(0,0,0,.34); border-bottom: 1px solid rgba(255,255,255,.08);
+ }
+ .brand{ font-family:'Playfair Display', serif; color:var(--zen-gold); font-weight:700; letter-spacing:.2px; text-decoration:none; border-radius:8px; padding:2px 4px; }
+ .home-link{ display:flex; align-items:center; gap:8px; color:#e5e7eb; text-decoration:none; border-radius:8px; padding:4px 6px; font-size:.82rem; }
+
+ /* Stage (scroll not needed; keep tight) */
+ .stage{ 
+  position:fixed; inset:70px 0 0 0;
+  display:grid; grid-template-rows:auto auto minmax(0,1fr);
+  transform-style:preserve-3d;
+  overflow:hidden;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+ }
+
+ /* Orbs row */
+ .orbs{
+  position:relative; z-index:3;
+  display:grid; grid-template-columns:repeat(3,1fr);
+  align-items:center; justify-items:center;
+  gap:clamp(8px,3cqi,16px);
+  padding: calc(var(--hud-offset) + clamp(2px,1.5cqi,10px)) clamp(6px,2cqi,14px) clamp(2px,1cqi,2px);
+ }
+ .orbs > .relative{ padding-bottom:52px; } /* space for label only */
+
+ .orb{
+  --size: clamp(110px, 22cqi, 180px);
+  width:var(--size); height:var(--size); border-radius:9999px; position:relative; display:grid; place-items:center;
+  background:
+    radial-gradient(60% 60% at 30% 30%, rgba(255,255,255,.18), rgba(255,255,255,.03) 70%),
+    radial-gradient(75% 75% at 70% 70%, rgba(255,255,255,.10), rgba(255,255,255,.02) 80%),
+    linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  box-shadow: inset 0 0 120px rgba(255,255,255,.06), inset 0 0 40px rgba(231,197,91,.12), 0 24px 48px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.14);
+  transform-style:preserve-3d; transition: transform .25s, box-shadow .25s, border-color .2s;
+ }
+ .orb::before{ content:""; position:absolute; inset:-4px; border-radius:inherit; filter: blur(10px); opacity:.75; z-index:0; pointer-events:none; }
+ .orb[data-cat="Herbivore"]::before{ background: conic-gradient(from 0deg, rgba(0,0,0,0), rgba(86,225,163,.55), rgba(197,255,223,.28), rgba(0,0,0,0)); }
+ .orb[data-cat="Carnivore"]::before{ background: conic-gradient(from 0deg, rgba(0,0,0,0), rgba(231,120,91,.55), rgba(255,200,179,.35), rgba(0,0,0,0)); }
+ .orb[data-cat="Omnivore"]::before{ background: conic-gradient(from 0deg, rgba(0,0,0,0), rgba(120,190,255,.55), rgba(205,232,255,.30), rgba(0,0,0,0)); }
+ .orb.ok{ box-shadow: inset 0 0 160px rgba(46,229,157,.22), 0 30px 60px rgba(0,0,0,.45); border-color: rgba(46,229,157,.9); }
+ .orb.bad{ box-shadow: inset 0 0 160px rgba(255,120,120,.25), 0 30px 60px rgba(0,0,0,.45); border-color: rgba(255,120,120,.9); }
+
+ .orb .label{
+  position:absolute; left:0; right:0; bottom:-26px; text-align:center; z-index:4; line-height:1.2;
+  font-weight:900; letter-spacing:.2px; font-size:.94rem; text-shadow:0 2px 8px rgba(0,0,0,.55);
+ }
+
+ /* ✨ inside-orb breathing hint bubble */
+ .orb .hint{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:12px;
+  z-index:3; pointer-events:none; white-space:nowrap;
+  font-weight:700; font-size:.78rem; color:#e9eef5;
+  padding:.38rem .6rem; border-radius:999px;
+  background: rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 0 18px rgba(255,255,255,.22),
+    0 6px 18px rgba(0,0,0,.30);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: floaty 3.6s ease-in-out infinite, glow 3.6s ease-in-out infinite;
+ }
+ @keyframes floaty { 0%,100%{ transform:translate(-50%,0) scale(1);} 50%{ transform:translate(-50%,-3px) scale(1.035);} }
+ @keyframes glow   { 0%,100%{ box-shadow: inset 0 0 18px rgba(255,255,255,.22), 0 6px 18px rgba(0,0,0,.30);} 
+                     50%{     box-shadow: inset 0 0 24px rgba(255,255,255,.35), 0 10px 24px rgba(0,0,0,.40);} }
+
+ /* HUD */
+ .hud{
+  position:fixed; left:50%; top:50px; transform:translateX(-50%); z-index:90;
+  background:rgba(0,0,0,.36);
+  border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:4px 6px;
+  backdrop-filter: blur(6px);
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;
+  max-width:min(96vw, 860px);
+ }
+ .hud .progress{ display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:.9rem; font-weight:700; }
+ .bar{ flex:1 1 200px; min-width:140px; height:12px; border-radius:9999px; background:#0f1c24; overflow:hidden; margin:0 2px; }
+ .bar > span{ display:block; height:100%; background:var(--zen-gold); width:0%; transform: scaleX(var(--p)); transform-origin:left center; transition: transform .3s ease, width .3s ease; }
+
+ .btn{ border:1px solid rgba(255,255,255,.16); background:rgba(0,0,0,.5); padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; font-size:.9rem; line-height:1; transition: all 0.2s ease; }
+ .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); background: rgba(0,0,0,0.6); }
+ .btn:active{ transform:translateY(1px); }
+ .btn.icon{ font-size:1rem; padding:8px 12px; }
+
+ /* Facts — no clipping, auto-expand */
+ .facts{
+  position:relative; z-index:4; display:flex; gap:12px; align-items:center;
+  padding: 14px clamp(12px,3cqi,20px);
+  margin: 8px clamp(8px,3cqi,20px) 10px;
+  border:1px solid rgba(255,255,255,.08); border-radius:16px;
+  background: linear-gradient(0deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), rgba(0,0,0,.36);
+  backdrop-filter: blur(8px);
+  min-height: 60px;
+ }
+ .facts strong{ flex:0 0 auto; font-family:'Fredoka One','Baloo 2',system-ui,sans-serif; font-size:1.25rem; letter-spacing:.2px; }
+ .facts .current{ flex:1 1 auto; display:flex; align-items:center; min-height:32px; }
+ .facts .current span{
+  font-family:'Comic Neue','Baloo 2',system-ui,sans-serif;
+  font-size:1.18rem; line-height:1.35;
+  overflow:visible; text-overflow:clip;
+  display:block;             /* no line clamp */
+  word-break:break-word;
+ }
+ .facts .btn{ padding:8px 14px; font-size: 0.95rem; }
+
+ /* Tray */
+ .tray{
+  position:relative; z-index:2; background: transparent; border: none;
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+  min-height: 130px; max-height: 200px; overflow: hidden;
+  padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+ }
+
+ /* Bubbles */
+ .bubble{
+  --d: clamp(88px, 16cqi, 128px);
+  width:var(--d); height:var(--d); border-radius:9999px; overflow:hidden; position:absolute;
+  border:2.5px solid rgba(231,197,91,.6); background:#111; box-shadow: 0 12px 25px rgba(0,0,0,.42), 0 0 0 4px rgba(231,197,91,.12);
+  cursor:grab; transition: transform .15s, box-shadow .15s, border-color .15s, opacity .2s;
+  touch-action:none; will-change: transform,left,top; z-index:2; user-select:none;
+ }
+ .bubble.dragging{ cursor:grabbing; box-shadow:0 20px 35px rgba(0,0,0,.5), 0 0 0 6px rgba(231,197,91,.28); transform:translateZ(15px) scale(1.08); z-index:100; }
+ .bubble .inner, .bubble img{ width:100%; height:100%; }
+ .bubble img{ display:block; object-fit:cover; }
+ .bubble .tag{ position:absolute; inset:auto 0 0 0; padding:6px 8px; font-size:.7rem; font-weight:700; text-align:center; background:linear-gradient(to top, rgba(0,0,0,.7), transparent 85%); text-shadow:0 1px 3px rgba(0,0,0,.8); }
+
+ /* FABs & Drawers */
+ .fab-saved, .fab-overflow{
+  position:fixed; z-index:95; display:flex; align-items:center; gap:6px; font-weight:700;
+  border-radius:9999px; backdrop-filter: blur(10px);
+ }
+ .fab-saved{
+  right:12px; bottom:calc(env(safe-area-inset-bottom, 0) + var(--bottom-bar-h) + 12px);
+  padding:10px 12px; background:rgba(0,0,0,.58); border:1px solid rgba(255,255,255,.14);
+ }
+ .fab-overflow{
+  left:12px; bottom:calc(env(safe-area-inset-bottom, 0) + var(--bottom-bar-h) + 12px);
+  padding:12px 14px; background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.18); box-shadow:0 8px 24px rgba(0,0,0,.45);
+ }
+ @keyframes breathe  { 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-2px) scale(1.06);} }
+ @keyframes glowPulse { 0%,100%{ box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 0 0 0 rgba(231,197,91,.0);} 50%{ box-shadow: 0 12px 28px rgba(0,0,0,.55), 0 0 14px 2px rgba(231,197,91,.35);} }
+ .fab-overflow.pulse{ animation: breathe 2.6s ease-in-out infinite, glowPulse 3s ease-in-out infinite; }
+
+ .drawer{
+  position:fixed; right:12px; bottom:calc(env(safe-area-inset-bottom, 0) + 60px); z-index:96;
+  width:min(92vw, 520px); max-height:62vh;
+  background:rgba(7,12,16,.94); border:1px solid rgba(255,255,255,.14); border-radius:14px;
+  backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,.55);
+  display:flex; flex-direction:column;
+  opacity:0; transform: translateY(14px) scale(.98); pointer-events:none;
+  transition: opacity .22s ease, transform .28s cubic-bezier(.2,.8,.2,1);
+ }
+ .drawer.open{ opacity:1; transform: translateY(0) scale(1); pointer-events:auto; }
+ .drawer header{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); }
+ .drawer .list{ padding:10px 12px; overflow:auto; }
+ .drawer .item{ display:flex; gap:10px; align-items:center; padding:8px 0; }
+ .drawer .item button{ display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:10px; cursor:pointer; }
+ .drawer .item img{ width:44px; height:44px; border-radius:9999px; object-fit:cover; display:block; }
+ .drawer .tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px 12px; border-top:1px solid rgba(255,255,255,.08); }
+ .drawer .btn{ padding:8px 10px; }
+
+ /* Confetti & misc */
+ #confettiCanvas{ position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:85; }
+ .instructions{ 
+  position:fixed; left:50%; top:58px; transform:translateX(-50%); z-index:95; 
+  background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.12); border-radius:14px; 
+  padding:12px 14px 10px; backdrop-filter: blur(8px); font-size:.9rem; max-width:min(90vw, 400px);
+  box-shadow: 0 12px 24px rgba(0,0,0,.4);
+ }
+ .instructions .close{ position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:6px; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.15); font-weight:700; cursor:pointer; }
+ .trail{ position:fixed; width:20px; height:20px; border-radius:9999px; pointer-events:none; z-index:84; transform:translate(-50%,-50%); opacity:.85; filter:blur(2px); animation: trail-pop .7s ease-out forwards; }
+ @keyframes trail-pop{ 0%{ transform:translate(-50%,-50%) scale(.4); opacity:.9; } 70%{ transform:translate(-50%,-50%) scale(2.4); opacity:.35; } 100%{ transform:translate(-50%,-50%) scale(3.2); opacity:0; } }
+
+ /* Tooltip */
+ .tooltip { position: absolute; background: rgba(0,0,0,0.8); color:#fff; padding: 8px 12px; border-radius: 8px; font-size: .8rem; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity .25s; max-width: 220px; text-align:center; }
+ .tooltip.show { opacity: 1; }
+
+ /* Celebration */
+ .celebration { position: fixed; inset:0; display:flex; justify-content:center; align-items:center; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+ .celebration.show { opacity: 1; pointer-events: all; }
+ .celebration-content { background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 20px; text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: scale(0.86); transition: transform 0.5s; }
+ .celebration.show .celebration-content { transform: scale(1); }
+ .celebration h2 { color: #E7C55B; font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 1rem; }
+ .celebration p { color: #333; font-size: 1.2rem; margin-bottom: 1.2rem; }
+ .celebration-stats { display:flex; justify-content:center; gap:1.6rem; margin-bottom:1.2rem; }
+ .stat-value { font-size: 2rem; font-weight: 800; color: #E7C55B; }
+
+ /* Bottom Bar */
+ .bottom-bar{
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: 10px; align-items: center; z-index: 9999;
+  backdrop-filter: blur(12px);
+  background: rgba(10,12,16,0.55);
+  border-top: 1px solid rgba(255,255,255,0.12);
+ }
+ .bottom-bar .bar-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height:44px; padding:10px 12px; border-radius:14px;
+  border:1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.10); color:#fff;
+  font: 600 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+ }
+ .bottom-bar .bar-btn:active{ transform: scale(0.98); }
+
+ /* Mobile tweaks */
+ @media (max-width:768px){
+  .hud{ gap:4px; padding:4px 6px; } 
+  .bar{ min-width:120px; } 
+  .facts strong{ font-size:1.15rem; }
+  .facts .current span{ font-size:1.08rem; }
+  .celebration-content { padding: 1.5rem; }
+  .stat-value { font-size: 1.6rem; }
+ }
+
+ /* Tight phones: ensure 6 items fit (3x2) comfortably */
+ @media (max-width:480px){
+  .hud{ flex-direction:column; align-items:stretch; width:min(96vw,860px); top: 48px; padding: 3px 5px; }
+  .hud .progress{ width:100%; justify-content:center; text-align:center; font-size:.88rem; }
+  .btn{ font-size:.86rem; padding:6px 10px; }
+  .bar{ width:100%; min-width:0; height:12px; flex:0 0 auto; }
+
+  .orbs{ gap: clamp(4px, 2cqi, 10px); padding: calc(var(--hud-offset) + clamp(2px,1cqi,6px)) clamp(4px,1.5cqi,10px) 0; }
+  .orbs > .relative{ padding-bottom: 50px; }
+  .orb{ --size: clamp(95px, 20cqi, 145px); }
+  .orb .label{ bottom: -24px; font-size: 0.88rem; }
+
+  .facts{ padding: 10px clamp(10px,2cqi,16px); }
+  .facts .current span{ font-size:1.02rem; }
+
+  /* Smaller tray pieces so 3x2 fits with gaps */
+  .bubble{ --d: clamp(64px, 24vw, 92px); }
+  .bubble .tag{ font-size: 0.66rem; padding: 4px 6px; }
+ }
+
+ @media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-game">
+ <!-- Header -->
+ <div class="topbar">
+  <a id="homeLink" class="brand text-lg" href="/" aria-label="Home">ZenSeek</a>
+  <a class="home-link" href="/" aria-label="Go to Home"><span class="text-gray-300">Animal classification Sorter 🦁🌿</span></a>
+ </div>
+
+ <!-- HUD -->
+ <div class="hud" id="hud">
+  <div class="progress">Progress:&nbsp;<span id="score">0</span>/<span id="total">0</span></div>
+  <div class="bar"><span id="barFill"></span></div>
+  <!-- these get moved to the bottom bar -->
+  <button id="saveBtn" class="btn icon" type="button" aria-label="Toggle auto save" title="Toggle auto save">💾</button>
+  <button id="muteBtn" class="btn icon" type="button" aria-label="Mute/unmute" title="Mute/unmute">🔊</button>
+  <button id="shuffleBtn" class="btn icon" type="button" aria-label="Shuffle tray" title="Shuffle tray">🔀</button>
+  <button id="resetBtn" class="btn icon" type="button" aria-label="Reset game" title="Reset game">↺</button>
+  <button id="helpBtn" class="btn icon" type="button" aria-label="Show help" title="Show help">❓</button>
+ </div>
+
+ <!-- Help -->
+ <div id="instructions" class="instructions">
+  <button id="closeInstr" class="close" aria-label="Close help">×</button>
+  <div class="font-semibold text-zen-gold mb-2" style="font-family:'Fredoka One', sans-serif;">How to Play 🎮</div>
+  <div class="text-sm text-gray-300 mb-2">Drag animals from the corral below and drop them onto the matching classification category!</div>
+  <div class="text-xs text-gray-400 mb-2"><strong>Tip:</strong> Correct matches play animal sounds and reveal fun facts!</div>
+  <div class="text-xs text-gray-400">Hover or tap animals and classification categories to learn more!</div>
+ </div>
+
+ <canvas id="confettiCanvas" width="1" height="1"></canvas>
+
+ <!-- Celebration -->
+ <div id="celebration" class="celebration" aria-hidden="true">
+  <div class="celebration-content">
+   <h2>🎉 Congratulations! 🎉</h2>
+   <p>You've successfully sorted all the animals by their classification!</p>
+   <div class="celebration-stats">
+    <div class="stat"><div class="stat-value" id="finalScore">0</div><div class="stat-label">Animals</div></div>
+    <div class="stat"><div class="stat-value" id="completionTime">0s</div><div class="stat-label">Time</div></div>
+   </div>
+   <button id="playAgainBtn" class="btn" style="background:#E7C55B;color:#000;padding:10px 20px;font-size:1.05rem;">Play Again!</button>
+  </div>
+ </div>
+
+ <!-- Main Stage -->
+ <section class="stage" id="stage">
+  <div class="orbs" id="orbsRow"></div>
+
+  <!-- Facts -->
+  <section class="facts" aria-label="Animal fact">
+   <strong>Did You Know? 🧠</strong>
+   <div class="current" aria-live="polite" aria-atomic="true">
+    <span id="factBarText">Drag an animal to its matching classification category to see a fun fact!</span>
+   </div>
+   <button id="btnSaveFact" class="btn" type="button" aria-label="Save current fact" title="Save fact">💾 Save</button>
+  </section>
+
+  <div class="tray" id="tray" aria-label="Corral tray"></div>
+ </section>
+
+ <!-- Overflow Drawer -->
+ <button id="fabOverflow" class="fab-overflow" aria-expanded="false" aria-controls="drawerOverflow" type="button" hidden>📚 Drawer (0)</button>
+ <section id="drawerOverflow" class="drawer" role="dialog" aria-label="Extra Animals Drawer" aria-modal="false">
+  <header>
+   <div class="font-semibold">📚 Extra Animals</div>
+   <div><button id="btnCloseOverflow" class="btn" type="button" aria-label="Close extra animals">Close</button></div>
+  </header>
+  <div id="overflowList" class="list" tabindex="0" aria-label="Overflow animals list"></div>
+  <div class="tools"><span class="text-sm text-gray-300">Tap an animal to bring it into the tray (when space is available).</span></div>
+ </section>
+
+ <!-- Saved Facts Drawer -->
+ <button id="fabSaved" class="fab-saved" aria-expanded="false" aria-controls="drawerSaved" type="button">📖 Saved Facts</button>
+ <section id="drawerSaved" class="drawer" role="dialog" aria-label="Saved Facts Drawer" aria-modal="false">
+  <header>
+   <div class="font-semibold">📖 Saved Facts</div>
+   <div><button id="btnCloseDrawer" class="btn" type="button" aria-label="Close saved facts">Close</button></div>
+  </header>
+  <div id="factsList" class="list" tabindex="0" aria-label="Saved facts list"></div>
+  <div class="tools">
+   <button id="btnSelectAllFacts" class="btn" type="button">Select all</button>
+   <button id="btnCopyFacts" class="btn" type="button">Copy</button>
+   <button id="btnRemoveFacts" class="btn" type="button">Remove</button>
+   <button id="btnExportFacts" class="btn" type="button">Export .txt</button>
+   <button id="btnShareFacts" class="btn" type="button">Share as Text</button>
+  </div>
+ </section>
+
+ <!-- Tooltip -->
+ <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+
+ <!-- Sticky Bottom Bar -->
+ <nav id="bottom-bar" class="bottom-bar" role="toolbar" aria-label="Primary actions"></nav>
+
+<script>
+
+
+/* ---------- Data ---------- */
+const imageCandidates={};
+Object.assign(imageCandidates,{
+ Lion:["https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg","https://upload.wikimedia.org/wikipedia/commons/1/15/2010-kfw-lion-2.jpg"],
+ Dog:["https://upload.wikimedia.org/wikipedia/commons/6/6e/Golde33443.jpg","https://upload.wikimedia.org/wikipedia/commons/3/32/Border_Collie_blue_meri.JPG"],
+ Cat:["https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg","https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png"],
+ Cow:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Cow_on_Pupers.jpg/640px-Cow_on_Pupers.jpg","https://upload.wikimedia.org/wikipedia/commons/d/d8/Swiss_Braunvieh_cattle.jpg"],
+ Elephant:["https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg","https://upload.wikimedia.org/wikipedia/commons/5/5d/African_Elephant_%28Loxodonta_africana%29%2C_Addo_Elephant_National_Park%2C_South_Africa_%2821462668375%29.jpg"],
+ Dolphin:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bottlenose_dolphin_with_young.JPG/640px-Bottlenose_dolphin_with_young.JPG","https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Girl_Petting_Secret_Garden_Dolphin.jpg/640px-Girl_Petting_Secret_Garden_Dolphin.jpg"],
+ Bear:["https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Kamchatka_Brown_Bear_near_Dvuhyurtochnoe_on_2015-07-23.jpg/640px-Kamchatka_Brown_Bear_near_Dvuhyurtochnoe_on_2015-07-23.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2010-kodiak-bear-1.jpg/640px-2010-kodiak-bear-1.jpg"],
+ Giraffe:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG/640px-Giraffe_Ithala_KZN_South_Africa_Luca_Galuzzi_2004.JPG","https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Giraffa_camelopardalis_angolensis.jpg/640px-Giraffa_camelopardalis_angolensis.jpg"],
+ Kangaroo:["https://upload.wikimedia.org/wikipedia/commons/0/0c/Kangaroo_Australia_01_11_2008_-_retouch.JPG","https://upload.wikimedia.org/wikipedia/commons/0/0f/Red_kangaroo_-_melbourne_zoo.jpg"],
+ Panda:["https://upload.wikimedia.org/wikipedia/commons/0/0f/Grosser_Panda.JPG","https://upload.wikimedia.org/wikipedia/commons/0/0f/Panda_Cub_from_Wolong%2C_Sichuan%2C_China.JPG"],
+ Koala:["https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_climbing_tree.jpg","https://upload.wikimedia.org/wikipedia/commons/4/49/Koala_with_claw.jpg"],
+ Monkey:["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Monkey_eating.jpg/640px-Monkey_eating.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Monkey_2025.jpg/640px-Monkey_2025.jpg"],
+ Chimpanzee:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Schimpanse_Zoo_Leipzig.jpg/640px-Schimpanse_Zoo_Leipzig.jpg"],
+ Gorilla:["https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Male_Gorilla_gorilla_gorilla_Apenheul_2023_02.jpg/640px-Male_Gorilla_gorilla_gorilla_Apenheul_2023_02.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/G._g._gorilla%2C_Krefeld_%28DE%29_--_2023_--_0465.jpg/640px-G._g._gorilla_%28DE%29.jpg"],
+ Snake:["https://upload.wikimedia.org/wikipedia/commons/1/15/Green_Tree_Python.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Ahaetulla_prasina%2C_oriental_whipsnake_-_Kaeng_Krachan_National_Park.jpg/640px-Ahaetulla_prasina.jpg"],
+ Lizard:["https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Three-eyed_lizard_%28Chalarodon_madagascariensis%29_male_Toliara.jpg/640px-Three-eyed_lizard.jpg","https://upload.wikimedia.org/wikipedia/commons/8/8e/Anolis_carolinensis_2.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red-headed_rock_agama_%28Agama_lionotus%29_male.jpg/640px-Red-headed_rock_agama.jpg"],
+ Turtle:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Turtle_on_sidewalk.jpg/640px-Turtle_on_sidewalk.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/African_helmeted_turtle_%28Pelomedusa_subrufa%29.jpg/640px-African_helmeted_turtle.jpg"],
+ Crocodile:["https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Nile_crocodile_head.jpg/640px-Nile_crocodile_head.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Crocodile_Crocodylus-porosus_amk.jpg/640px-Crocodile_Crocodylus-porosus.jpg"],
+ Chameleon:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Panther_chameleon_%28Furcifer_pardalis%29_male_Montagne_d%E2%80%99Ambre_3.jpg/640px-Panther_chameleon.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Chameleon_Wroclaw_ZOO.jpg/640px-Chameleon_Wroclaw_ZOO.jpg","https://upload.wikimedia.org/wikipedia/commons/6/6b/Chamaeleo_calyptratus_02.JPG"],
+ Komodo_Dragon:["https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Komodo_dragon%2C_Varanus_komodoensis%2C_Komodo_Island%2C_Indonesia%2C_20250822_1319_2752.jpg/640px-Komodo_dragon.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Komodo_dragon_%28Varanus_komodoensis%29.jpg/640px-Varanus_komodoensis.jpg"],
+ Gecko:["https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Deccan_Banded_Gecko_Geckoella_deccanensis_by_Dr._Raju_Kasambe_DSCN0954_%281%29.jpg/640px-Gecko.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Tokay.jpg/640px-Tokay.jpg"],
+ Frog:["https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Frog_1.jpg/640px-Frog_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Edible_frog_%28Pelophylax_esculentus%29.jpg/640px-Edible_frog.jpg"],
+ Toad:["https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Bufo_bufo_03-clean.jpg/640px-Bufo_bufo_03-clean.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Bufo_americanus_PJC1.jpg/640px-Bufo_americanus.jpg"],
+ Salamander:["https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Salamandra_salamandra_MHNT_1.jpg/640px-Salamandra_salamandra_MHNT_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Sequoyah_slimy_salamander_%28Plethodon_sequoyah%29.jpg/640px-Sequoyah_slimy_salamander.jpg"],
+ Newt:["https://upload.wikimedia.org/wikipedia/commons/8/82/Triturus_marmoratus.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Triturus_cristatus_%28white_background%29.jpg/640px-Triturus_cristatus.jpg"],
+ Axolotl:["https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ambystoma_mexicanum_1.jpg/640px-Ambystoma_mexicanum_1.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Axolotl-2193331_1280.webp/640px-Axolotl-2193331.webp.png"],
+ Poison_Dart_Frog:["https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/ManuPoisonFrog.jpg/640px-ManuPoisonFrog.jpg","https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Poison_dart_frog_panama.jpg/640px-Poison_dart_frog_panama.jpg"]
+});
+const facts={};
+Object.assign(facts,{
+ Lion:["Lions are the only cats that live in groups called prides.","Male lions defend territory; lionesses do most of the hunting.","Conservation: African lion populations have declined ~43% in 21 years—habitat protection matters."],
+ Dog:["Dogs can learn hundreds of words and hand signals.","A dog's sense of smell is up to 100,000× stronger than ours.","Adopt don't shop: shelters rehome millions of good pups each year."],
+ Cat:["Cats spend up to 70% of their lives sleeping.","Cats can rotate their ears 180° using 32 muscles.","Keep cats indoors to protect birds and keep kitties safer."],
+ Cow:["Cows have best friends and get stressed when separated.","Cows can sense the earth's magnetic field and tend to align with it.","Better grazing practices help preserve grassland ecosystems."],
+ Elephant:["Elephants recognize themselves in mirrors—sign of self-awareness.","They communicate with low rumbles that travel through the ground.","Conservation: Reducing human–elephant conflict saves herds and crops."],
+ Dolphin:["Dolphins sleep with one half of the brain at a time.","Bottlenose dolphins use unique whistles like names.","Healthy oceans (less plastic, safer nets) protect dolphins."],
+ Bear:["Brown bears can smell food over 3 km away.","Bears recycle calcium during hibernation to keep bones strong.","Secure trash and food to keep bears wild and safe."],
+ Giraffe:["Giraffes have the same number of neck bones as humans: seven.","A giraffe's tongue can be over 45 cm long.","Habitat corridors help giraffes roam safely."],
+ Kangaroo:["Kangaroos can't walk backward.","A joey stays in the pouch for ~6 months.","Protect native grasslands—kangaroo homes!"],
+ Panda:["Pandas have a 'pseudo-thumb' to grip bamboo.","They spend up to 14 hours a day eating bamboo.","Breeding centers and reserves support panda recovery."],
+ Koala:["Koalas have fingerprints almost identical to humans'.","They sleep 18–20 hours a day to save energy.","Plant eucalyptus corridors to help koalas move."],
+ Monkey:["Some monkeys use stones as tools to crack nuts.","Many species live in complex social groups.","Protect tropical forests to save monkey habitats."],
+ Chimpanzee:["Chimpanzees share ~98–99% of human DNA.","They learn tool use from elders—real culture!","Forest conservation and eco-tourism support chimps."],
+ Gorilla:["Gorillas are shy herbivores despite their size.","They build new leaf beds to sleep in each night.","Mountain gorillas have rebounded thanks to anti-poaching patrols."],
+ Snake:["Snakes 'smell' with their tongues via the Jacobson's organ.","Some snakes can go months between meals.","Respect snakes—they control rodent populations."],
+ Lizard:["Some lizards detach their tails to escape predators.","Desert lizards 'dance' to keep feet cool on hot sand.","Native shrubs and rocks create mini habitat for lizards."],
+ Turtle:["Sea turtles can hold their breath for hours when resting.","Hatchlings use moonlight to find the ocean.","Turn off beach lights during nesting season."],
+ Crocodile:["Crocodiles swallow stones to help grind food.","Mothers gently carry hatchlings in their mouths.","Wetland protection keeps crocs and people safer."],
+ Chameleon:["Chameleons move eyes independently—two directions at once.","Color changes also signal mood and temperature.","Plant-rich gardens support insect prey for chameleons."],
+ Komodo_Dragon:["Komodo dragons can reproduce without males (parthenogenesis).","They smell carrion from miles away using a flicking tongue.","National parks protect Komodo islands and their dragons."],
+ Gecko:["Geckos walk on ceilings using millions of tiny setae hairs.","Some geckos chirp to communicate.","Reduce pesticide use to keep insect food chains healthy."],
+ Frog:["A frog's skin drinks water—no need to sip!","Frogs are bioindicators of ecosystem health.","Restore ponds and keep streams clean to help frogs."],
+ Toad:["Toads have dry, bumpy skin and prefer land.","They eat garden pests like slugs and beetles.","Leave small brush piles—perfect toad hideouts."],
+ Salamander:["Salamanders can regrow lost limbs and organs.","Many breathe through their skin; moist forests are vital.","Keep logs and leaf litter—salamander nurseries!"],
+ Newt:["Newts are salamanders; many return to water just to breed.","Some newts secrete toxins for defense.","Protect vernal pools—temporary breeding ponds."],
+ Axolotl:["Axolotls stay in their larval form for life (neoteny).","They can regenerate spinal cord and brain parts.","Restoring Mexico City wetlands supports wild axolotls."],
+ Poison_Dart_Frog:["Bright colors warn predators they're toxic.","Toxins come from a diet of ants and mites in the wild.","Protect rainforests—dart frogs depend on intact leaf litter."]
+});
+const groupDescriptions={
+ Mammals:"Warm-blooded vertebrates with hair or fur; most give birth to live young and nurse with milk.",
+ Reptiles:"Cold-blooded vertebrates with scales; most lay eggs and prefer drier habitats.",
+ Amphibians:"Moist-skinned vertebrates that often begin life in water and later live on land."
+};
+const animalSounds={
+ Lion:"https://upload.wikimedia.org/wikipedia/commons/8/88/Lion_Mad.ogg",
+ Dog:"https://upload.wikimedia.org/wikipedia/commons/1/15/Dog_bark.ogg",
+ Cat:"https://upload.wikimedia.org/wikipedia/commons/6/69/Housecat_Meowing_2.ogg",
+ Cow:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Cowbell_Moo.ogg",
+ Elephant:"https://upload.wikimedia.org/wikipedia/commons/4/40/Elephant_voice_-_trumpeting.ogg",
+ Dolphin:"https://upload.wikimedia.org/wikipedia/commons/5/5a/161691_felixblume_dolphin-screaming-underwater-in-caribbean-sea-mexico.wav",
+ Bear:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Bear_growl.ogg",
+ Monkey:"https://upload.wikimedia.org/wikipedia/commons/1/16/Brown_woolly_monkey_alarm_call.wav",
+ Chimpanzee:"https://upload.wikimedia.org/wikipedia/commons/5/56/Pant-hoot_call_made_by_a_male_chimpanzee.ogg",
+ Gorilla:"https://upload.wikimedia.org/wikipedia/commons/3/34/En-us-gorilla.ogg",
+ Frog:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Single_Frog_Croak.oga",
+ Crocodile:"https://upload.wikimedia.org/wikipedia/commons/9/99/Size-does-matter-crocodile-mothers-react-more-to-the-voice-of-smaller-offspring-srep15547-s2.oga"
+};
+/* ---------- Elements ---------- */
+const stage=document.getElementById('stage'), orbsRow=document.getElementById('orbsRow'), tray=document.getElementById('tray');
+const resetBtn=document.getElementById('resetBtn'), shuffleBtn=document.getElementById('shuffleBtn'), muteBtn=document.getElementById('muteBtn');
+const saveBtn=document.getElementById('saveBtn'), helpBtn=document.getElementById('helpBtn');
+const instr=document.getElementById('instructions'), closeInstr=document.getElementById('closeInstr');
+const confettiCanvas=document.getElementById('confettiCanvas'), scoreEl=document.getElementById('score'), totalEl=document.getElementById('total'), barFill=document.getElementById('barFill');
+const hud=document.getElementById('hud'), factBarText=document.getElementById('factBarText'), tooltip=document.getElementById('tooltip');
+const celebration=document.getElementById('celebration'), finalScore=document.getElementById('finalScore'), completionTime=document.getElementById('completionTime'), playAgainBtn=document.getElementById('playAgainBtn');
+const fabOverflow=document.getElementById('fabOverflow'), drawerOverflow=document.getElementById('drawerOverflow'), overflowList=document.getElementById('overflowList'), btnCloseOverflow=document.getElementById('btnCloseOverflow');
+const fabSaved=document.getElementById('fabSaved'), drawerSaved=document.getElementById('drawerSaved'), factsList=document.getElementById('factsList'), btnCloseDrawer=document.getElementById('btnCloseDrawer');
+const btnSaveFact=document.getElementById('btnSaveFact'), btnCopyFacts=document.getElementById('btnCopyFacts'), btnSelectAllFacts=document.getElementById('btnSelectAllFacts'), btnRemoveFacts=document.getElementById('btnRemoveFacts'), btnExportFacts=document.getElementById('btnExportFacts'), btnShareFacts=document.getElementById('btnShareFacts');
+/* ---------- State ---------- */
+let bubbles=[], orbs=[], score=0, total=0;
+let ACtx=null, muted=(localStorage.getItem('zen_mute')??'1')==='1';
+let currentAnimalAudio=null, autosave=(localStorage.getItem('zen_autosave')??'1')==='1';
+const palettes={ Mammals:['#E7C55B','#FFE8A3','#F7DB77'], Reptiles:['#56E1A3','#B7F6D8','#42C987'], Amphibians:['#78BEFF','#BFE2FF','#3A8DEC'] };
+let ctx, bursts=[]; let savedFacts=loadSavedFacts(); let audioPrimed=false; let currentAnimal=null;
+let gameStartTime=Date.now();
+/* ---------- Utils ---------- */
+(function ensureHome(){ const isFile=location.protocol==='file:'; const to=isFile?'index.html':'/'; document.querySelectorAll('a[href="/"]').forEach(a=>a.setAttribute('href',to)); })();
+function setHudOffset(){ const r=hud.getBoundingClientRect(); const offset=Math.ceil(r.height+6); document.documentElement.style.setProperty('--hud-offset', offset+'px'); }
+function ensureAudioCtx(){ if(!ACtx) ACtx=new(window.AudioContext||window.webkitAudioContext)(); if(ACtx.state==='suspended') ACtx.resume?.(); }
+function primeAudioOnce(){ if(audioPrimed) return; ensureAudioCtx(); try{ const o=ACtx.createOscillator(), g=ACtx.createGain(); o.frequency.value=880; g.gain.value=0.02; o.connect(g).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),120);}catch{} audioPrimed=true; }
+function tone(f=880,ms=100,g=0.03){ if(muted) return; ensureAudioCtx(); const o=ACtx.createOscillator(), a=ACtx.createGain(); o.type='sine'; o.frequency.value=f; a.gain.value=g; o.connect(a).connect(ACtx.destination); o.start(); setTimeout(()=>o.stop(),ms); }
+function stopAnimalSound(){ if(currentAnimalAudio){ currentAnimalAudio.pause(); currentAnimalAudio.currentTime=0; currentAnimalAudio=null; } }
+function playAnimalSound(name){ stopAnimalSound(); if(muted) return; primeAudioOnce(); const url=animalSounds[name]; if(url){ const a=new Audio(url); a.crossOrigin="anonymous"; a.volume=.85; currentAnimalAudio=a; a.onended=()=>{ if(currentAnimalAudio===a) currentAnimalAudio=null; }; a.play().catch(()=>{ if(currentAnimalAudio===a) currentAnimalAudio=null; tone(660,120,0.03); }); } else { tone(660,80,0.03); setTimeout(()=>tone(990,80,0.02),90); } }
+function updateMuteUI(){ muteBtn.textContent = muted ? '🔇' : '🔊'; }
+function updateSaveUI(){ saveBtn.textContent = autosave ? '💾' : '💾×'; }
+function sizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; ctx=confettiCanvas.getContext('2d'); }
+sizeCanvas(); addEventListener('resize', sizeCanvas);
+/* Confetti */
+function burstConfettiAt(x,y,category){ const colors=palettes[category]||['#fff','#ccc','#aaa']; const N=80, parts=[]; for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2, s=2+Math.random()*4; parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,g:0.08+Math.random()*0.06,life:60+(Math.random()*20|0),color:colors[i%colors.length],size:2+Math.random()*3,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*0.2}); } bursts.push(parts); if(bursts.length===1) requestAnimationFrame(tick); }
+function tick(){ if(!ctx){ requestAnimationFrame(tick); return; } ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); bursts=bursts.filter(parts=>{ for(const p of parts){ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,p.life/80); ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); ctx.restore(); } return parts.some(p=>p.life>0); }); if(bursts.length) requestAnimationFrame(tick); }
+function burstConfettiAtOrb(orb){ const sr=stage.getBoundingClientRect(); burstConfettiAt(sr.left+orb.cx, sr.top+orb.cy, orb.category); }
+/* Images */
+function setBestImage(imgEl, urls){ imgEl.setAttribute('draggable','false'); let i=0; function next(){ if(i<urls.length){ imgEl.onerror=()=>{ i++; next(); }; imgEl.src=urls[i]; } else { const name=(imgEl.alt||'').replaceAll('_',' '); const svg=encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#263238'/><stop offset='100%' stop-color='#0b1a22'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='54%' text-anchor='middle' font-family='Montserrat, Arial' font-size='24' fill='#fff'>${name}</text></svg>`); imgEl.onerror=null; imgEl.src=`data:image/svg+xml;charset=UTF-8,${svg}`; } } next(); }
+/* Helpers */
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function getPoint(e){ const rect=stage.getBoundingClientRect(); return { x:e.clientX-rect.left, y:e.clientY-rect.top }; }
+function centerX(b){ return b.x + (b.w||96)/2; }
+function centerY(b){ return b.y + (b.h||96)/2; }
+/* Orbs */
+function buildOrbs(){
+  orbsRow.innerHTML='';
+  const defs = [
+    { name:"Mammals", emoji:"🦁", hint:"Fur / milk" },
+    { name:"Reptiles", emoji:"🦎", hint:"Scales" },
+    { name:"Amphibians", emoji:"🐸", hint:"Water & land" }
+  ];
+  orbs = defs.map((cat, i)=>{
+    const wrap=document.createElement('div'); wrap.className='relative';
+    const orb=document.createElement('div'); orb.className='orb'; orb.dataset.category=cat.name; orb.setAttribute('data-cat',cat.name);
+    orb.innerHTML = `
+      <div class="hint" aria-hidden="true">${cat.hint}</div>
+      <div class="label">${cat.emoji} <span class="font-semibold">${cat.name}</span></div>`;
+    // Tooltips
+    orb.addEventListener('mouseenter', (e)=> showTooltip(e, classificationDescriptions[cat.name]));
+    orb.addEventListener('mouseleave', hideTooltip);
+    // gentle varying delay so hints don't sync
+    orb.style.animationDelay = `${i*0.25}s`;
+    wrap.appendChild(orb); orbsRow.appendChild(wrap);
+    return {wrap, orbEl:orb, cx:0, cy:0, r:0, category:cat.name, slots:[], slotR:0};
+  });
+  requestAnimationFrame(updateOrbGeometry);
+}
+function updateOrbGeometry(){
+  const sr = stage.getBoundingClientRect();
+  orbs.forEach(o=>{
+    const r = o.orbEl.getBoundingClientRect();
+    o.cx = (r.left - sr.left) + r.width/2;
+    o.cy = (r.top  - sr.top)  + r.height/2;
+    o.r  = Math.min(r.width, r.height)/2;
+    o.slotR = Math.max(12, o.r * 0.72);
+    if(!Array.isArray(o.slots) || !o.slots.length) o.slots = Array(12).fill(false);
+  });
+}
+/* Tooltip */
+function showTooltip(e,text){ if(!text) return; tooltip.textContent=text; tooltip.style.left=e.pageX+'px'; tooltip.style.top=(e.pageY-10)+'px'; tooltip.classList.add('show'); }
+function hideTooltip(){ tooltip.classList.remove('show'); }
+/* Items */
+const gameItems=[
+  {name:"Lion",category:"Mammals"},{name:"Elephant",category:"Mammals"},{name:"Dog",category:"Mammals"},{name:"Cat",category:"Mammals"},
+  {name:"Cow",category:"Mammals"},{name:"Dolphin",category:"Mammals"},{name:"Bear",category:"Mammals"},
+  {name:"Giraffe",category:"Mammals"},{name:"Kangaroo",category:"Mammals"},{name:"Panda",category:"Mammals"},{name:"Koala",category:"Mammals"},
+  {name:"Monkey",category:"Mammals"},{name:"Chimpanzee",category:"Mammals"},{name:"Gorilla",category:"Mammals"},
+  {name:"Snake",category:"Reptiles"},{name:"Lizard",category:"Reptiles"},{name:"Turtle",category:"Reptiles"},{name:"Crocodile",category:"Reptiles"},
+  {name:"Chameleon",category:"Reptiles"},{name:"Komodo_Dragon",category:"Reptiles"},{name:"Gecko",category:"Reptiles"},
+  {name:"Frog",category:"Amphibians"},{name:"Toad",category:"Amphibians"},{name:"Salamander",category:"Amphibians"},{name:"Newt",category:"Amphibians"},
+  {name:"Axolotl",category:"Amphibians"},{name:"Poison_Dart_Frog",category:"Amphibians"}
+];
+function buildBubbles(){
+  const items=shuffle([...gameItems]); total=items.length; score=0; totalEl.textContent=total; updateProgress();
+  bubbles=items.map(it=>{
+    const el=document.createElement('div'); el.className='bubble'; el.setAttribute('role','button'); el.setAttribute('aria-label',it.name); el.setAttribute('draggable','false');
+    el.addEventListener('mouseenter', e=>showTooltip(e, `${it.name.replaceAll('_',' ')} — ${groupDescriptions[it.category]||''}`)); el.addEventListener('mouseleave', hideTooltip);
+    const inner=document.createElement('div'); inner.className='inner'; el.appendChild(inner);
+    const img=document.createElement('img'); img.alt=it.name; img.loading='lazy'; img.decoding='async'; img.referrerPolicy='no-referrer'; setBestImage(img, imageCandidates[it.name]||[]); inner.appendChild(img);
+    const tag=document.createElement('div'); tag.className='tag'; tag.textContent=it.name.replaceAll('_',' '); el.appendChild(tag);
+    stage.appendChild(el);
+    const b={el,inner,name:it.name,category:it.category,x:0,y:0,w:0,h:0,locked:false,_slot:null,tx:0,ty:0};
+    updateBubbleRect(b); enablePointerDrag(b); return b;
+  });
+  packTray(2);
+}
+/* Tray packing */
+function bestGrid(W,H,count,forceMobile=false){
+  const MIN_GAP=8, MIN_D=52, MAX_D=180;
+  const C=3, R=2;
+  const dW=(W-(C+1)*MIN_GAP)/C, dH=(H-(R+1)*MIN_GAP)/R;
+  let d=Math.floor(Math.min(dW,dH));
+  if(forceMobile) d=Math.min(d,110);
+  d=Math.max(MIN_D,Math.min(MAX_D,d));
+  const hGap=Math.max(MIN_GAP,Math.floor((W-C*d)/(C+1)));
+  const vGap=Math.max(MIN_GAP,Math.floor((H-R*d)/(R+1)));
+  return {C,R,d,hGap,vGap,cap:C*R};
+}
+let layout={capacity:0,visibleIds:new Set(),d:96};
+let repackTimer=null;
+function packTray(passes=2){
+  const SR=stage.getBoundingClientRect();
+  const TR=tray.getBoundingClientRect();
+  if(TR.height<40 || SR.height<120){
+    clearTimeout(repackTimer);
+    repackTimer=setTimeout(()=>packTray(passes),60);
+    return;
+  }
+  const padX=12,padY=8;
+  const trayW=TR.width-padX*2;
+  const trayMaxH=Math.max(parseFloat(getComputedStyle(tray).maxHeight)||190,160);
+  const trayHInner=trayMaxH-padY*2;
+  const unlocked=bubbles.filter(b=>!b.locked);
+  const grid=bestGrid(trayW,trayHInner,unlocked.length,matchMedia('(max-width:480px)').matches);
+  layout.capacity=grid.cap; layout.d=grid.d; layout.visibleIds=new Set();
+  const newH=padY*2 + (grid.R*grid.d) + ((grid.R+1)*grid.vGap) + parseFloat(getComputedStyle(tray).paddingBottom||0);
+  tray.style.height=Math.ceil(newH)+'px';
+  const left=TR.left-SR.left, top=TR.top-SR.top;
+  const visible=unlocked.slice(0,grid.cap), overflow=unlocked.slice(grid.cap);
+  visible.forEach((b,i)=>{
+    const col=i%grid.C, row=(i/grid.C)|0;
+    const x=left+padX+grid.hGap*(col+1)+grid.d*col;
+    const y=top+padY+grid.vGap*(row+1)+grid.d*row;
+    b.el.style.setProperty('--d',grid.d+'px');
+    updateBubbleRect(b);
+    b.tx=x; b.ty=y; b.x=x; b.y=y;
+    positionBubble(b.el,b.x,b.y);
+    b.el.style.visibility='visible';
+    layout.visibleIds.add(b.name);
+  });
+  overflow.forEach(b=>{
+    b.el.style.setProperty('--d',grid.d+'px');
+    positionBubble(b.el,-9999,-9999);
+    b.el.style.visibility='hidden';
+  });
+  renderOverflowList(overflow.map(b=>b.name));
+  updateOverflowFab(overflow.length);
+  updateOrbGeometry();
+  if(passes>0){
+    clearTimeout(repackTimer);
+    repackTimer=setTimeout(()=>packTray(passes-1),90);
+  }
+}
+/* Overflow */
+function renderOverflowList(names){ overflowList.innerHTML=''; if(!names.length){ const p=document.createElement('p'); p.className='text-sm text-gray-300'; p.textContent='No extra animals. Place some to make room for more!'; overflowList.appendChild(p); return; } names.forEach(name=>{ const row=document.createElement('div'); row.className='item'; const btn=document.createElement('button'); const img=document.createElement('img'); img.alt=name; img.loading='lazy'; setBestImage(img, imageCandidates[name]||[]); const label=document.createElement('span'); label.textContent=name.replaceAll('_',' '); btn.appendChild(img); btn.appendChild(label); btn.addEventListener('click',()=>bringFromOverflow(name)); row.appendChild(btn); overflowList.appendChild(row); }); }
+function updateOverflowFab(n){ if(n>0){ fabOverflow.hidden=false; fabOverflow.textContent=`🧺 Drawer (${n})`; fabOverflow.classList.add('pulse'); } else { fabOverflow.hidden=true; fabOverflow.classList.remove('pulse'); drawerOverflow.classList.remove('open'); } }
+function bringFromOverflow(name){ const unlocked=bubbles.filter(b=>!b.locked); const free=Math.max(0, layout.capacity - Math.min(layout.capacity, unlocked.length)); if(free<=0){ vibrate([8,40,8]); tone(260,90,0.03); return; } const idx=bubbles.findIndex(b=>b.name===name && !b.locked); if(idx===-1) return; const b=bubbles[idx]; bubbles.splice(idx,1); let insertAt=bubbles.findIndex(x=>!x.locked); if(insertAt===-1) insertAt=bubbles.length; bubbles.splice(insertAt,0,b); packTray(1); }
+function openOverflow(){ drawerOverflow.classList.add('open'); fabOverflow.setAttribute('aria-expanded','true'); setTimeout(()=>overflowList.focus(),0); }
+function closeOverflow(){ drawerOverflow.classList.remove('open'); fabOverflow.setAttribute('aria-expanded','false'); }
+fabOverflow.addEventListener('click', ()=> drawerOverflow.classList.contains('open') ? closeOverflow() : openOverflow());
+btnCloseOverflow.addEventListener('click', closeOverflow);
+/* Drag & Snap */
+function updateBubbleRect(b){ const r=b.el.getBoundingClientRect(); b.w=r.width||layout.d; b.h=r.height||layout.d; }
+function positionBubble(el,x,y){ el.style.transform=`translate3d(${x}px,${y}px,0)`; }
+function enablePointerDrag(b){
+  let start={x:0,y:0}, origin={x:0,y:0}, dragging=false;
+  const coarse=matchMedia('(pointer:coarse)').matches, radiusBoost=coarse?1.35:1, pullStrength=coarse?0.38:0.30;
+  const move=(e)=>{ if(!dragging) return; e.preventDefault(); const p=getPoint(e);
+    b.x=origin.x+(p.x-start.x); b.y=origin.y+(p.y-start.y);
+    const SR=stage.getBoundingClientRect();
+    const maxX=SR.width - b.w - 2, maxY=SR.height - b.h - 2;
+    b.x=Math.max(2, Math.min(b.x, maxX));
+    b.y=Math.max(2, Math.min(b.y, maxY));
+    positionBubble(b.el,b.x,b.y);
+    const near=nearestOrb(b); orbs.forEach(o=>o.orbEl.classList.remove('ok','bad'));
+    if(near && near.dist<magneticRadius(near)*radiusBoost){
+      const correct=(b.category===near.orb.category);
+      near.orb.orbEl.classList.add(correct?'ok':'bad');
+      if(near.dist<magneticRadius(near)*0.75*radiusBoost){
+        const bx=centerX(b), by=centerY(b);
+        b.x+=(near.orb.cx-bx)*pullStrength;
+        b.y+=(near.orb.cy-by)*pullStrength;
+        positionBubble(b.el,b.x,b.y);
+      }
+    }
+  };
+  const up=(e)=>{ if(!dragging) return; dragging=false; b.el.classList.remove('dragging'); orbs.forEach(o=>o.orbEl.classList.remove('ok','bad'));
+    const near=nearestOrb(b);
+    if(near && near.dist<magneticRadius(near)*(coarse?1.2:1)){
+      const correct=(b.category===near.orb.category);
+      if(correct){
+        snapToOrbRing(b,near.orb); score++; updateProgress(); vibrate(30); playAnimalSound(b.name); showFact(b.name); burstConfettiAtOrb(near.orb); packTray(1); if(score===total) finish();
+      } else {
+        vibrate([10,20,10]); tone(220,120,0.03); animateTo(b,b.tx??b.x,b.ty??b.y,220,()=>packTray(1));
+      }
+    } else {
+      animateTo(b,b.tx??b.x,b.ty??b.y,200,()=>packTray(1));
+    }
+    window.removeEventListener('pointermove',move,{passive:false}); window.removeEventListener('pointerup',up,{passive:false}); window.removeEventListener('pointercancel',up,{passive:false}); b.el.releasePointerCapture?.(e.pointerId);
+  };
+  b.el.addEventListener('pointerdown',(e)=>{ if(b.locked) return; e.preventDefault(); primeAudioOnce(); dragging=true; b.el.classList.add('dragging'); const p=getPoint(e); start=p; origin={x:b.x,y:b.y}; b.el.setPointerCapture?.(e.pointerId);
+    window.addEventListener('pointermove',move,{passive:false}); window.addEventListener('pointerup',up,{passive:false}); window.addEventListener('pointercancel',up,{passive:false});
+  },{passive:false});
+}
+function nearestOrb(b){ const bx=centerX(b), by=centerY(b); let best=null; for(const o of orbs){ const d=Math.hypot(bx-o.cx, by-o.cy); if(!best||d<best.dist) best={orb:o,dist:d}; } return best; }
+function magneticRadius(entry){ return entry.orb.r*1.15; }
+function snapToOrbRing(b,orbObj){ if(!orbObj.slots||orbObj.slots.length===0) orbObj.slots=Array(12).fill(false); const N=orbObj.slots.length; const ang=Math.atan2(centerY(b)-orbObj.cy, centerX(b)-orbObj.cx);
+  let bestIdx=-1,bestDiff=1e9; for(let i=0;i<N;i++){ if(orbObj.slots[i]) continue; const slotAng=(i/N)*Math.PI*2 - Math.PI; const diff=Math.abs(normalizeAngle(ang-slotAng)); if(diff<bestDiff){ bestDiff=diff; bestIdx=i; } }
+  if(bestIdx===-1){ for(let i=0;i<6;i++) orbObj.slots.push(false); return snapToOrbRing(b,orbObj); }
+  occupySlot(b,orbObj,bestIdx,true);
+}
+function occupySlot(b,orbObj,idx,animated){ orbObj.slots[idx]=true; b.locked=true; b._slot={orb:orbObj.category,idx}; const slotAng=(idx/orbObj.slots.length)*Math.PI*2; const rInner=Math.max(10,orbObj.slotR); const targetX=orbObj.cx+Math.cos(slotAng)*rInner-b.w/2; const targetY=orbObj.cy+Math.sin(slotAng)*rInner-b.h/2;
+  if(animated){ b.el.style.transition='transform 320ms cubic-bezier(.2,.9,.25,1.2), border-color 320ms ease'; animateTo(b,targetX,targetY,320,()=>{ b.el.style.borderColor='rgba(46,229,157,.9)'; }); } else { b.x=targetX; b.y=targetY; positionBubble(b.el,b.x,b.y); b.el.style.borderColor='rgba(46,229,157,.9)'; } }
+function normalizeAngle(a){ while(a>Math.PI) a-=2*Math.PI; while(a<-Math.PI) a+=2*Math.PI; return a; }
+function animateTo(b,x,y,ms=200,after){
+  const SR=stage.getBoundingClientRect();
+  const x0=b.x,y0=b.y,dx=x-x0,dy=y-y0,t0=performance.now();
+  function frame(t){
+    const k=Math.min(1,(t-t0)/ms), e=1-Math.pow(1-k,3);
+    b.x=x0+dx*e; b.y=y0+dy*e;
+    b.x=Math.max(2, Math.min(b.x, SR.width - b.w - 2));
+    b.y=Math.max(2, Math.min(b.y, SR.height - b.h - 2));
+    positionBubble(b.el,b.x,b.y);
+    if(k<1) requestAnimationFrame(frame); else after&&after();
+  }
+  requestAnimationFrame(frame);
+}
+
+/* Progress & finish */
+function updateProgress(){ scoreEl.textContent=score; const frac=total?(score/total):0; document.documentElement.style.setProperty('--p', String(frac)); barFill.style.width=(frac*100)+'%'; }
+function finish(){ setTimeout(()=>{ finalScore.textContent=score; completionTime.textContent = Math.round((Date.now()-gameStartTime)/1000)+'s'; celebration.classList.add('show'); orbs.forEach(orb=>burstConfettiAtOrb(orb)); },400); }
+
+/* Facts save/share */
+function showFact(name){ const f=facts[name]; if(!f) return; const text=Array.isArray(f)?f[(Math.random()*f.length)|0]:f; factBarText.textContent=text; currentAnimal=name; }
+function renderSavedFacts(){ factsList.innerHTML=''; if(savedFacts.length===0){ const p=document.createElement('p'); p.className='text-sm text-gray-300'; p.textContent='No saved facts yet.'; factsList.appendChild(p); return; } savedFacts.forEach(item=>{ const row=document.createElement('div'); row.className='item'; const cb=document.createElement('input'); cb.type='checkbox'; cb.dataset.id=item.id; const label=document.createElement('label'); label.textContent=`${item.animal}: ${item.text}`; row.appendChild(cb); row.appendChild(label); factsList.appendChild(row); }); }
+function saveCurrentFact(){ const txt=factBarText.textContent?.trim(); if(!txt || !currentAnimal) return; const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7); savedFacts.push({id,animal:currentAnimal,text:txt,ts:Date.now()}); persistSavedFacts(); if(drawerSaved.classList.contains('open')) renderSavedFacts(); vibrate(10); tone(760,90,0.02); }
+async function copySelectedFacts(){ const ids=Array.from(factsList.querySelectorAll('input[type="checkbox"]')).filter(cb=>cb.checked).map(cb=>cb.dataset.id); const toCopy=(ids.length? savedFacts.filter(f=>ids.includes(f.id)) : savedFacts).map(f=>`${f.animal}: ${f.text}`); if(!toCopy.length) return; try{ await navigator.clipboard.writeText(toCopy.join('\n')); vibrate(10); tone(900,80,0.02);}catch{} }
+function removeSelectedFacts(){ const ids=Array.from(factsList.querySelectorAll('input[type="checkbox"]')).filter(cb=>cb.checked).map(cb=>cb.dataset.id); if(!ids.length) return; savedFacts=savedFacts.filter(f=>!ids.includes(f.id)); persistSavedFacts(); renderSavedFacts(); vibrate([10,40]); tone(320,100,0.03); }
+function exportFacts(){ const lines=savedFacts.map(f=>`${f.animal}: ${f.text}`); if(!lines.length) return; const blob=new Blob([lines.join('\n')],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='saved-facts.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+function shareFactsAsText(){ const lines=savedFacts.map(f=>`${f.animal}: ${f.text}`); if(!lines.length){ alert("No facts to share!"); return; } const tagline="🌟 Check out ZenSeek.org for more fun facts, quotes, jokes, games, guides and more! 🌟"; const textToShare=lines.join('\n\n')+'\n\n'+tagline; if(navigator.share){ navigator.share({title:'My ZenSeek Animal Facts',text:textToShare,url:'https://zenseek.org'}).catch(()=>navigator.clipboard.writeText(textToShare).then(()=>alert("Facts copied to clipboard with ZenSeek tagline!"))); } else { navigator.clipboard.writeText(textToShare).then(()=>alert("Facts copied to clipboard with ZenSeek tagline!")); } }
+function persistSavedFacts(){ localStorage.setItem('zen_saved_facts', JSON.stringify(savedFacts)); }
+function loadSavedFacts(){ try{ return JSON.parse(localStorage.getItem('zen_saved_facts')||'[]')||[]; }catch{return [];} }
+
+/* Save/load state */
+function saveState(){ const state={ v:16, score, muted, autosave, order:bubbles.map(b=>b.name), items:bubbles.map(b=>({name:b.name,category:b.category,locked:b.locked,orbCat:b._slot?.orb??null,slotIdx:b._slot?.idx??null})), hideHelp:(instr.style.display==='none'), currentFact: factBarText.textContent||'', startTime: gameStartTime }; localStorage.setItem('zen_state', JSON.stringify(state)); }
+function maybeSave(){ if(autosave) saveState(); }
+function loadState(){ const raw=localStorage.getItem('zen_state'); if(!raw) return; let s; try{ s=JSON.parse(raw);}catch{return;} if(!s||s.v<2) return; muted=!!s.muted; autosave=(s.autosave!==false); updateMuteUI(); updateSaveUI(); if(Array.isArray(s.order)&&s.order.length===bubbles.length){ const map=new Map(bubbles.map(b=>[b.name,b])); bubbles=s.order.map(n=>map.get(n)).filter(Boolean); } orbs.forEach(o=>o.slots=Array(12).fill(false)); score=+s.score||0; updateProgress(); const byName=new Map(bubbles.map(b=>[b.name,b])); if(Array.isArray(s.items)){ s.items.forEach(it=>{ const b=byName.get(it.name); if(b){ b.locked=!!it.locked; b._slot=null; }}); s.items.forEach(it=>{ if(!it.locked) return; const b=byName.get(it.name), orb=orbs.find(o=>o.category===it.orbCat); if(!b||!orb) return; while(it.slotIdx>=(orb.slots?.length||0)) orb.slots.push(false); occupySlot(b,orb,it.slotIdx,false); }); } if(typeof s.currentFact==='string' && s.currentFact.length) factBarText.textContent=s.currentFact; if(localStorage.getItem('zen_hide_instructions')==='1') instr.style.display='none'; if(s.startTime) gameStartTime=s.startTime; }
+
+/* Controls */
+function toggleMute(){ ensureAudioCtx(); if(ACtx?.state==='suspended') ACtx.resume?.(); muted=!muted; localStorage.setItem('zen_mute', muted?'1':'0'); if(muted) stopAnimalSound(); else tone(880,100,0.03); updateMuteUI(); maybeSave(); }
+function shuffleTray(){ const locked=bubbles.filter(b=>b.locked), unlocked=bubbles.filter(b=>!b.locked); shuffle(unlocked); bubbles=[...locked,...unlocked]; packTray(1); vibrate(20); tone(700,90,0.03); maybeSave(); }
+function resetGame(){ localStorage.removeItem('zen_state'); score=0; updateProgress(); vibrate(40); tone(440,120,0.035); stopAnimalSound(); orbs.forEach(o=>o.slots=Array(12).fill(false)); bubbles.forEach(b=>{ b.locked=false; b._slot=null; b.el.style.transition=''; b.el.style.borderColor='rgba(231,197,91,.6)'; b.el.remove(); }); bubbles.length=0; buildBubbles(); factBarText.textContent='Drag an animal to its matching group to see a fun fact!'; currentAnimal=null; gameStartTime=Date.now(); celebration.classList.remove('show'); maybeSave(); }
+function showHelp(){ instr.style.display='block'; }
+function openSaved(){ drawerSaved.classList.add('open'); fabSaved.setAttribute('aria-expanded','true'); renderSavedFacts(); setTimeout(()=>factsList.focus(),0); }
+function closeSaved(){ drawerSaved.classList.remove('open'); fabSaved.setAttribute('aria-expanded','false'); }
+
+muteBtn.addEventListener('click',toggleMute);
+saveBtn.addEventListener('click',()=>{ autosave=!autosave; localStorage.setItem('zen_autosave', autosave?'1':'0'); updateSaveUI(); if(autosave) saveState(); else localStorage.removeItem('zen_state'); });
+resetBtn.addEventListener('click',resetGame);
+shuffleBtn.addEventListener('click',shuffleTray);
+helpBtn.addEventListener('click',showHelp);
+closeInstr.addEventListener('click',()=>{ instr.style.display='none'; localStorage.setItem('zen_hide_instructions','1'); maybeSave(); });
+
+btnSaveFact.addEventListener('click',saveCurrentFact);
+btnCopyFacts.addEventListener('click',copySelectedFacts);
+btnSelectAllFacts.addEventListener('click',()=>factsList.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.checked=true));
+btnRemoveFacts.addEventListener('click',removeSelectedFacts);
+btnExportFacts.addEventListener('click',exportFacts);
+btnShareFacts.addEventListener('click',shareFactsAsText);
+
+fabSaved.addEventListener('click',()=> drawerSaved.classList.contains('open') ? closeSaved() : openSaved());
+btnCloseDrawer.addEventListener('click',closeSaved);
+
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ if(drawerSaved.classList.contains('open')) closeSaved(); if(drawerOverflow.classList.contains('open')) closeOverflow(); if(celebration.classList.contains('show')) celebration.classList.remove('show'); } });
+
+/* Sticky bottom bar */
+(function setupBottomBar(){
+  const bar=document.getElementById('bottom-bar'); if(!bar) return;
+  ['saveBtn','muteBtn','shuffleBtn','resetBtn','helpBtn'].forEach(id=>{ const btn=document.getElementById(id); if(!btn) return; btn.classList.add('bar-btn'); bar.appendChild(btn); });
+  setTimeout(()=>{ setHudOffset(); updateOrbGeometry(); packTray(2); },0);
+})();
+
+/* Observers & boot */
+const ro=new ResizeObserver(()=>{ setHudOffset(); updateOrbGeometry(); packTray(1); });
+ro.observe(document.body); ro.observe(stage); ro.observe(orbsRow); ro.observe(tray);
+
+addEventListener('resize',()=>{ clearTimeout(repackTimer); repackTimer=setTimeout(()=>{ setHudOffset(); updateOrbGeometry(); packTray(1); },80); });
+
+function boot(){
+  buildOrbs(); buildBubbles(); updateProgress();
+  setTimeout(()=>{ setHudOffset(); updateOrbGeometry(); packTray(2); loadState(); },200);
+  setTimeout(()=>{ setHudOffset(); updateOrbGeometry(); packTray(1); },650);
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(()=>{ setHudOffset(); updateOrbGeometry(); packTray(1); });
+  }
+  const prime=()=>{ primeAudioOnce(); packTray(1); window.removeEventListener('pointerdown',prime); window.removeEventListener('keydown',prime); };
+  window.addEventListener('pointerdown',prime,{passive:true});
+  window.addEventListener('keydown',prime);
+  playAgainBtn.addEventListener('click', resetGame);
+  gameStartTime=Date.now();
+}
+boot();
+
+/* Haptics */
+function vibrate(v){ if(navigator.vibrate) try{ navigator.vibrate(v); }catch{} }
+</script>
+</body>
+</html>

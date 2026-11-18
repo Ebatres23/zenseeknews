@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Breathing Lab — Lotus Bloom Pro | ZenSeek</title>
+  <meta name="description" content="On‑theme, Apple‑style Breathing Lab with lotus canvas bloom, diaphragm wave, scrollytelling, presets, voice/soft chimes, reduced‑motion support, and a rock‑solid timer."/>
+  <style>
+    :root{ --zen-gold:#D4AF37; --text:#fff; --ink:#0b1a22; --muted:#6b7a8a; --shell:#0a141a }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Georgia,serif;background:var(--shell);color:var(--ink);line-height:1.55;overflow-x:hidden}
+    a{color:#e7f1f7;text-decoration:none} a:hover{color:var(--zen-gold)}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(10,20,26,.65);border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
+    header .brand{font-weight:700;color:var(--zen-gold);font-size:1.4rem;text-decoration:none}
+    nav a{color:#fff;margin-left:1rem;text-decoration:none;font-weight:500}
+    nav a:hover{color:var(--zen-gold)}
+
+    /* Hero */
+    .hero{position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:2rem 1rem;isolation:isolate}
+    .hero .media{position:absolute;inset:0;z-index:-2}
+    .hero .media img{width:100%;height:100%;object-fit:cover;filter:saturate(1.08) contrast(1.04) brightness(1.05);transform:scale(1.03);animation:kb 28s ease-in-out infinite alternate}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.48))}
+    @keyframes kb{0%{transform:scale(1.03)}100%{transform:scale(1.06) translateY(-6px)}}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);color:var(--zen-gold);margin-bottom:.6rem;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+    .hero p{max-width:900px;margin:0 auto .6rem;font-size:1.06rem;color:#eef6f9;text-shadow:0 1px 8px rgba(0,0,0,.3)}
+    .badges{list-style:none;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin:.6rem 0 0}
+    .badges li{border:1px solid var(--zen-gold);color:var(--zen-gold);padding:.28rem .7rem;border-radius:16px;font-size:.85rem;background:rgba(0,0,0,.25)}
+    .meta{margin-top:.5rem;font-size:.85rem;color:#fff;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+    .btns{margin-top:.9rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+    .btn{padding:.7rem 1.4rem;border-radius:999px;font-weight:600;text-decoration:none;border:1px solid transparent}
+    .btn.primary{background:var(--zen-gold);color:#141006}
+    .btn.secondary{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+
+    /* Main layout */
+    .main-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+    
+    /* Table of Contents - Fixed at the top on desktop, static on mobile */
+    .toc-container {
+      position: sticky;
+      top: 80px;
+      z-index: 40;
+      margin-bottom: 1.5rem;
+      background: rgba(11,24,32,.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      justify-content: center;
+    }
+    
+    .toc h3 {
+      color: var(--zen-gold);
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .toc nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      justify-content: center;
+    }
+    
+    .toc nav a {
+      display: block;
+      color: #d7e6ed;
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    
+    .toc nav a:hover {
+      background: rgba(255,255,255,.06);
+      color: #fff;
+    }
+    
+    .toc nav a.active {
+      background: rgba(212,175,55,.15);
+      color: var(--zen-gold);
+      font-weight: 600;
+    }
+
+    /* Content cards */
+    .card{background:rgba(255,255,255,.95);color:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:16px 18px;margin:14px 0}
+    .card h2{font-size:1.25rem;margin:.2rem 0 .45rem}
+    .tag{display:inline-block;font-size:.78rem;color:#6b7a8a;border:1px solid #e3e7eb;border-radius:14px;padding:.16rem .6rem;margin-bottom:.5rem}
+    .lead{color:#22323b}.sub{color:var(--muted);font-size:.95rem}
+
+    /* Scene */
+    .scene{margin:28px 0;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+    .scene-inner{display:grid;grid-template-columns:minmax(280px,540px) 1fr;gap:20px}
+    @media(max-width:980px){.scene-inner{grid-template-columns:1fr}}
+    .sticky-visual{position:sticky;top:96px;align-self:start;padding:18px}
+    .caption{color:#d7e6ed;font-size:.92rem;margin-top:8px;text-align:center}
+
+    /* Stage */
+    #stageWrap{position:relative;aspect-ratio:1/1;width:min(78vw,720px);margin:1rem auto}
+    #lotus{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;border:1px solid rgba(0,0,0,.12);background:#F8FAFC}
+    #phaseLabel{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(255,255,255,.9);padding:.25rem .6rem;border-radius:12px;border:1px solid rgba(0,0,0,.12);font-variant-numeric:tabular-nums;color:#111}
+    #wave{position:relative;height:120px;margin:0 auto;max-width:min(78vw,720px);border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.75))}
+    #wave canvas{width:100%;height:100%}
+
+    /* Steps for scrollytelling */
+    .steps {
+      padding: 6px;
+    }
+    
+    .step {
+      background: rgba(255,255,255,.95);
+      border-radius: 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      padding: 16px 18px;
+      margin: 14px 0;
+      opacity: .6;
+      transform: translateY(8px);
+      transition: opacity .3s, transform .3s;
+    }
+    
+    .step.active {
+      opacity: 1;
+      transform: none;
+      border: 1px solid #e8ebef;
+    }
+
+    /* Anchor safety */
+    :root{--safe-top:86px} html{scroll-padding-top:var(--safe-top)} section[id]{scroll-margin-top:var(--safe-top)}
+
+    footer{background:#111;color:#bbb;text-align:center;padding:1rem;margin-top:2rem;font-size:.85rem}
+    footer a{color:#fff;text-decoration:none} footer a:hover{color:var(--zen-gold)}
+    @media(prefers-reduced-motion:reduce){.hero .media img{animation:none;transform:none}}
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .toc-container {
+        position: static; /* Remove sticky behavior on mobile */
+        margin-bottom: 1rem;
+        padding: 12px;
+      }
+      
+      .toc nav {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      
+      .toc nav a {
+        text-align: center;
+        padding: 0.5rem;
+      }
+      
+      .scene-inner {
+        gap: 10px;
+      }
+      
+      .sticky-visual {
+        position: static; /* Remove sticky on mobile for the visual too */
+        padding: 12px;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/guide-theme.css">
+</head>
+<body class="theme-page">
+  <header>
+    <a href="/" class="brand">ZenSeek</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/first-rate-you/">First-Rate You</a>
+      <a href="/wealth-flow/">Money</a>
+      <a href="/focus-quiet/">Calm</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <picture class="media" aria-hidden="true">
+      <img src="/images/river2-hero-1920.webp" alt="" width="1920" height="1080" fetchpriority="high"/>
+    </picture>
+    <h1>Breathing Lab — Lotus Bloom Pro</h1>
+    <p>Transform anxiety into calm with interactive breathing tools and science‑backed protocols. Breathe with the lotus bloom and diaphragm wave.</p>
+    <ul class="badges"><li>Box</li><li>4‑7‑8</li><li>Resonance</li><li>Coherence</li><li>Sigh</li><li>Long‑Exhale</li><li>Custom</li></ul>
+    <p class="meta">Verified: Sept 2025</p>
+    <div class="btns">
+      <a class="btn primary" href="#section5">Open Timer</a>
+      <a class="btn secondary" href="#section1">Lotus Guide</a>
+    </div>
+  </section>
+
+  <main class="onpage">
+    <div class="main-container">
+      <!-- TABLE OF CONTENTS - Fixed at the top on desktop, static on mobile -->
+      <div class="toc-container" id="toc">
+        <div class="toc">
+          <h3>Contents</h3>
+          <nav>
+            <a href="#section1">1. Interactive Lotus Guide</a>
+            <a href="#section2">2. Breath & Nervous System</a>
+            <a href="#section3">3. Science of Breathing</a>
+            <a href="#section4">4. Breathing Protocols</a>
+            <a href="#section5">5. Breathing Timer Tool</a>
+            <a href="#section6">6. Daily Integration</a>
+            <a href="#section7">7. Red Flags & Safety</a>
+          </nav>
+        </div>
+      </div>
+
+      <div>
+        <!-- SECTION 1: Lotus scrollytelling (keeps your IDs) -->
+        <section id="section1" class="scene" aria-labelledby="lotusTitle">
+          <div class="scene-inner">
+            <div class="sticky-visual">
+              <div class="caption" id="diagramLabel">Lotus Bloom — synced with breath phases</div>
+              <canvas id="diagram" width="540" height="420" aria-hidden="true" style="width:100%;height:auto;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#0f1f28,#0a141a)"></canvas>
+              <p class="caption">Scroll the steps → the diagram highlights the mechanic.</p>
+            </div>
+            <div class="steps">
+              <article class="card step" data-d="belly"><span class="tag">Step 1</span><h2 class="lead">Belly First</h2><p class="sub">Let the diaphragm descend. Belly rises; chest quiet. Reduces neck/upper‑trap tension.</p></article>
+              <article class="card step" data-d="lateral"><span class="tag">Step 2</span><h2 class="lead">Lateral Ribs</h2><p class="sub">Lower ribs widen sideways (bucket‑handle). Avoid shrugging.</p></article>
+              <article class="card step" data-d="exhale"><span class="tag">Step 3</span><h2 class="lead">Long Exhale</h2><p class="sub">Exhale longer than inhale. Lips barely parted; whisper‑slow out.</p></article>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2 -->
+        <article id="section2" class="card"><span class="tag">Nervous System</span><h2>Breath and the Central Nervous System</h2><p class="sub">Breathing patterns tilt the autonomic balance. Slow, low breathing favors parasympathetic tone via the vagus; fast, shallow breathing biases sympathetic arousal. Use the timer below to practice longer exhales.</p></article>
+
+        <!-- SECTION 3 -->
+        <article id="section3" class="card"><span class="tag">Why it Works</span><h2>Why Breathing Really Works</h2><ul><li>Long exhales nudge baroreflex pathways that inhibit sympathetic output.</li><li>Diaphragm motion massages viscera, improving interoceptive calm signals.</li><li>Consistent practice improves HRV and perceived stress.</li></ul></article>
+
+        <!-- SECTION 4 -->
+        <article id="section4" class="card"><span class="tag">Protocols</span><h2>Advanced Breathing Protocols</h2><ul><li><strong>4‑7‑8 (sleep):</strong> 4 in, 7 hold, 8 out.</li><li><strong>Box (focus):</strong> 4/4/4/4.</li><li><strong>Resonance/Coherence:</strong> ~5.5–6 breaths/min (equal in/out).</li><li><strong>Physiological Sigh:</strong> two short inhales + long exhale, 1–3 min.</li><li><strong>Long‑Exhale Reset:</strong> 3 in, 7 out (no holds) for 2–5 min.</li></ul></article>
+
+        <!-- SECTION 5: Timer tool -->
+        <section id="section5" class="card" aria-labelledby="stageTitle">
+          <h2 id="stageTitle">Guided Breathing Timer Tool</h2>
+          <div id="stageWrap" aria-live="polite">
+            <canvas id="lotus"></canvas>
+            <div id="phaseLabel">Ready</div>
+          </div>
+          <div id="wave"><canvas id="waveCanvas" aria-hidden="true"></canvas></div>
+
+          <div class="card" style="margin-top:14px">
+            <div style="display:grid;gap:.6rem">
+              <label for="mode">Protocol</label>
+              <select id="mode">
+                <option value="box">Box — 4/4/4/4</option>
+                <option value="478">4‑7‑8 — Sleep</option>
+                <option value="resonance">Resonance — ~6 bpm</option>
+                <option value="coherence">Coherence — 5.5 / 5.5</option>
+                <option value="sigh">Physiological Sigh</option>
+                <option value="longEx">Long‑Exhale Reset</option>
+                <option value="custom">Custom</option>
+              </select>
+
+              <div id="customWrap" style="display:none">
+                <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end">
+                  <div><label>Inhale (s)</label><input id="c_in" type="number" min="1" step="0.5" value="4"/></div>
+                  <div><label>Hold Top (s)</label><input id="c_holdTop" type="number" min="0" step="0.5" value="0"/></div>
+                  <div><label>Exhale (s)</label><input id="c_out" type="number" min="1" step="0.5" value="6"/></div>
+                  <div><label>Hold Bottom (s)</label><input id="c_holdBot" type="number" min="0" step="0.5" value="0"/></div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+                <button class="btn primary" id="startBtn" aria-pressed="false">Start</button>
+                <button class="btn" id="pauseBtn">Pause</button>
+                <button class="btn" id="resetBtn">Reset</button>
+                <span class="sub">Remaining cycles: <span id="remain">10</span></span>
+              </div>
+
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+                <label for="cycles">Cycles</label>
+                <input id="cycles" type="number" min="1" step="1" value="10" style="max-width:120px"/>
+                <label for="audio">Audio</label>
+                <select id="audio"><option value="off">Off</option><option value="soft">Soft chime</option><option value="voice">Voice</option></select>
+                <label for="haptics">Haptics</label>
+                <select id="haptics"><option value="off">Off</option><option value="light">Light</option><option value="strong">Strong</option></select>
+                <label for="themeSel">Theme</label>
+                <select id="themeSel"><option value="lotus">Lotus</option><option value="orb">Orb</option></select>
+              </div>
+            </div>
+          </div>
+
+          <p class="sub" style="margin-top:.6rem">Spacebar toggles start/pause. Preferences persist locally. Reduced‑motion is respected.</p>
+        </section>
+
+        <!-- SECTION 6 -->
+        <article id="section6" class="card"><span class="tag">Daily</span><h2>Daily Integration Tips</h2><ul><li>Start with 3 minutes after waking; end with 4‑7‑8 before bed.</li><li>Use Box breathing while loading pages or waiting in lines.</li><li>Pair with a 3‑minute walk; breathe through your nose.</li></ul></article>
+
+        <!-- SECTION 7 -->
+        <article id="section7" class="card"><span class="tag">Safety</span><h2>Red Flags & When to Seek Help</h2><ul><li>Stop if dizzy, numb, or more anxious.</li><li>Persistent shortness of breath → clinician.</li><li>For severe anxiety, combine with professional care.</li></ul></article>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="y"></span> ZenSeek — AI‑sourced, human‑verified, evergreen.</p>
+    <p><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/sitemap.xml">Sitemap</a></p>
+  </footer>
+
+  <script>
+    // Year stamp
+    document.getElementById('y').textContent=new Date().getFullYear();
+
+    // Smooth scroll + active TOC
+    (function(){
+      const links=[...document.querySelectorAll('.toc a')];
+      const ids=links.map(a=>a.getAttribute('href')).filter(Boolean).map(h=>h.slice(1));
+      const obs=new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{ 
+          if(e.isIntersecting){ 
+            const id='#'+e.target.id; 
+            links.forEach(a=>a.classList.toggle('active', a.getAttribute('href')===id)); 
+          } 
+        });
+      },{rootMargin:'-20% 0px -55% 0px', threshold:0});
+      ids.forEach(id=>{const el=document.getElementById(id); if(el) obs.observe(el);});
+      document.querySelector('.toc')?.addEventListener('click',(ev)=>{ 
+        const a=ev.target.closest('a'); 
+        if(!a) return; 
+        const t=document.querySelector(a.getAttribute('href')); 
+        if(t){
+          ev.preventDefault(); 
+          t.scrollIntoView({behavior:'smooth'});
+        } 
+      });
+    })();
+
+    // Diagram scrollytelling
+    (function(){
+      const diagram=document.getElementById('diagram'); 
+      const dctx=diagram.getContext('2d');
+      
+      function fitDiagram() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = diagram.clientWidth || 540;
+        const h = Math.round(w * (diagram.height / diagram.width));
+        diagram.width = Math.max(2, Math.floor(w * dpr));
+        diagram.height = Math.max(2, Math.floor(h * dpr));
+        diagram.style.width = w + 'px';
+        diagram.style.height = h + 'px';
+        dctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      
+      fitDiagram();
+      window.addEventListener('resize', fitDiagram);
+      
+      function draw(mode){ 
+        const w=diagram.width/(window.devicePixelRatio||1), 
+              h=diagram.height/(window.devicePixelRatio||1); 
+        dctx.clearRect(0,0,w,h); 
+        dctx.fillStyle='#12303d'; 
+        dctx.fillRect(w*0.35,h*0.18,w*0.3,h*0.64); 
+        dctx.beginPath(); 
+        dctx.ellipse(w*0.5,h*0.48,w*0.18,h*0.22,0,0,Math.PI*2); 
+        dctx.fillStyle='rgba(255,255,255,0.08)'; 
+        dctx.fill(); 
+        dctx.beginPath(); 
+        const yOff = mode==='belly'? 12 : mode==='lateral'? 6 : 0; 
+        dctx.moveTo(w*0.37,h*0.54-yOff); 
+        dctx.quadraticCurveTo(w*0.5,h*0.62-yOff,w*0.63,h*0.54-yOff); 
+        dctx.strokeStyle='rgba(212,175,55,0.9)'; 
+        dctx.lineWidth=3; 
+        dctx.stroke(); 
+        dctx.fillStyle='rgba(212,175,55,0.9)'; 
+        if(mode==='belly'){ 
+          dctx.beginPath(); 
+          dctx.moveTo(w*0.5,h*0.75); 
+          dctx.lineTo(w*0.5-8,h*0.70); 
+          dctx.lineTo(w*0.5+8,h*0.70); 
+          dctx.closePath(); 
+          dctx.fill(); 
+        } 
+        if(mode==='lateral'){ 
+          dctx.fillRect(w*0.32,h*0.48,10,3); 
+          dctx.fillRect(w*0.68,h*0.48,10,3); 
+        } 
+        if(mode==='exhale'){ 
+          dctx.beginPath(); 
+          dctx.moveTo(w*0.5,h*0.38); 
+          dctx.lineTo(w*0.5-8,h*0.43); 
+          dctx.lineTo(w*0.5+8,h*0.43); 
+          dctx.closePath(); 
+          dctx.fill(); 
+        } 
+      }
+      
+      const steps=[...document.querySelectorAll('.step')]; 
+      const label=document.getElementById('diagramLabel');
+      const obs=new IntersectionObserver((entries)=>{ 
+        entries.forEach(e=>{ 
+          if(e.isIntersecting){ 
+            steps.forEach(s=>s.classList.toggle('active', s===e.target)); 
+            const mode=e.target.getAttribute('data-d'); 
+            draw(mode); 
+            label.textContent = mode==='belly'? 'Diagram: Diaphragm descends (belly rises)' : 
+                                mode==='lateral'? 'Diagram: Lower ribs widen laterally' : 
+                                'Diagram: Long, quiet exhale'; 
+          } 
+        }); 
+      }, {rootMargin:'-35% 0px -55% 0px', threshold:0});
+      steps.forEach(s=>obs.observe(s)); 
+      draw('belly');
+    })();
+
+    // Timer + Lotus + Wave (stable, flicker‑free)
+    (function(){
+      const lotus=document.getElementById('lotus'); 
+      const lctx=lotus.getContext('2d');
+      const wave=document.getElementById('waveCanvas'); 
+      const wctx=wave.getContext('2d');
+      const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Controls
+      const phaseLabel=document.getElementById('phaseLabel');
+      const modeSel=document.getElementById('mode');
+      const customWrap=document.getElementById('customWrap');
+      const cIn=document.getElementById('c_in'), 
+            cHoldTop=document.getElementById('c_holdTop'), 
+            cOut=document.getElementById('c_out'), 
+            cHoldBot=document.getElementById('c_holdBot');
+      const startBtn=document.getElementById('startBtn'), 
+            pauseBtn=document.getElementById('pauseBtn'), 
+            resetBtn=document.getElementById('resetBtn');
+      const audioSel=document.getElementById('audio'); 
+      const cyclesInp=document.getElementById('cycles');
+      const hapticsSel=document.getElementById('haptics'); 
+      const themeSel=document.getElementById('themeSel');
+      const remainEl=document.getElementById('remain');
+
+      let ctxAudio=null; 
+      
+      function chime(){ 
+        if(audioSel.value!=='soft') return; 
+        if(!ctxAudio) ctxAudio=new (window.AudioContext||window.webkitAudioContext)(); 
+        const o=ctxAudio.createOscillator(), 
+              g=ctxAudio.createGain(); 
+        o.type='sine'; 
+        o.frequency.value=660; 
+        g.gain.value=0.0001; 
+        o.connect(g).connect(ctxAudio.destination); 
+        o.start(); 
+        g.gain.exponentialRampToValueAtTime(0.00001, ctxAudio.currentTime+0.25); 
+        o.stop(ctxAudio.currentTime+0.26); 
+      }
+      
+      function speak(txt){ 
+        if(audioSel.value!=='voice') return; 
+        try{ 
+          const u=new SpeechSynthesisUtterance(txt); 
+          u.rate=1; 
+          u.pitch=1; 
+          u.lang='en-US'; 
+          speechSynthesis.cancel(); 
+          speechSynthesis.speak(u);
+        }catch(e){} 
+      }
+      
+      function buzz(type){ 
+        if(!('vibrate' in navigator)) return; 
+        const v = hapticsSel.value; 
+        if(v==='off') return; 
+        const p = type==='phase' ? (v==='strong'?[40,20,40]:[30]) : (v==='tap'?[15]:[8]); 
+        navigator.vibrate(p); 
+      }
+
+      function fit(canvas, ctx){ 
+        const dpr=window.devicePixelRatio||1; 
+        const w=canvas.clientWidth||300; 
+        const h=canvas.clientHeight||300; 
+        canvas.width=Math.max(2,Math.floor(w*dpr)); 
+        canvas.height=Math.max(2,Math.floor(h*dpr)); 
+        canvas.style.width=w+'px'; 
+        canvas.style.height=h+'px'; 
+        ctx.setTransform(dpr,0,0,dpr,0,0); 
+      }
+      
+      new ResizeObserver(()=>fit(lotus,lctx)).observe(lotus); 
+      new ResizeObserver(()=>{ 
+        const dpr=window.devicePixelRatio||1; 
+        const w=wave.clientWidth||600; 
+        const h=wave.clientHeight||120; 
+        wave.width=Math.max(2,Math.floor(w*dpr)); 
+        wave.height=Math.max(2,Math.floor(h*dpr)); 
+        wave.style.width=w+'px'; 
+        wave.style.height=h+'px'; 
+        wctx.setTransform(dpr,0,0,dpr,0,0); 
+      }).observe(wave); 
+      fit(lotus,lctx);
+
+      let running=false, 
+          paused=false, 
+          phaseIdx=0, 
+          phaseElapsed=0, 
+          t0=0, 
+          cycleCount=0, 
+          totalCycles=+cyclesInp.value||10; 
+      let schedule=[];
+      
+      function buildSchedule(){ 
+        const m=modeSel.value; 
+        if(m==='box') schedule=[{n:'Inhale',s:4},{n:'Hold',s:4},{n:'Exhale',s:4},{n:'Hold',s:4}]; 
+        else if(m==='478') schedule=[{n:'Inhale',s:4},{n:'Hold',s:7},{n:'Exhale',s:8}]; 
+        else if(m==='resonance') schedule=[{n:'Inhale',s:4.5},{n:'Exhale',s:5.5}]; 
+        else if(m==='coherence') schedule=[{n:'Inhale',s:5.5},{n:'Exhale',s:5.5}]; 
+        else if(m==='sigh') schedule=[{n:'Inhale',s:2},{n:'Sip In',s:1},{n:'Exhale',s:6}]; 
+        else if(m==='longEx') schedule=[{n:'Inhale',s:3},{n:'Hold',s:1},{n:'Exhale',s:7}]; 
+        else schedule=[{n:'Inhale',s:+cIn.value||4},{n:'Hold',s:+cHoldTop.value||0},{n:'Exhale',s:+cOut.value||6},{n:'Hold',s:+cHoldBot.value||0}].filter(ph=>ph.s>0||/Hold/.test(ph.n)===false); 
+      }
+      
+      function reset(){ 
+        running=false; 
+        paused=false; 
+        phaseIdx=0; 
+        phaseElapsed=0; 
+        t0=0; 
+        cycleCount=0; 
+        totalCycles=+cyclesInp.value||10; 
+        remainEl.textContent=String(totalCycles); 
+        phaseLabel.textContent='Ready'; 
+        startBtn.setAttribute('aria-pressed','false');
+      }
+      
+      function savePrefs(){ 
+        const p={
+          mode:modeSel.value, 
+          cycles:+cyclesInp.value, 
+          audio:audioSel.value, 
+          haptics:hapticsSel.value, 
+          theme:themeSel.value, 
+          cIn:cIn.value, 
+          cHoldTop:cHoldTop.value, 
+          cOut:cOut.value, 
+          cHoldBot:cHoldBot.value
+        }; 
+        try{
+          localStorage.setItem('zen_breath_prefs', JSON.stringify(p));
+        }catch(e){} 
+      }
+      
+      function loadPrefs(){ 
+        try{ 
+          const p=JSON.parse(localStorage.getItem('zen_breath_prefs')||'{}'); 
+          if(p.mode) modeSel.value=p.mode; 
+          if(p.cycles) cyclesInp.value=p.cycles; 
+          if(p.audio) audioSel.value=p.audio; 
+          if(p.haptics) hapticsSel.value=p.haptics; 
+          if(p.theme) themeSel.value=p.theme; 
+          if(p.cIn) cIn.value=p.cIn; 
+          if(p.cHoldTop) cHoldTop.value=p.cHoldTop; 
+          if(p.cOut) cOut.value=p.cOut; 
+          if(p.cHoldBot) cHoldBot.value=p.cHoldBot; 
+        }catch(e){} 
+      }
+      
+      loadPrefs(); 
+      buildSchedule(); 
+      reset();
+
+      modeSel.addEventListener('change',()=>{ 
+        customWrap.style.display = modeSel.value==='custom' ? 'block' : 'none'; 
+        buildSchedule(); 
+        reset(); 
+        savePrefs(); 
+      });
+      
+      [cIn,cHoldTop,cOut,cHoldBot,cyclesInp,audioSel,hapticsSel,themeSel].forEach(i=>{
+        i.addEventListener('input',()=>{ 
+          buildSchedule(); 
+          reset(); 
+          savePrefs(); 
+        }); 
+      });
+
+      startBtn.addEventListener('click',()=>{ 
+        if(!running){ 
+          running=true; 
+          paused=false; 
+          t0=performance.now(); 
+          phaseIdx=0; 
+          phaseElapsed=0; 
+          chime(); 
+          speak(schedule[0]?.n||'Start'); 
+          buzz('tap'); 
+          phaseLabel.textContent=schedule[0]?.n||''; 
+        } 
+        startBtn.setAttribute('aria-pressed','true'); 
+      });
+      
+      pauseBtn.addEventListener('click',()=>{ 
+        paused=!paused; 
+        if(!paused){ 
+          t0=performance.now()-phaseElapsed*1000; 
+        } 
+        phaseLabel.textContent=paused?'Paused':(schedule[phaseIdx]?.n||''); 
+        buzz('tap'); 
+      });
+      
+      resetBtn.addEventListener('click',()=>{ 
+        reset(); 
+        buzz('tap'); 
+      });
+      
+      document.addEventListener('keydown',e=>{ 
+        if(e.code==='Space'){ 
+          e.preventDefault(); 
+          if(!running) startBtn.click(); 
+          else pauseBtn.click(); 
+        }
+      });
+
+      function easeInOut(t){ 
+        return t<0.5? 2*t*t : 1-Math.pow(-2*t+2,2)/2; 
+      }
+      
+      function currentPhase(){ 
+        return schedule[phaseIdx]||{n:'',s:1}; 
+      }
+      
+      function scaleFor(name,p){ 
+        if(name==='Inhale') return 0.8+0.25*easeInOut(p); 
+        if(name==='Sip In') return 1.05+0.05*easeInOut(p); 
+        if(name==='Exhale') return 1.05-0.35*easeInOut(p); 
+        return 0.96+0.04*Math.sin(p*Math.PI); 
+      }
+      
+      function petalsFor(name){ 
+        return name==='Exhale'?12: name==='Inhale'||name==='Sip In'?10:11; 
+      }
+
+      function drawLotus(scale, petals, t){ 
+        const w=lotus.width/(devicePixelRatio||1), 
+              h=lotus.height/(devicePixelRatio||1); 
+        const cx=w/2, 
+              cy=h/2, 
+              R=Math.min(cx,cy)*0.46*scale; 
+        lctx.clearRect(0,0,w,h); 
+        const g=lctx.createRadialGradient(cx,cy,R*0.2,cx,cy,R*1.2); 
+        g.addColorStop(0,'#fdfcf8'); 
+        g.addColorStop(1,'#eef3f8'); 
+        lctx.fillStyle=g; 
+        lctx.fillRect(0,0,w,h); 
+        lctx.beginPath(); 
+        lctx.arc(cx,cy,R+12+6*Math.sin(t*0.002),0,Math.PI*2); 
+        lctx.fillStyle='rgba(212,175,55,0.16)'; 
+        lctx.fill(); 
+        const layers=3; 
+        for(let L=0; L<layers; L++){ 
+          const layerPetals=petals+L*2; 
+          const layerR=R*(0.72+L*0.12); 
+          for(let k=0;k<layerPetals;k++){ 
+            const ang=(k/layerPetals)*Math.PI*2 + Math.sin(t*0.0008+L)*0.03; 
+            const tilt=0.6+0.1*Math.sin(t*0.001+L+k); 
+            const x1=cx+Math.cos(ang)*layerR*0.2, 
+                  y1=cy+Math.sin(ang)*layerR*0.2; 
+            const x2=cx+Math.cos(ang-0.25)*layerR*tilt, 
+                  y2=cy+Math.sin(ang-0.25)*layerR*tilt; 
+            const x3=cx+Math.cos(ang+0.25)*layerR*tilt, 
+                  y3=cy+Math.sin(ang+0.25)*layerR*tilt; 
+            const x4=cx+Math.cos(ang)*layerR, 
+                  y4=cy+Math.sin(ang)*layerR; 
+            const grd=lctx.createLinearGradient(x1,y1,x4,y4); 
+            grd.addColorStop(0,'rgba(255,255,255,0.95)'); 
+            grd.addColorStop(1,'rgba(212,175,55,0.32)'); 
+            lctx.beginPath(); 
+            lctx.moveTo(x1,y1); 
+            lctx.quadraticCurveTo(x2,y2,x4,y4); 
+            lctx.quadraticCurveTo(x3,y3,x1,y1); 
+            lctx.fillStyle=grd; 
+            lctx.fill(); 
+            lctx.strokeStyle='rgba(212,175,55,0.12)'; 
+            lctx.lineWidth=1; 
+            lctx.stroke(); 
+          } 
+        } 
+        lctx.beginPath(); 
+        lctx.arc(cx,cy,R*0.34,0,Math.PI*2); 
+        lctx.strokeStyle='rgba(212,175,55,0.35)'; 
+        lctx.lineWidth=3; 
+        lctx.stroke(); 
+      }
+
+      function drawWave(p, name){ 
+        const w=wave.width/(devicePixelRatio||1), 
+              h=wave.height/(devicePixelRatio||1); 
+        wctx.clearRect(0,0,w,h); 
+        const base=h*0.6; 
+        const amp = name==='Exhale'? h*0.18*(1-p) : name==='Inhale'? h*0.18*p : h*0.12; 
+        wctx.beginPath(); 
+        wctx.moveTo(0, base); 
+        for(let x=0; x<=w; x++){ 
+          const t=x/w; 
+          const y = base - amp*Math.sin(t*Math.PI*2 + (name==='Exhale'?Math.PI:0)); 
+          wctx.lineTo(x,y); 
+        } 
+        wctx.strokeStyle='rgba(30,50,60,0.9)'; 
+        wctx.lineWidth=2; 
+        wctx.stroke(); 
+        wctx.fillStyle='rgba(212,175,55,0.12)'; 
+        wctx.fillRect(0,base,w,h-base); 
+      }
+
+      function loop(){ 
+        requestAnimationFrame(loop); 
+        if(running && !paused){ 
+          const ms=performance.now()-t0; 
+          phaseElapsed=ms/1000.0; 
+          const cur=schedule[phaseIdx]||{n:'Hold',s:1}; 
+          if(phaseElapsed>=cur.s){ 
+            chime(); 
+            speak(schedule[(phaseIdx+1)%schedule.length]?.n||''); 
+            buzz('phase'); 
+            phaseIdx=(phaseIdx+1)%schedule.length; 
+            t0=performance.now(); 
+            phaseElapsed=0; 
+            if(phaseIdx===0){ 
+              cycleCount++; 
+              remainEl.textContent=String(Math.max(0,totalCycles-cycleCount)); 
+              if(cycleCount>=totalCycles){ 
+                running=false; 
+                phaseLabel.textContent='Done'; 
+                startBtn.setAttribute('aria-pressed','false');
+              } 
+            } 
+          } 
+          phaseLabel.textContent = paused?'Paused':(cur.n||''); 
+        }
+        const cur=schedule[phaseIdx]||{n:'Hold',s:1}; 
+        const p = Math.min(1, Math.max(0, (cur.s?phaseElapsed/cur.s:0))); 
+        const scale = rm ? 1 : (themeSel.value==='orb'? 0.92 + (cur.n==='Exhale'?-0.22:0.22)* (p) : scaleFor(cur.n||'Hold', p)); 
+        const petals = themeSel.value==='orb'? 8 : petalsFor(cur.n||'Hold'); 
+        drawLotus(scale, petals, performance.now()); 
+        drawWave(p, cur.n||'Hold'); 
+      }
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

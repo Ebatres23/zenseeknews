@@ -22,6 +22,9 @@ starts the API web process, which binds to Heroku's assigned `PORT`. The
 After deployment, check `https://<your-app>.herokuapp.com/api/v1/health`.
 Interactive API documentation is available at `/docs`.
 
+The homepage displays article dates in UTC without times. The API retains the
+original timestamps for ordering and other consumers.
+
 The Netlify site proxies story URLs to Heroku. Deploy both services after
 changing story routing. Heroku's filesystem is ephemeral: generated updates
 are lost on dyno restart unless stored externally.
