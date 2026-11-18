@@ -229,9 +229,29 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
 
         if path.startswith("/story/"):
             slug = path[len("/story/"):].strip("/")
-            item = next((entry for entry in load_store()["items"] if entry["slug"] == slug), None)
+            items = load_store()["items"]
+            item = next((entry for entry in items if entry["slug"] == slug), None)
             if item:
-                self.send_redirect(item["path"].rstrip("/") + "/index.html")
+                generated_page = (ROOT / item["path"].lstrip("/") / "index.html").resolve()
+                if ROOT in generated_page.parents and generated_page.is_file():
+                    self.serve_static(item["path"].rstrip("/") + "/index.html")
+                    return
+
+                from content_agent import render_page, template_generate
+                topic = item["topic"]
+                category = item["category"].removeprefix("Daily ")
+                articles = item["sources"]
+                content = item.get("content")
+                if content is None:
+                    content = template_generate(topic, category, articles)
+                    content["headline"] = item["headline"]
+                    content["lede"] = item["description"]
+                    content["economy_impact"] = item["economy_impact"]
+                    content["actions"] = item["actions"]
+                self.send_text(200, render_page(
+                    topic, category, content, item["published"], items.index(item) + 1,
+                    item["traffic"], articles, item["fact_check"], item["economic_impact_score"],
+                ))
                 return
             match = re.match(r"^daily-(\d{4}-\d{2}-\d{2})-(.+)$", slug)
             if match:
@@ -240,17 +260,7 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
                 if candidate.is_file():
                     self.send_redirect(f"/generated/{date}/{story_slug}/index.html")
                     return
-            generated_root = ROOT / "generated"
-            candidates = sorted(
-                generated_root.glob("*/*/index.html"),
-                key=lambda candidate: candidate.stat().st_mtime,
-                reverse=True,
-            ) if generated_root.exists() else []
-            if candidates:
-                latest = candidates[0].relative_to(ROOT).as_posix()
-                self.send_redirect("/" + latest)
-                return
-            self.send_redirect("/")
+            self.send_json(404, {"error": {"code": "story_not_found", "message": "Story not found"}})
             return
 
         self.serve_static(path)

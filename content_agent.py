@@ -658,7 +658,7 @@ def render_page(topic, category, content, date, rank, traffic, articles, fact_ch
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{html.escape(content.get("headline", escaped_topic))} | ZenSeek Daily Briefing</title>
   <meta name="description" content="A useful, source-aware overview of {escaped_topic}.">
-  <link rel="canonical" href="/generated/{date}/{slugify(topic)}/">
+  <link rel="canonical" href="/story/daily-{date}-{slugify(topic)}">
   <style>
     :root{{color-scheme:dark light;font-family:system-ui,sans-serif}}
     body{{margin:0;background:#101820;color:#eef6f9}}main{{max-width:980px;margin:auto;padding:32px 20px}}
@@ -810,6 +810,7 @@ def run(limit=40):
             "actions": content.get("actions", []),
             "economic_impact_score": entry["economic_score"],
             "fact_check": fact_check,
+            "content": content,
         }
         generated.append(item)
 

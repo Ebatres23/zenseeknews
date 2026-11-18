@@ -2,6 +2,16 @@
   publish = "."
 
 [[redirects]]
+  from = "/story/*"
+  to = "https://zenseeknews-44de98dc7b2b.herokuapp.com/story/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/generated/*"
+  to = "https://zenseeknews-44de98dc7b2b.herokuapp.com/generated/:splat"
+  status = 200
+
+[[redirects]]
   from = "/first-rate-you/*"
   to = "/first-rate-you/index.html"
   status = 200
