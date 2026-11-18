@@ -13,6 +13,15 @@ python app.py
 
 Open `http://localhost:8080/docs` for interactive API documentation.
 
+## Deploy to Heroku
+
+Deploy this repository from its root with the Python buildpack. The `Procfile`
+starts the API web process, which binds to Heroku's assigned `PORT`. The
+`.python-version` file selects Python 3.11, matching the Docker configuration.
+
+After deployment, check `https://<your-app>.herokuapp.com/api/v1/health`.
+Interactive API documentation is available at `/docs`.
+
 ## API
 
 - `GET /api/v1/health`
