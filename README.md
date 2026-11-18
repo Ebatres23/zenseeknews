@@ -1,9 +1,9 @@
 # ZenSeek Agent API
 
-ZenSeek is a modernized, dependency-free API and PWA that combines the original site with a daily content agent.
+ZenSeek is an API and PWA that combines the original site with a news content agent.
 
-The agent reads the public U.S. Google Trends RSS snapshot, creates source-aware educational pages and quizzes,
-updates `catalog.json`, and exposes the latest content through the API.
+The agent reads public news RSS feeds and uses an OpenAI-compatible model to create
+source-aware news briefings, which are exposed through the API.
 
 ## Run locally
 
@@ -26,8 +26,17 @@ The homepage displays article dates in UTC without times. The API retains the
 original timestamps for ordering and other consumers.
 
 The Netlify site proxies story URLs to Heroku. Deploy both services after
-changing story routing. Heroku's filesystem is ephemeral: generated updates
-are lost on dyno restart unless stored externally.
+changing story routing.
+
+Provision Heroku Postgres and attach it to the app so `DATABASE_URL` is set.
+Set `OPENAI_API_KEY` on Heroku for the model; this incurs API costs. The web
+dyno checks for a refresh every minute, starts a refresh when the last successful
+one started at least 30 minutes ago, and uses a Postgres advisory lock to prevent
+overlapping refreshes across dynos. An always-running web dyno is required.
+News, catalog updates, and story pages are stored in Postgres across restarts.
+If the database or model is unavailable, the agent logs the failure and keeps
+the last successful feed. Until the first successful refresh, the bundled
+feed is displayed. Multiple web dynos must share the same database.
 
 ## API
 
@@ -52,10 +61,16 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/v1/calculators/mo
 python content_agent.py --limit 12
 ```
 
-The server starts the agent automatically once, then refreshes every 24 hours. Set `ENABLE_TRENDS_AGENT=0` to disable
+The server checks for a refresh on startup and starts refreshes at least 30
+minutes apart. Set `ENABLE_TRENDS_AGENT=0`
+to disable scheduled updates. Without Postgres, local updates are stored in
+`daily-content.json` and `catalog.json`; Heroku requires `DATABASE_URL` for
 scheduled updates.
 
-Set `AGENT_TOKEN` to require `Authorization: Bearer <token>` for `POST /api/v1/agent/run`.
+Set `AGENT_TOKEN` to require `Authorization: Bearer <token>` for
+`POST /api/v1/agent/run`. Heroku rejects manual runs when this token is unset.
 
-The agent uses deterministic, source-aware templates by default. To let an OpenAI-compatible endpoint improve summaries,
-set `OPENAI_API_KEY`, optionally `OPENAI_BASE_URL`, and `OPENAI_MODEL`.
+Set `OPENAI_API_KEY` and optionally `OPENAI_BASE_URL` and `OPENAI_MODEL`.
+Briefings use feed headlines and summaries, not necessarily full articles;
+details and images are only available when supplied by sources. Missing
+images are omitted. Inspect Heroku logs for feed or model errors.

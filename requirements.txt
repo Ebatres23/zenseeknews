@@ -1,2 +1,1 @@
-# ZenSeek uses only Python standard library modules
-# No external dependencies required
+psycopg[binary]>=3.2,<4

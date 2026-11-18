@@ -46,7 +46,8 @@ h1 em { color: #739a78; font-weight: 400; }
 .section-label { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 18px 0; border-top: 1px solid #ccd8cd; color: #909b91; }
 .section-label h2 { margin: 0; color: #46564a; font-size: inherit; letter-spacing: inherit; }
 .label-number { color: #8ca793; margin-right: 10px; }
-.featured-card { min-height: 350px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; background: #e5eee3; border-radius: 4px; }
+.featured-card { min-height: 350px; display: grid; overflow: hidden; background: #e5eee3; border-radius: 4px; }
+.featured-card.has-image { grid-template-columns: 1fr 1fr; }
 .featured-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: clamp(28px, 4vw, 58px); }
 .feature-kicker { color: #497c59; margin-bottom: 26px; }
 .story-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 16px; color: #849087; line-height: 1.4; }
@@ -58,7 +59,6 @@ h1 em { color: #739a78; font-weight: 400; }
 .story-image { position: relative; min-height: 190px; overflow: hidden; background: #dce9dc; }
 .story-image img { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: cover; transition: transform .45s ease; }
 .featured-card:hover img, .card-link:hover img { transform: scale(1.035); }
-.image-fallback { display: grid; place-items: center; position: absolute; inset: 0; color: #a8c0aa; background: linear-gradient(135deg, #e1ece0, #cddfce); font-size: 5rem; }
 .featured-placeholder { min-height: 250px; display: grid; place-items: center; padding: 30px; text-align: center; color: #6f8272; background: #e5eee3; }
 .loading-pulse { width: 14px; height: 14px; border-radius: 50%; background: #85aa89; animation: pulse 1.5s infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
@@ -119,7 +119,7 @@ footer p { font-size: 16px; line-height: 1.7; }
   .intro-aside { display: none; }
   h1 { margin-top: 22px; }
   .section-label > span { text-align: right; }
-  .featured-card { grid-template-columns: 1fr; }
+  .featured-card.has-image { grid-template-columns: 1fr; }
   .featured-card .story-image { grid-row: 1; min-height: 220px; aspect-ratio: 1.65; }
   .featured-copy { padding: 28px; }
   .feature-kicker { margin-bottom: 20px; }

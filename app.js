@@ -41,19 +41,21 @@ function articleDate(item) {
 }
 
 function storyImage(item) {
+  const image = [item.image, ...(item.sources || []).map(source => source.image)]
+    .find(url => typeof url === 'string' && /^https?:\/\//i.test(url)
+      && !/^https?:\/\/(?:source\.)?unsplash\.com\//i.test(url));
+  if (!image) return null;
   const container = element('div', 'story-image');
-  const fallback = element('div', 'image-fallback', '✳');
-  fallback.setAttribute('aria-hidden', 'true');
-  container.append(fallback);
-  const image = item.image || item.sources?.[0]?.image;
-  if (image && /^(https?:\/\/|data:image\/)/i.test(image)) {
-    const img = document.createElement('img');
-    img.src = image;
-    img.alt = '';
-    img.loading = 'lazy';
-    img.addEventListener('error', () => img.remove());
-    container.append(img);
-  }
+  const img = document.createElement('img');
+  img.src = image;
+  img.alt = '';
+  img.loading = 'lazy';
+  img.addEventListener('error', () => {
+    const parent = container.parentElement;
+    container.remove();
+    parent?.classList.remove('has-image');
+  });
+  container.append(img);
   return container;
 }
 
@@ -83,7 +85,12 @@ function featuredStory(item) {
     element('p', 'feature-description', item.description || ''),
     link
   );
-  card.append(copy, storyImage(item));
+  card.append(copy);
+  const image = storyImage(item);
+  if (image) {
+    card.classList.add('has-image');
+    card.append(image);
+  }
   return card;
 }
 
@@ -98,7 +105,9 @@ function storyCard(item) {
     element('p', 'card-description', item.description || ''),
     element('span', 'card-read', 'READ STORY →')
   );
-  link.append(storyImage(item), copy);
+  const image = storyImage(item);
+  if (image) link.append(image);
+  link.append(copy);
   card.append(link);
   return card;
 }
@@ -122,9 +131,11 @@ async function loadStories() {
     }
     featured.replaceChildren(featuredStory(items[0]));
     featured.classList.remove('featured-placeholder');
+    empty.hidden = true;
     grid.replaceChildren(...items.slice(1, 40).map(storyCard));
     status.textContent = `${items.length} stories in today’s briefing`;
     const majorList = document.querySelector('#major-list');
+    majorList.replaceChildren();
     const majorStories = (data.major_news || []).filter(story => /^https?:\/\//i.test(story.url || '')).slice(0, 15);
     for (const story of majorStories) {
       const row = document.createElement('li');
@@ -150,6 +161,7 @@ async function loadStories() {
 }
 
 loadStories();
+setInterval(loadStories, 30 * 60 * 1000);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

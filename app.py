@@ -16,11 +16,21 @@ STORE_PATH = ROOT / "daily-content.json"
 
 
 def load_catalog():
+    if os.environ.get("DATABASE_URL"):
+        from news_storage import load_feed
+        feed = load_feed()
+        if feed:
+            return feed[1]
     with CATALOG_PATH.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
 def load_store():
+    if os.environ.get("DATABASE_URL"):
+        from news_storage import load_feed
+        feed = load_feed()
+        if feed:
+            return feed[0]
     if not STORE_PATH.exists():
         return {"updated_at": None, "date": None, "source": "Google Trends U.S. RSS", "items": []}
     with STORE_PATH.open("r", encoding="utf-8") as handle:
@@ -236,9 +246,12 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
             slug = path[len("/story/"):].strip("/")
             items = load_store()["items"]
             item = next((entry for entry in items if entry["slug"] == slug), None)
+            if not item and os.environ.get("DATABASE_URL"):
+                from news_storage import load_story
+                item = load_story(slug)
             if item:
                 generated_page = (ROOT / item["path"].lstrip("/") / "index.html").resolve()
-                if ROOT in generated_page.parents and generated_page.is_file():
+                if not item.get("content") and ROOT in generated_page.parents and generated_page.is_file():
                     self.serve_static(item["path"].rstrip("/") + "/index.html")
                     return
 
@@ -254,7 +267,8 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
                     content["economy_impact"] = item["economy_impact"]
                     content["actions"] = item["actions"]
                 self.send_text(200, render_page(
-                    topic, category, content, item["published"], items.index(item) + 1,
+                    topic, category, content, item["published"],
+                    next((i for i, entry in enumerate(items, 1) if entry["slug"] == slug), 1),
                     item["traffic"], articles, item["fact_check"], item["economic_impact_score"],
                 ))
                 return
@@ -281,15 +295,21 @@ class ZenSeekHandler(BaseHTTPRequestHandler):
 
         if parsed.path == "/api/v1/agent/run":
             token = os.environ.get("AGENT_TOKEN")
+            if os.environ.get("DYNO") and not token:
+                self.send_json(503, {"error": {"code": "agent_token_required", "message": "AGENT_TOKEN must be configured for manual refreshes"}})
+                return
             if token:
                 supplied = self.headers.get("Authorization", "")
                 if supplied != f"Bearer {token}":
                     self.send_json(401, {"error": {"code": "unauthorized", "message": "A valid agent bearer token is required"}})
                     return
             try:
-                from content_agent import run
+                from content_agent import run_scheduled
                 limit = min(60, max(1, int(body.get("limit", 40))))
-                store = run(limit)
+                store = run_scheduled(limit, force=True)
+                if store is None:
+                    self.send_json(409, {"error": {"code": "agent_busy", "message": "A refresh is already running"}})
+                    return
                 self.send_json(200, {
                     "status": "generated",
                     "generated": len(store["items"]),
@@ -404,21 +424,24 @@ def main():
     port = int(os.environ.get("PORT", "8080"))
     host = os.environ.get("HOST", "0.0.0.0")
     
-    # Only run content agent in development (not on Heroku)
-    if os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0" and os.environ.get("DYNO") is None:
+    if os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0" and (
+        os.environ.get("DYNO") is None or os.environ.get("DATABASE_URL")
+    ):
         def scheduled_content_agent():
             while True:
                 try:
-                    from content_agent import run
-                    store = run(int(os.environ.get("TRENDS_LIMIT", "40")))
-                    print(f"[{time.strftime('%H:%M:%S')}] Content agent generated {len(store['items'])} items and updated daily feed")
+                    from content_agent import run_scheduled
+                    store = run_scheduled(int(os.environ.get("TRENDS_LIMIT", "40")))
+                    if store:
+                        print(f"[{time.strftime('%H:%M:%S')}] Content agent generated {len(store['items'])} items and updated daily feed", flush=True)
                 except Exception as exc:
                     print(f"[{time.strftime('%H:%M:%S')}] Content agent update failed: {exc}")
                     import traceback
                     traceback.print_exc()
-                # Run every minute to keep news feed live and current
                 time.sleep(60)
         threading.Thread(target=scheduled_content_agent, name="trends-agent", daemon=True).start()
+    elif os.environ.get("DYNO") and os.environ.get("ENABLE_TRENDS_AGENT", "1") != "0":
+        print("Content agent disabled: DATABASE_URL is required on Heroku", flush=True)
     
     server = ThreadingHTTPServer((host, port), ZenSeekHandler)
     print(f"ZenSeek API listening on http://{host}:{port}")
